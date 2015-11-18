@@ -109,7 +109,7 @@ public class RabbitmqConfiguration {
         log.info("rabbitmq(" + connectionFactory.getHost() + ":" + connectionFactory.getPort() + ").channelCacheSize(" + connectionFactory.getChannelCacheSize() + ")");
         return connectionFactory;
     }
-    
+
 
     @Bean
     Exchange sensorExchange() {
