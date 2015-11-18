@@ -1,0 +1,43 @@
+[
+  {
+    "id":"6ce8b750.931748",
+    "type":"mqtt-broker",
+    "broker":"rabbitblack",
+    "port":"1883",
+    "clientid":""
+  },
+  {
+    "id":"e37b0294.1c85",
+    "type":"mqtt out",
+    "name":"",
+    "topic":"",
+    "qos":"",
+    "retain":"",
+    "broker":"6ce8b750.931748",
+    "x":286,
+    "y":74,
+    "z":"515fafe9.aea05",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"7a453144.85bad",
+    "type":"inject",
+    "name":"",
+    "topic":"time",
+    "payload":"",
+    "payloadType":"date",
+    "repeat":"",
+    "crontab":"",
+    "once":false,
+    "x":131,
+    "y":74,
+    "z":"515fafe9.aea05",
+    "wires":[
+      [
+        "e37b0294.1c85"
+      ]
+    ]
+  }
+]

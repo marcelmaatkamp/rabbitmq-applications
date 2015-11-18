@@ -1,0 +1,11 @@
+include "application",
+        "application:datadiode",
+        "application:datadiode:black",
+        "application:datadiode:red",
+        "application:encryption",
+        "application:encryption:encrypt",
+        "application:encryption:decrypt",
+        "library",
+        "library:encryption",
+        "library:encryption:encrypt",
+        "library:encryption:decrypt"
