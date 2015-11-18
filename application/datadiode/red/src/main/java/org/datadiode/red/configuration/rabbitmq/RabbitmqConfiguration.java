@@ -3,7 +3,6 @@ package org.datadiode.red.configuration.rabbitmq;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.datadiode.red.listener.EncryptedMessageListener;
 import org.datadiode.red.listener.SensorEventListener;
 import org.datadiode.service.RabbitMQService;
 import org.datadiode.service.RabbitMQServiceImpl;
@@ -110,47 +109,7 @@ public class RabbitmqConfiguration {
         log.info("rabbitmq(" + connectionFactory.getHost() + ":" + connectionFactory.getPort() + ").channelCacheSize(" + connectionFactory.getChannelCacheSize() + ")");
         return connectionFactory;
     }
-
-
-    // decryption test
-
-
-    @Bean
-    Exchange encryptedSensorExchange() {
-        Exchange exchange = new FanoutExchange("encrypted");
-        return exchange;
-    }
-
-    @Bean
-    Queue encryptedSensorQueue() {
-        Queue queue = new Queue("encrypted");
-        return queue;
-    }
-
-    @Bean
-    BindingBuilder.GenericArgumentsConfigurer encryptedSensorQueueBinding() {
-        BindingBuilder.GenericArgumentsConfigurer destinationConfigurer = BindingBuilder.bind(encryptedSensorQueue()).to(encryptedSensorExchange()).with("");
-        rabbitAdmin().declareBinding(new Binding(encryptedSensorQueue().getName(), Binding.DestinationType.QUEUE, encryptedSensorExchange().getName(), "", null));
-        return destinationConfigurer;
-    }
-
-    @Bean
-    EncryptedMessageListener encryptedEventListener() {
-        EncryptedMessageListener encryptedMessageListener = new EncryptedMessageListener();
-        return encryptedMessageListener;
-    }
-
-    @Bean
-    SimpleMessageListenerContainer encryptedListenerContainer() {
-        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-        simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
-        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(encryptedEventListener());
-        simpleMessageListenerContainer.setQueueNames(encryptedSensorQueue().getName());
-        simpleMessageListenerContainer.setMessageListener(messageListenerAdapter);
-        simpleMessageListenerContainer.setConcurrentConsumers(1);
-        simpleMessageListenerContainer.start();
-        return simpleMessageListenerContainer;
-    }
+    
 
     @Bean
     Exchange sensorExchange() {
@@ -194,7 +153,5 @@ public class RabbitmqConfiguration {
         RabbitMQService rabbitMQService = new RabbitMQServiceImpl();
         return rabbitMQService;
     }
-
-
 
 }

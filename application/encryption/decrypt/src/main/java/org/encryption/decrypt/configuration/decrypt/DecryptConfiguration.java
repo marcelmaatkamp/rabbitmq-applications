@@ -1,17 +1,24 @@
-package org.datadiode.black.configuration.security;
+package org.encryption.decrypt.configuration.decrypt;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.datadiode.black.listener.EncryptMessageListener;
+import org.encryption.decrypt.listener.EncryptedMessageListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 
 import javax.crypto.Cipher;
@@ -27,38 +34,39 @@ import java.security.spec.X509EncodedKeySpec;
 /**
  * Created by marcelmaatkamp on 19/10/15.
  */
-@Configuration
-public class SecurityConfiguration {
 
-    @Autowired
-    ApplicationContext applicationContext;
+@Configuration
+public class DecryptConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(DecryptConfiguration.class);
 
     String publicKeyFilename = "public.key";
     String privateKeyFilename = "private.key";
 
-    // signature 
-    @Value("${application.datadiode.black.cipher.signature}")
+    @Autowired
+    ApplicationContext applicationContext;
+
+    // signature
+    @Value("${application.datadiode.red.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.black.cipher.provider}")
+    @Value("${application.datadiode.red.cipher.provider}")
     String SECURITY_PROVIDER;
 
-    // asymmetrical settings
-    // http://www.bouncycastle.org/wiki/display/JA1/Frequently+Asked+Questions
-    @Value("${application.datadiode.black.cipher.asymmetrical.algorithm}")
+    // asymmetrical cipher settings
+    @Value("${application.datadiode.red.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.black.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.red.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.black.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.red.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
-    // symmetrical settings
-    @Value("${application.datadiode.black.cipher.symmetrical.algorithm}")
+    // symmetrical cipher settings
+    @Value("${application.datadiode.red.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.black.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.red.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.black.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.red.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
 
     @Bean
@@ -66,6 +74,7 @@ public class SecurityConfiguration {
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM_ASYMMETRICAL);
         return keyFactory;
     }
+
 
     @Bean
     KeyPairGenerator keyPairGenerator() throws NoSuchAlgorithmException {
@@ -89,7 +98,6 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    @Scope(scopeName = "prototype")
     Cipher cipherSymmetricalKey() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         Cipher cipher = Cipher.getInstance(ALGORITHM_SYMMETRICAL_CIPHER, SECURITY_PROVIDER);
         return cipher;
@@ -149,8 +157,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    PublicKey serverPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Resource encodedPublicKeyResource = applicationContext.getResource("security/server/" + publicKeyFilename);
+    PublicKey sensorPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        Resource encodedPublicKeyResource = applicationContext.getResource("security/sensor/" + publicKeyFilename);
         if (encodedPublicKeyResource.exists()) {
             byte[] encodedPublicKey = Base64.decodeBase64(FileUtils.readFileToByteArray(encodedPublicKeyResource.getFile()));
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
@@ -160,10 +168,41 @@ public class SecurityConfiguration {
         return null;
     }
 
+    @Autowired
+    RabbitAdmin rabbitAdmin;
+
+
     @Bean
-    EncryptMessageListener encryptMessageListener() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
-        EncryptMessageListener encryptMessageListener =
-                new EncryptMessageListener();
-        return encryptMessageListener;
+    Queue encryptQueue() {
+        Queue queue = new Queue("encrypt");
+        return queue;
+    }
+
+    @Bean
+    Exchange encryptedExchange() {
+        Exchange exchange = new FanoutExchange("encrypted");
+        rabbitAdmin.declareExchange(exchange);
+        return exchange;
+    }
+
+
+    @Autowired
+    ConnectionFactory connectionFactory;
+
+    @Bean
+    EncryptedMessageListener encryptedEventListener() {
+        EncryptedMessageListener encryptedMessageListener = new EncryptedMessageListener();
+        return encryptedMessageListener;
+    }
+
+    @Bean
+    SimpleMessageListenerContainer encryptedListenerContainer() {
+        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
+        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
+        simpleMessageListenerContainer.setMessageListener(encryptedEventListener());
+        simpleMessageListenerContainer.setQueueNames(encryptQueue().getName());
+        simpleMessageListenerContainer.setConcurrentConsumers(1);
+        simpleMessageListenerContainer.start();
+        return simpleMessageListenerContainer;
     }
 }

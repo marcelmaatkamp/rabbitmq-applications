@@ -1,10 +1,8 @@
-package org.datadiode.black.listener;
+package org.encryption.encrypt.listener;
 
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
 import org.bouncycastle.crypto.Digest;
-import org.datadiode.model.message.ExchangeMessage;
-import org.datadiode.service.RabbitMQService;
 import org.library.encryption.model.SecureMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +12,7 @@ import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
 import javax.crypto.*;
@@ -25,6 +24,7 @@ import java.security.*;
  *
  * Created by marcelmaatkamp on 15/10/15.
  */
+@Component
 public class EncryptMessageListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(EncryptMessageListener.class);
 
@@ -55,9 +55,6 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
     PublicKey serverPublicKey;
 
     @Autowired
-    RabbitMQService rabbitMQService;
-
-    @Autowired
     XStream xStream;
 
     /**
@@ -71,12 +68,13 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         // convert to an exchange message
-        ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(message);
+        // ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(message);
+
         // convert that to an secure messagae
-        SecureMessage secureMessage = encryptMessage(SerializationUtils.serialize(exchangeMessage));
+        SecureMessage secureMessage = encryptMessage(SerializationUtils.serialize(message));
         if(log.isDebugEnabled()) {
-            Object o = rabbitTemplate.getMessageConverter().fromMessage(exchangeMessage.getMessage());
-            log.debug("["+message.getMessageProperties().getReceivedRoutingKey()+"]: " + xStream.toXML(secureMessage) + ": " +xStream.toXML(exchangeMessage) + ": message: " + xStream.toXML(o));
+            Object o = rabbitTemplate.getMessageConverter().fromMessage(message);
+            log.debug("["+message.getMessageProperties().getReceivedRoutingKey()+"]: " + xStream.toXML(secureMessage) + ": " +xStream.toXML(message));
         }
         // and send it over to the encrypted exchange
         rabbitTemplate.convertAndSend(encryptedExchange.getName(), message.getMessageProperties().getReceivedRoutingKey(),secureMessage);

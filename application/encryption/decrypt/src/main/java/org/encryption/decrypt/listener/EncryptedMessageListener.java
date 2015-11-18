@@ -1,10 +1,8 @@
-package org.datadiode.red.listener;
+package org.encryption.decrypt.listener;
 
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
 import org.bouncycastle.crypto.Digest;
-import org.datadiode.model.message.ExchangeMessage;
-import org.datadiode.service.RabbitMQService;
 import org.library.encryption.model.SecureMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +11,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
 import javax.crypto.Cipher;
@@ -26,6 +25,7 @@ import java.security.Signature;
 /**
  * Created by marcelmaatkamp on 15/10/15.
  */
+@Component
 public class EncryptedMessageListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(EncryptedMessageListener.class);
 
@@ -57,9 +57,6 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
 
     @Autowired
     XStream xStream;
-
-    @Autowired
-    RabbitMQService rabbitMQService;
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
@@ -112,14 +109,17 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
                             index = secureMessage.getIndex();
                         }
 
-                        ExchangeMessage exchangeMessage = (ExchangeMessage) SerializationUtils.deserialize(decyptedData);
+                        Message decryptedMessage = (Message) SerializationUtils.deserialize(decyptedData);
+
+                        // ExchangeMessage exchangeMessage = (ExchangeMessage) SerializationUtils.deserialize(decyptedData);
 
                         if(log.isDebugEnabled()) {
-                            Object o = rabbitTemplate.getMessageConverter().fromMessage(exchangeMessage.getMessage());
-                            log.debug("["+routingKey+"]: secure(" + xStream.toXML(secureMessage) + "): exchange(" +xStream.toXML(exchangeMessage) + "): message: " + xStream.toXML(o));
+                            Object o = rabbitTemplate.getMessageConverter().fromMessage(decryptedMessage);
+                            log.debug("["+routingKey+"]: secure(" + xStream.toXML(secureMessage) + "): exchange(" +xStream.toXML(decryptedMessage) + "): message: " + xStream.toXML(o));
                         }
 
-                        rabbitMQService.sendExchangeMessage(exchangeMessage);
+                        rabbitTemplate.send(decryptedMessage);
+                        // rabbitMQService.sendExchangeMessage(exchangeMessage);
 
                     } else {
                         log.error("did not verify!");

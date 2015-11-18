@@ -1,17 +1,22 @@
-package org.datadiode.red.configuration.security;
+package org.encryption.encrypt.configuration.encrypt;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.encryption.encrypt.listener.EncryptMessageListener;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 
 import javax.crypto.Cipher;
@@ -27,39 +32,38 @@ import java.security.spec.X509EncodedKeySpec;
 /**
  * Created by marcelmaatkamp on 19/10/15.
  */
-
 @Configuration
-public class SecurityConfiguration {
-    private static final Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
-
-    String publicKeyFilename = "public.key";
-    String privateKeyFilename = "private.key";
+public class EncryptConfiguration {
 
     @Autowired
     ApplicationContext applicationContext;
 
-    // signature
-    @Value("${application.datadiode.red.cipher.signature}")
+    String publicKeyFilename = "public.key";
+    String privateKeyFilename = "private.key";
+
+    // signature 
+    @Value("${application.datadiode.black.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.red.cipher.provider}")
+    @Value("${application.datadiode.black.cipher.provider}")
     String SECURITY_PROVIDER;
 
-    // asymmetrical cipher settings
-    @Value("${application.datadiode.red.cipher.asymmetrical.algorithm}")
+    // asymmetrical settings
+    // http://www.bouncycastle.org/wiki/display/JA1/Frequently+Asked+Questions
+    @Value("${application.datadiode.black.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.red.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.black.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.red.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.black.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
-    // symmetrical cipher settings
-    @Value("${application.datadiode.red.cipher.symmetrical.algorithm}")
+    // symmetrical settings
+    @Value("${application.datadiode.black.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.red.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.black.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.red.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.black.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
 
     @Bean
@@ -67,7 +71,6 @@ public class SecurityConfiguration {
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM_ASYMMETRICAL);
         return keyFactory;
     }
-
 
     @Bean
     KeyPairGenerator keyPairGenerator() throws NoSuchAlgorithmException {
@@ -91,6 +94,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    @Scope(scopeName = "prototype")
     Cipher cipherSymmetricalKey() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         Cipher cipher = Cipher.getInstance(ALGORITHM_SYMMETRICAL_CIPHER, SECURITY_PROVIDER);
         return cipher;
@@ -150,8 +154,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    PublicKey sensorPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Resource encodedPublicKeyResource = applicationContext.getResource("security/sensor/" + publicKeyFilename);
+    PublicKey serverPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        Resource encodedPublicKeyResource = applicationContext.getResource("security/server/" + publicKeyFilename);
         if (encodedPublicKeyResource.exists()) {
             byte[] encodedPublicKey = Base64.decodeBase64(FileUtils.readFileToByteArray(encodedPublicKeyResource.getFile()));
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
@@ -159,5 +163,48 @@ public class SecurityConfiguration {
             return publicKey;
         }
         return null;
+    }
+
+
+
+    @Bean
+    EncryptMessageListener encryptMessageListener() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
+        EncryptMessageListener encryptMessageListener =
+                new EncryptMessageListener();
+        return encryptMessageListener;
+    }
+
+    @Autowired
+    ConnectionFactory connectionFactory;
+
+    @Autowired
+    RabbitAdmin rabbitAdmin;
+
+    @Bean
+    Exchange encryptExchange() {
+        Exchange exchange = new FanoutExchange("encrypt");
+        rabbitAdmin.declareExchange(exchange);
+        return exchange;
+    }
+
+    @Bean
+    Queue encryptQueue() {
+        Queue queue = new Queue("encrypt");
+        rabbitAdmin.declareQueue(queue);
+
+        BindingBuilder.bind(queue).to(encryptExchange()).with("");
+        rabbitAdmin.declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, encryptExchange().getName(), "", null));
+        return queue;
+    }
+
+    @Bean
+    SimpleMessageListenerContainer simpleMessageListenerContainerEncypted() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
+        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
+        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
+        simpleMessageListenerContainer.setQueueNames(encryptQueue().getName());
+        simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(encryptMessageListener()));
+        simpleMessageListenerContainer.setConcurrentConsumers(1);
+        simpleMessageListenerContainer.start();
+        return simpleMessageListenerContainer;
     }
 }
