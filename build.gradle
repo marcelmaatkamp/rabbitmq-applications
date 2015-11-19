@@ -22,8 +22,8 @@ allprojects {
 // apply plugin: "scala"
 
     jar {
-        baseName = "datadiode-black"
-        version = "0.1.0"
+        baseName = "rabbitmq-applications"
+        version = "0.1"
     }
 
     repositories {
