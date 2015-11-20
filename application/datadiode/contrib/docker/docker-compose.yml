@@ -11,6 +11,7 @@ volumes:
   volumes:
     - "./volumes/node-red/:/root/.node-red/"
     - "./volumes/rabbitmq/:/var/lib/rabbitmq/"
+    - "./volumes/ldap/:/var/lib/ldap/"
 
 # automatic reverse proxy for exposed ports
 proxy:
@@ -20,6 +21,17 @@ proxy:
   volumes:
     - "/var/run/docker.sock:/tmp/docker.sock:ro"
   restart: always
+
+ldap:
+  image: nickstenning/slapd
+  expose:
+    - "389"
+  volumes_from:
+    - "volumes"
+  environment:
+    LDAP_DOMAIN: example.com
+    LDAP_ORGANIZATION: "Example Ltd."
+    LDAP_ROOTPASS: toor
 
 # 'outside' rabbitmq
 rabbitblack:
@@ -70,3 +82,4 @@ nodered:
   restart: always
   links:
     - rabbitblack
+
