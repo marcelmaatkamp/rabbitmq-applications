@@ -15,6 +15,7 @@ volumes:
 #   - "./volumes/sdap/:/etc/ldap/slapd.d/"
 
 # automatic reverse proxy for exposed ports
+# todo: certs for 443
 proxy:
   image: jwilder/nginx-proxy
   ports:
@@ -47,6 +48,8 @@ webldap:
   expose:
     - "443"
     - "80"
+  ports:
+    - "443:443"
 
 # 'outside' rabbitmq
 rabbitblack:
