@@ -48,8 +48,7 @@ webldap:
 
 # 'outside' rabbitmq
 rabbitblack:
-  image: rabbitmq:management 
-  # build: rabbitmq_udp/
+  build: rabbitmq_udp/
   environment:
     RABBITMQ_NODENAME: rabbitblack
     VIRTUAL_HOST: rabbitblack
@@ -67,8 +66,7 @@ rabbitblack:
 
 # 'inside' rabbitmq
 rabbitred:
-  image: rabbitmq:management 
-  # build: rabbitmq_udp/
+  build: rabbitmq_udp/
   environment:
     RABBITMQ_NODENAME: rabbitred
     VIRTUAL_HOST: rabbitred
