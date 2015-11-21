@@ -11,8 +11,8 @@ volumes:
   volumes:
     - "./volumes/node-red/:/root/.node-red/"
     - "./volumes/rabbitmq/:/var/lib/rabbitmq/"
-    - "./volumes/ldap/:/var/lib/ldap/"
-#   - "./volumes/sdap/:/etc/ldap/slapd.d/"
+    - "./volumes/ldap/:/var/lib/ldap"
+    - "./volumes/slap/:/etc/ldap/slapd.d"
 
 # automatic reverse proxy for exposed ports
 # todo: certs for 443
@@ -20,7 +20,7 @@ proxy:
   image: jwilder/nginx-proxy
   ports:
     - "80:80"
-    - "443:443"
+#   - "443:443"
   volumes:
     - "/var/run/docker.sock:/tmp/docker.sock:ro"
   restart: always
@@ -33,10 +33,10 @@ ldap:
     - "636"
   volumes_from:
     - "volumes"
-  environment:
-    LDAP_DOMAIN: example.com
-    LDAP_ORGANIZATION: "Example Ltd."
-    LDAP_ROOTPASS: toor
+#  environment:
+#    LDAP_DOMAIN: example.com
+#    LDAP_ORGANIZATION: "Example Ltd."
+#    LDAP_ROOTPASS: toor
 
 # https://github.com/osixia/docker-phpLDAPadmin
 webldap:
