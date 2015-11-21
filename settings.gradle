@@ -10,6 +10,11 @@ include "application",
         "application:encryption:encrypt",
         "application:encryption:decrypt",
 
+        // fileshare
+        "application:fileshare",
+        "application:fileshare:internal",
+        "application:fileshare:external",
+
         "library",
 
         // encryption

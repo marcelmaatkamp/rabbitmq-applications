@@ -6,6 +6,7 @@ RUN rabbitmq-plugins enable --offline \
     rabbitmq_shovel \
     rabbitmq_shovel_management \
     rabbitmq_mqtt \
+    rabbitmq_auth_backend_ldap \
     rabbitmq_management
 
 RUN apt-get update && apt-get dist-upgrade -fy && \
