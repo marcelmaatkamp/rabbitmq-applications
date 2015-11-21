@@ -40,12 +40,13 @@ ldap:
 # https://github.com/osixia/docker-phpLDAPadmin
 webldap:
   image: osixia/phpldapadmin
-  expose:
-    - "443"
   environment:
     PHPLDAPADMIN_LDAP_HOSTS: ldap
   links:
     - ldap
+  expose:
+    - "443"
+    - "80"
 
 # 'outside' rabbitmq
 rabbitblack:
