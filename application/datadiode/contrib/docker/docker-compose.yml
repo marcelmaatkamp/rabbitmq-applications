@@ -12,7 +12,7 @@ volumes:
     - "./volumes/node-red/:/root/.node-red/"
     - "./volumes/rabbitmq/:/var/lib/rabbitmq/"
     - "./volumes/ldap/:/var/lib/ldap/"
-    - "./volumes/sdap/:/etc/ldap/slapd.d/"
+#   - "./volumes/sdap/:/etc/ldap/slapd.d/"
 
 # automatic reverse proxy for exposed ports
 proxy:
