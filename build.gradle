@@ -145,6 +145,32 @@ project(":application:encryption:decrypt") {
     }
 }
 
+// search
+project(":application:search") {
+    dependencies {
+        compile project(':application')
+        compile project(':library:search')
+    }
+}
+project(":application:search:producer") {
+    dependencies {
+        compile project(':application:search')
+
+    }
+    springBoot {
+        mainClass = "org.search.producer.SearchProducerStarter"
+    }
+}
+project(":application:search:consumer") {
+    dependencies {
+        compile project(':application:search')
+    }
+    springBoot {
+        mainClass = "org.search.consumer.SearchConsumerStarter"
+    }
+}
+
+
 // library
 project(":library") {
 
