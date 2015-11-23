@@ -18,6 +18,12 @@ include "application",
         // streams
         "application:stream",
 
+        // search
+        "application:search",
+        "application:search:producer",
+        "application:search:consumer",
+
+
         // libraries
         "library",
 

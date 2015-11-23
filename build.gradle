@@ -42,6 +42,8 @@ allprojects {
         jackson2Version = "2.3.2"
         bouncycastleVersion = "1.53"
         esperVersion = "5.3.0"
+        tikaVersion = "1.11"
+        httpcomponentsHttpclientVersion = "4.5.1"
     }
 
     dependencies {
@@ -149,12 +151,15 @@ project(":application:encryption:decrypt") {
 project(":application:search") {
     dependencies {
         compile project(':application')
-        compile project(':library:search')
     }
 }
 project(":application:search:producer") {
     dependencies {
         compile project(':application:search')
+
+        compile "com.google.http-client:google-http-client"
+        compile "org.apache.httpcomponents:httpclient:$httpcomponentsHttpclientVersion"
+
 
     }
     springBoot {
@@ -164,6 +169,15 @@ project(":application:search:producer") {
 project(":application:search:consumer") {
     dependencies {
         compile project(':application:search')
+
+        compile "org.apache.tika:tika-core:$tikaVersion"
+        compile "org.apache.tika:tika-parsers:$tikaVersion"
+        compile "org.apache.tika:tika-xmp:$tikaVersion"
+        compile "org.apache.tika:tika-java7:$tikaVersion"
+        compile "org.apache.tika:tika-serialization:$tikaVersion"
+        compile "org.apache.tika:tika-translate:$tikaVersion"
+        compile "org.apache.tika:tika:$tikaVersion"
+
     }
     springBoot {
         mainClass = "org.search.consumer.SearchConsumerStarter"
