@@ -1,7 +1,11 @@
-package org.application.rabbitmq.search.producer.configuration.search;
+package org.application.rabbitmq.search.consumer.configuration.search;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -21,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by marcelmaatkamp on 23/11/15.
  */
 @Configuration
-@EnableScheduling
 public class SearchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(SearchConfiguration.class);
 
@@ -29,9 +32,6 @@ public class SearchConfiguration {
 
     @Autowired
     ConnectionFactory connectionFactory;
-
-    @Autowired
-    private volatile RabbitTemplate rabbitTemplate;
 
     @Bean
     public SimpleRabbitListenerContainerFactory myRabbitListenerContainerFactory() {
@@ -41,8 +41,13 @@ public class SearchConfiguration {
         return factory;
     }
 
-    @Scheduled(fixedRate = 3000)
-    public void sendMessage() throws MalformedURLException {
-        rabbitTemplate.convertAndSend("url", null, new URL("http://www.nu.nl"));
+    @RabbitListener(
+            containerFactory="myRabbitListenerContainerFactory",
+            bindings = @QueueBinding(
+            value = @Queue(value = "url", durable = "true"),
+            exchange = @Exchange(value = "url"))
+    )
+    public void process(String message) {
+        log.info("message("+message+")");
     }
 }
