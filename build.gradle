@@ -41,6 +41,7 @@ allprojects {
         jacksonVersion = "1.9.13"
         jackson2Version = "2.3.2"
         bouncycastleVersion = "1.53"
+        esperVersion = "5.3.0"
     }
 
     dependencies {
@@ -160,12 +161,23 @@ project(":library:encryption:encrypt") {
     dependencies {
         compile project(':library:encryption')
     }
-
-
 }
 project(":library:encryption:decrypt") {
     dependencies {
         compile project(':library:encryption')
     }
-
 }
+project(":library:esper") {
+    dependencies {
+        compile project(':library')
+        compile "com.espertech:esper:$esperVersion"
+        compile "com.espertech:esperio-amqp:$esperVersion"
+        compile "com.espertech:esperio-db:$esperVersion"
+        compile "com.espertech:esperio-csv:$esperVersion"
+        compile "com.espertech:esperio-stax:$esperVersion"
+        compile "com.espertech:esperio-springjms:$esperVersion"
+        compile "com.espertech:esperio-http:$esperVersion"
+        compile "com.espertech:esperio-socket:$esperVersion"
+    }
+}
+

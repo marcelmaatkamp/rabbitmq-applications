@@ -15,9 +15,16 @@ include "application",
         "application:fileshare:internal",
         "application:fileshare:external",
 
+        // streams
+        "application:stream",
+
+        // libraries
         "library",
 
         // encryption
         "library:encryption",
         "library:encryption:encrypt",
-        "library:encryption:decrypt"
+        "library:encryption:decrypt",
+
+        // esper
+        "library:esper"
