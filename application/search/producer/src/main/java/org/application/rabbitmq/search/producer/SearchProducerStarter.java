@@ -17,6 +17,6 @@ public class SearchProducerStarter {
     private static final Logger log = LoggerFactory.getLogger(SearchProducerStarter.class);
 
     public static void main(String[] args) throws IOException {
-        ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(SearchProducerStarter.class).web(false).run(args);
+        ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(SearchProducerStarter.class).run(args);
     }
 }
