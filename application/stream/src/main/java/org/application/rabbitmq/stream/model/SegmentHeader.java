@@ -10,6 +10,7 @@ public class SegmentHeader implements Serializable {
     public UUID uuid = UUID.randomUUID();
     public int size;
     public int blockSize;
+    public int count;
 
     public SegmentHeader size(final int size) {
         this.size = size;
@@ -17,6 +18,10 @@ public class SegmentHeader implements Serializable {
     }
     public SegmentHeader blockSize(final int blockSize) {
         this.blockSize = blockSize;
+        return this;
+    }
+    public SegmentHeader count(int count) {
+        this.count = count;
         return this;
     }
 }

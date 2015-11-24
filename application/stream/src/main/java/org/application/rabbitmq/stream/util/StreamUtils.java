@@ -25,14 +25,16 @@ public class StreamUtils {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
-        SegmentHeader sh = new SegmentHeader().size(messageBytes.length).blockSize(bufSize);
+
+        int aantal = (int)(messageBytes.length / bufSize);
+        int modulo = messageBytes.length % bufSize;
+
+        SegmentHeader sh = new SegmentHeader().size(messageBytes.length).blockSize(bufSize).count(aantal);
 
         MessageProperties messageProperties = new MessageProperties();
         messageProperties.setReceivedRoutingKey(sh.uuid.toString());
         results.add(new Message(SerializationUtils.serialize(sh), messageProperties));
 
-        int aantal = (int)(messageBytes.length / bufSize);
-        int modulo = messageBytes.length % bufSize;
 
         // blocksize
         for(int i = 0; i < aantal; i++) {

@@ -11,8 +11,6 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableIntegration
-@EnableAutoConfiguration
 public class StreamOutputStarter {
     private static final Logger log = LoggerFactory.getLogger(StreamOutputStarter.class);
 
