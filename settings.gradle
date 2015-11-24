@@ -17,6 +17,8 @@ include "application",
 
         // streams
         "application:stream",
+        "application:stream:input",
+        "application:stream:output",
 
         // search
         "application:search",

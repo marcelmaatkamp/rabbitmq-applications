@@ -1,5 +1,12 @@
 package org.application.rabbitmq.search.consumer.configuration.search;
 
+import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.serialization.JsonMetadata;
+import org.apache.tika.metadata.serialization.JsonMetadataList;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -16,10 +23,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.xml.sax.SAXException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -44,10 +50,16 @@ public class SearchConfiguration {
     ConnectionFactory connectionFactory;
 
     @Bean
+    Tika tika() {
+        Tika tika = new Tika();
+        return tika;
+    }
+
+    @Bean
     public SimpleRabbitListenerContainerFactory myRabbitListenerContainerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
-        factory.setMaxConcurrentConsumers(5);
+        factory.setMaxConcurrentConsumers(1);
         return factory;
     }
 
@@ -57,18 +69,22 @@ public class SearchConfiguration {
             value = @Queue(value = "url", durable = "true"),
             exchange = @Exchange(value = "url"))
     )
-    public void process(URL url) throws IOException {
+    public void process(URL url) throws IOException, TikaException, SAXException {
         log.info("url("+url+")");
         sendGET(url);
 
     }
-    private static void sendGET(URL url) throws IOException {
+
+    private static void sendGET(URL url) throws IOException, TikaException, SAXException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         con.setRequestProperty("User-Agent", "google");
         int responseCode = con.getResponseCode();
-        System.out.println("GET Response Code :: " + responseCode);
+        log.info("GET Response Code :: " + responseCode);
         if (responseCode == HttpURLConnection.HTTP_OK) { // success
+
+            parse(con.getInputStream());
+
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();
@@ -82,5 +98,17 @@ public class SearchConfiguration {
             log.info("GET request not worked");
         }
 
+    }
+
+    public static String parse(InputStream stream) throws IOException, SAXException, TikaException {
+        AutoDetectParser parser = new AutoDetectParser();
+        BodyContentHandler handler = new BodyContentHandler(-1);
+        Metadata metadata = new Metadata();
+        parser.parse(stream, handler, metadata);
+        StringWriter writer = new StringWriter();
+        JsonMetadata.toJson(metadata, writer);
+        log.info(writer.toString());
+
+        return handler.toString();
     }
 }
