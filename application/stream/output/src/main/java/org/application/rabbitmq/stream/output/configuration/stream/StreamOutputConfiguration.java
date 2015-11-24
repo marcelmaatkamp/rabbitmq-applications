@@ -47,15 +47,19 @@ public class StreamOutputConfiguration {
         if(o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader)o;
             uMessages.put(segmentHeader, new ArrayList());
+            log.info("started("+segmentHeader.uuid+")");
         } else if(o instanceof Segment) {
             Segment segment = (Segment)o;
             for(SegmentHeader segmentHeader : uMessages.keySet()) {
                 if(segmentHeader.uuid == segment.uuid) {
+                    log.info("s("+segmentHeader.uuid+") - m("+segment.uuid+")");
                     List<Message> messages = uMessages.get(segmentHeader);
                     messages.add(message);
                     if(messages.size() == segmentHeader.count) {
                         Message messageFromStream = StreamUtils.reconstruct(messages);
                         rabbitTemplate.send("bla", null, messageFromStream);
+                    } else {
+                        log.info("uuid("+segmentHeader.uuid+"): " + messages.size());
                     }
                 }
             }
