@@ -2,6 +2,9 @@ import junit.framework.Assert;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.output.*;
 import org.apache.commons.lang3.RandomUtils;
+import org.application.rabbitmq.stream.model.Segment;
+import org.application.rabbitmq.stream.model.SegmentHeader;
+import org.application.rabbitmq.stream.util.StreamUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +16,7 @@ import java.io.*;
 import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,61 +60,27 @@ public class TestStreams implements Serializable {
 
     }
 
-    class SegmentHeader implements Serializable{
-        public int size;
-        public int blockSize;
-
-        public SegmentHeader size(final int size) {
-            this.size = size;
-            return this;
-        }
-        public SegmentHeader blockSize(final int blockSize) {
-            this.blockSize = blockSize;
-            return this;
-        }
-    }
-
-    class Segment implements Serializable {
-        public int index;
-        public int size;
-        public byte[] segment;
-
-
-        public Segment index(final int index) {
-            this.index = index;
-            return this;
-        }
-
-        public Segment size(final int size) {
-            this.size = size;
-            return this;
-        }
-
-        public Segment segment(final byte[] segment) {
-            this.segment = segment;
-            return this;
-        }
-    }
-
     @Test
     public void testSegmentedStream() throws IOException, ClassNotFoundException, NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-        int length = 65577;
-        int bufSize = 100;
+        int length = 90;
+        int bufSize = 1500;
 
         byte[] randomBytes = RandomUtils.nextBytes(length);
         Message message = new Message(randomBytes, new MessageProperties());
+
         byte[] messageBytes = SerializationUtils.serialize(message);
-
-
         md.update(messageBytes);
         String digest = Base64.encodeBase64String(md.digest());
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(32);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(bufSize);
         ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(new SegmentHeader().size(messageBytes.length).blockSize(bufSize));
+
+        SegmentHeader sh = new SegmentHeader().size(messageBytes.length).blockSize(bufSize);
+        oos.writeObject(sh);
+        log.info("header.size: " + SerializationUtils.serialize(sh).length);
 
         int aantal = (int)(messageBytes.length / bufSize);
         int modulo = messageBytes.length % bufSize;
@@ -124,7 +91,7 @@ public class TestStreams implements Serializable {
             int start = i * bufSize;
             int stop = start + bufSize;
             log.info("> ["+i+"]: start("+start+"), stop("+stop+")");
-            Segment segment = new Segment().index(i).segment(Arrays.copyOfRange(messageBytes, start,stop));
+            Segment segment = new Segment().index(i).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, start,stop));
             oos.writeObject(segment);
         }
 
@@ -133,7 +100,7 @@ public class TestStreams implements Serializable {
             int start = aantal*bufSize;
             int stop = modulo;
             log.info("> ["+aantal+"]: " + aantal + ", start("+start+"), stop("+stop+")");
-            Segment segment = new Segment().index(aantal).segment(Arrays.copyOfRange(messageBytes, aantal*bufSize,aantal*bufSize+modulo));
+            Segment segment = new Segment().index(aantal).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, aantal*bufSize,aantal*bufSize+modulo));
             oos.writeObject(segment);
         }
         oos.close();
@@ -148,12 +115,12 @@ public class TestStreams implements Serializable {
             Segment segment = (Segment)ois.readObject();
             bos2.write(segment.segment);
 
-            log.info("< ["+segment.index+"]: " + segment.segment.length);
+            log.info("< ["+segment.uuid+"]["+segment.index+"]: " + segment.segment.length);
         }
         if(segmentHeader.size % segmentHeader.blockSize > 0) {
             Segment segment = (Segment)ois.readObject();
             bos2.write(segment.segment);
-            log.info("< ["+segment.index+"]: " + segment.segment.length);
+            log.info("< ["+segment.uuid+"]["+segment.index+"]: " + segment.segment.length);
         }
         ois.close();
         bos.close();
@@ -180,5 +147,26 @@ public class TestStreams implements Serializable {
             ar[index] = ar[i];
             ar[i] = a;
         }
+    }
+
+    @Test
+    public void testStreams() throws IOException, NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+        int length = 90000;
+        int bufSize = 1500;
+
+        byte[] randomBytes = RandomUtils.nextBytes(length);
+        Message message = new Message(randomBytes, new MessageProperties());
+        md.update(randomBytes);
+        String digest = Base64.encodeBase64String(md.digest());
+
+        List<Message> messages = StreamUtils.cut(message, bufSize);
+        Message cutMessage = StreamUtils.reconstruct(messages);
+
+        md.update(cutMessage.getBody());
+        String cutDigest = Base64.encodeBase64String(md.digest());
+
+        org.junit.Assert.assertEquals(digest,cutDigest);
     }
 }
