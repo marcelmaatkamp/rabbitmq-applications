@@ -1,7 +1,6 @@
 package org.application.rabbitmq.stream.util;
 
 import com.thoughtworks.xstream.XStream;
-import org.apache.commons.codec.binary.Base64;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
 import org.slf4j.Logger;
@@ -23,7 +22,13 @@ public class StreamUtils {
     @Autowired
     XStream xStream;
 
-    public static List<Message> cut(Message message, int bufSize) {
+    private static void addRedundantly(List<Message> messages, Message message, int redundancyFactor) {
+        for(int i = 0; i< redundancyFactor; i++) {
+            messages.add(message);
+        }
+    }
+
+    public static List<Message> cut(Message message, int bufSize, int redundancyFactor) {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
@@ -41,7 +46,8 @@ public class StreamUtils {
         messageProperties.getHeaders().put("count", sh.count);
         messageProperties.getHeaders().put("size", sh.size);
 
-        results.add(new Message(SerializationUtils.serialize(sh), messageProperties));
+        // results.add(new Message(SerializationUtils.serialize(sh), messageProperties));
+        addRedundantly(results, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
 
         // blocksize
         for(int i = 0; i < aantal; i++) {
@@ -55,6 +61,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
             results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
+            addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
         // and the rest
@@ -69,31 +76,21 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
             results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
+            addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
         return results;
     }
 
-    public static Message reconstruct(List<Message> messages) throws IOException {
-        SegmentHeader segmentHeader = (SegmentHeader) SerializationUtils.deserialize(messages.get(0).getBody());
+    public static Message reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {
+        // SegmentHeader segmentHeader = (SegmentHeader) SerializationUtils.deserialize(messages.get(0).getBody());
 
         byte[] buffer = new byte[segmentHeader.size];
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
-        List<Segment> sortedArrayList = new ArrayList();
-
-        for(int i = 1; i< messages.size(); i++) {
-            Segment segment = (Segment) SerializationUtils.deserialize(messages.get(i).getBody());
-            // out-of-order: sort
-            sortedArrayList.add(segment);
-        }
-
-        Collections.sort(sortedArrayList);
-
-        for(Segment segment : sortedArrayList) {
+        for(Segment segment : segments) {
             bos2.write(segment.segment);
         }
-
         bos2.close();
         Message message = (Message) SerializationUtils.deserialize(bos2.toByteArray());
         return message;

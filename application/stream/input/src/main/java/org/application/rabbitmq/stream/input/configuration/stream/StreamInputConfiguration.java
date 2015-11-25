@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +41,9 @@ public class StreamInputConfiguration {
 
     @Value(value="${application.stream.cutter.size}")
     int maxMessageSize;
+
+    @Value(value="${application.stream.cutter.redundancyFactor}")
+    int redundancyFactor;
 
 
     @Bean
@@ -57,7 +61,9 @@ public class StreamInputConfiguration {
                     exchange = @Exchange(value = "cut", durable = "true", autoDelete = "true"))
     )
     void cut(Message message) {
-        List<Message> messages = StreamUtils.cut(message, maxMessageSize);
+        List<Message> messages = StreamUtils.cut(message, maxMessageSize, redundancyFactor);
+
+        Collections.shuffle(messages);
         log.info("cutting message("+message.getBody().length+") into " + messages.size() + " messages of " + maxMessageSize +" bytes..");
         for(Message m : messages) {
             rabbitTemplate.convertAndSend(cutterExchange().getName(), null, m);

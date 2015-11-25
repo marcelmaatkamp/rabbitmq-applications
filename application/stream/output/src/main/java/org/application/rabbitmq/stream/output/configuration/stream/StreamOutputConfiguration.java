@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @EnableScheduling
 public class StreamOutputConfiguration implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(StreamOutputConfiguration.class);
-    Map<SegmentHeader, List<Message>> uMessages = new ConcurrentHashMap();
+    Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
 
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
@@ -65,19 +65,17 @@ public class StreamOutputConfiguration implements MessageListener {
         Object o = SerializationUtils.deserialize(message.getBody());
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
-            List<Message> messages = new ArrayList();
-            messages.add(message);
-            uMessages.put(segmentHeader, messages);
+            uMessages.put(segmentHeader, new TreeSet<Segment>());
         } else if (o instanceof Segment) {
             Segment segment = (Segment) o;
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {
                     segmentHeader.update = new Date();
-                    List<Message> messages = uMessages.get(segmentHeader);
-                    messages.add(message);
-                    if (messages.size() == segmentHeader.count + 2) {
+                    Set<Segment> messages = uMessages.get(segmentHeader);
+                    messages.add(segment);
+                    if (messages.size() == segmentHeader.count + 1) {
                         try {
-                            Message messageFromStream = StreamUtils.reconstruct(messages);
+                            Message messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
                             log.info("reconstructed: " + messageFromStream);
                             rabbitTemplate.send(messageFromStream);
                             uMessages.remove(segmentHeader);

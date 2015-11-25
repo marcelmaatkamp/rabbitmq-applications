@@ -163,10 +163,10 @@ public class TestStreams implements Serializable {
 
         StreamUtils streamUtils = new StreamUtils();
 
-        List<Message> messages = streamUtils.cut(message, bufSize);
-        Message cutMessage = streamUtils.reconstruct(messages);
+        List<Message> messages = streamUtils.cut(message, bufSize, 2);
+        // Message cutMessage = streamUtils.reconstruct(messages);
 
-        md.update(cutMessage.getBody());
+        // md.update(cutMessage.getBody());
         String cutDigest = Base64.encodeBase64String(md.digest());
 
         org.junit.Assert.assertEquals(digest,cutDigest);
