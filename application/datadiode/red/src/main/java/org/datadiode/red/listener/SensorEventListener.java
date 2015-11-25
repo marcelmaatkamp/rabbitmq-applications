@@ -24,7 +24,6 @@ public class SensorEventListener implements ChannelAwareMessageListener {
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-        // TODO: Message!!
         Object o = rabbitTemplate.getMessageConverter().fromMessage(message) ;
         if(o instanceof SensorEvent) {
             SensorEvent sensorEvent = (SensorEvent) rabbitTemplate.getMessageConverter().fromMessage(message);

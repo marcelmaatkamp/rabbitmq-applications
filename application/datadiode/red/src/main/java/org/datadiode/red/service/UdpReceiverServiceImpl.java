@@ -1,7 +1,6 @@
 package org.datadiode.red.service;
 
 import com.thoughtworks.xstream.XStream;
-import org.bouncycastle.crypto.Digest;
 import org.compression.CompressionUtils;
 import org.datadiode.model.message.ExchangeMessage;
 import org.datadiode.service.RabbitMQService;
@@ -39,9 +38,6 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     Map<String, Exchange> declaredExchanges;
 
     @Autowired
-    Digest digest;
-
-    @Autowired
     RabbitManagementTemplate rabbitManagementTemplate;
 
     @Autowired
@@ -69,7 +65,7 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
         if(compress) {
             data = CompressionUtils.decompress(udpPacket);
         }
-        
+
         ExchangeMessage exchangeMessage =
                 (ExchangeMessage) SerializationUtils.deserialize(
                         (byte[]) data);

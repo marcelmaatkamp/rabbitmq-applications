@@ -60,7 +60,8 @@ public class RabbitmqConfiguration {
                     "amq.rabbitmq.log",
                     "amq.rabbitmq.trace",
                     //"amq.topic",
-                    "encrypt");
+                    "encrypt",
+                    "cut");
 
     @Autowired
     Environment environment;

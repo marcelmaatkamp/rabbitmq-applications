@@ -1,16 +1,21 @@
 package org.application.rabbitmq.stream.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
 /**
  * Created by marcelmaatkamp on 24/11/15.
  */
 public class SegmentHeader implements Serializable {
+
     public UUID uuid = UUID.randomUUID();
+
     public int size;
     public int blockSize;
     public int count;
+    public Date insert = new Date();
+    public Date update;
 
     public SegmentHeader size(final int size) {
         this.size = size;

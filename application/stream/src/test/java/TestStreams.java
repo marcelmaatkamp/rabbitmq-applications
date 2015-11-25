@@ -150,7 +150,7 @@ public class TestStreams implements Serializable {
     }
 
     @Test
-    public void testStreams() throws IOException, NoSuchAlgorithmException {
+    public void testStreams() throws IOException, NoSuchAlgorithmException, InterruptedException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
 
         int length = 90000;
@@ -161,8 +161,10 @@ public class TestStreams implements Serializable {
         md.update(randomBytes);
         String digest = Base64.encodeBase64String(md.digest());
 
-        List<Message> messages = StreamUtils.cut(message, bufSize);
-        Message cutMessage = StreamUtils.reconstruct(messages);
+        StreamUtils streamUtils = new StreamUtils();
+
+        List<Message> messages = streamUtils.cut(message, bufSize);
+        Message cutMessage = streamUtils.reconstruct(messages);
 
         md.update(cutMessage.getBody());
         String cutDigest = Base64.encodeBase64String(md.digest());

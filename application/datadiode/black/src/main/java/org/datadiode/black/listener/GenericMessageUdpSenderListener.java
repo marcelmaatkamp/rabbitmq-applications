@@ -51,6 +51,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     boolean compress;
 
+    int maxBytes = 1450;
+
     /**
      *
      * @param message
@@ -75,7 +77,6 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
         // convert to generic message
         byte[] udpPacket = SerializationUtils.serialize(exchangeMessage);
-
         byte[] data = udpPacket;
 
         if(compress) {
@@ -89,18 +90,18 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
             }
         }
 
+        if(data.length>maxBytes) {
+            log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
+        }
         GenericMessage genericMessage = new GenericMessage<byte[]>(data);
-
-
-
         // send over udp
-        unicastSendingMessageHandler.handleMessageInternal(genericMessage);
 
         // throttle thread
         try {
+            unicastSendingMessageHandler.handleMessageInternal(genericMessage);
             Thread.sleep(throttleInMs);
         } catch (InterruptedException e) {
-            log.error("Excaption: ",e);
+            log.error("Exception: ",e);
         }
     }
 

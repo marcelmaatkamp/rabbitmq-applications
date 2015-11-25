@@ -1,9 +1,11 @@
 package org.application.rabbitmq.stream.input.configuration.stream;
 
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.stream.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -14,6 +16,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -35,31 +38,38 @@ public class StreamInputConfiguration {
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
 
-    int maxMessageSize = 700;
+    @Value(value="${application.stream.cutter.size}")
+    int maxMessageSize;
+
+
+    @Bean
+    org.springframework.amqp.core.Exchange cutterExchange() {
+        org.springframework.amqp.core.Exchange exchange = new FanoutExchange("cutter");
+        return exchange;
+    }
+
+    @Autowired
+    XStream xStream;
 
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "cut", durable = "true"),
-                    exchange = @Exchange(value = "cut"))
+                    exchange = @Exchange(value = "cut", durable = "true", autoDelete = "true"))
     )
     void cut(Message message) {
         List<Message> messages = StreamUtils.cut(message, maxMessageSize);
-        log.info("message("+message.getBody().length+") into " + messages.size());
+        log.info("cutting message("+message.getBody().length+") into " + messages.size() + " messages of " + maxMessageSize +" bytes..");
         for(Message m : messages) {
-            rabbitTemplate.convertAndSend("cutter", null, m);
+            rabbitTemplate.convertAndSend(cutterExchange().getName(), null, m);
         }
     }
 
 
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 3000)
     public void sendMessage() throws MalformedURLException {
-        int length = 90000;
-
-        byte[] randomBytes = RandomUtils.nextBytes(length);
-        Message message = new Message(randomBytes, new MessageProperties());
-
-        rabbitTemplate.send("cut", null, message);
+        int length = 20000;
+        rabbitTemplate.send("cut", null, new Message(RandomUtils.nextBytes(length), new MessageProperties()));
     }
 
 

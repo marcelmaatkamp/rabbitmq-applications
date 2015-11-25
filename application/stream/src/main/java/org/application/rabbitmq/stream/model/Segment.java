@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Created by marcelmaatkamp on 24/11/15.
  */
-public class Segment implements Serializable {
+public class Segment implements Serializable, Comparable<Segment> {
     public int index;
     public byte[] segment;
     public UUID uuid;
@@ -24,5 +24,10 @@ public class Segment implements Serializable {
     public Segment uuid(final UUID uuid) {
         this.uuid = uuid;
         return this;
+    }
+
+    @Override
+    public int compareTo(Segment o) {
+        return this.index - o.index;
     }
 }
