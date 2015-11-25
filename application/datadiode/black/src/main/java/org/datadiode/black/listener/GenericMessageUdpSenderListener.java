@@ -27,7 +27,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
 
     @Autowired
-    UnicastSendingMessageHandler unicastSendingMessageHandler;
+     UnicastSendingMessageHandler unicastSendingMessageHandler;
 
     @Autowired
     RabbitMQService rabbitMQService;
@@ -53,6 +53,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     int maxBytes = 1450;
 
+    static final Integer lock = new Integer(-1);
+
     /**
      *
      * @param message
@@ -62,6 +64,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         // convert to exchange message
+
+        // TODO: seperate thread
         ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(message);
 
         // log results
@@ -98,8 +102,11 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
         // throttle thread
         try {
-            unicastSendingMessageHandler.handleMessageInternal(genericMessage);
-            Thread.sleep(throttleInMs);
+            synchronized (lock) {
+                unicastSendingMessageHandler.handleMessageInternal(genericMessage);
+                Thread.sleep(throttleInMs);
+            }
+
         } catch (InterruptedException e) {
             log.error("Exception: ",e);
         }

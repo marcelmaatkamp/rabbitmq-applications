@@ -106,6 +106,7 @@ public class RabbitmqConfiguration {
         connectionFactory.setUsername(environment.getProperty("spring.datadiode.rabbitmq.username"));
         connectionFactory.setPassword(environment.getProperty("spring.datadiode.rabbitmq.password"));
         connectionFactory.createConnection();
+
         log.info("rabbitmq(" + connectionFactory.getHost() + ":" + connectionFactory.getPort() + ").channelCacheSize(" + connectionFactory.getChannelCacheSize() + ")");
         return connectionFactory;
     }

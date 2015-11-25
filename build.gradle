@@ -22,7 +22,7 @@ allprojects {
 // apply plugin: "scala"
 
     jar {
-        baseName = "rabbitmq-applications"
+        
         version = "0.1"
     }
 
@@ -89,7 +89,6 @@ springBoot {
 
 task runApp(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-
     main = "encryption.Encryption"
 }
 
@@ -110,6 +109,7 @@ project(":application:datadiode:black") {
     }
     springBoot {
         mainClass = "org.datadiode.black.DatadiodeBlackStarter"
+
     }
 }
 project(":application:datadiode:red") {
