@@ -11,6 +11,7 @@ import org.datadiode.service.RabbitMQServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -32,10 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import javax.crypto.NoSuchPaddingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by marcel on 23-09-15.
@@ -197,14 +195,21 @@ public class RabbitmqConfiguration {
 
                 // queue exists, binding exists, listen!
 
-                SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-                simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
-                simpleMessageListenerContainer.setQueueNames(queueName);
-                simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
-                simpleMessageListenerContainer.start();
+                if(!queueListeners.contains(queueName)) {
+                    log.info("adding listener on " + queueName);
+                    SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
+                    simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
+                    simpleMessageListenerContainer.setQueueNames(queueName);
+                    simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
+                    simpleMessageListenerContainer.start();
+
+                    queueListeners.add(queueName);
+                }
             }
         }
     }
+
+    Set<String> queueListeners = new TreeSet<String>();
 
     @Bean
     GenericMessageUdpSenderListener genericMessageUdpSenderListener() {

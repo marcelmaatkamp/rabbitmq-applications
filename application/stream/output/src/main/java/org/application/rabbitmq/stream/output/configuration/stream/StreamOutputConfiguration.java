@@ -65,13 +65,23 @@ public class StreamOutputConfiguration implements MessageListener {
         Object o = SerializationUtils.deserialize(message.getBody());
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
-            uMessages.put(segmentHeader, new TreeSet<Segment>());
+            boolean found = false;
+            for(SegmentHeader s : uMessages.keySet()) {
+                if(s.uuid.equals(segmentHeader.uuid)) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                uMessages.put(segmentHeader, new TreeSet<Segment>());
+            }
         } else if (o instanceof Segment) {
             Segment segment = (Segment) o;
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {
                     segmentHeader.update = new Date();
                     Set<Segment> messages = uMessages.get(segmentHeader);
+
                     messages.add(segment);
                     if (messages.size() == segmentHeader.count + 1) {
                         try {
@@ -98,7 +108,7 @@ public class StreamOutputConfiguration implements MessageListener {
         }
 
         for (SegmentHeader segmentHeader : uMessages.keySet()) {
-            if ((new Date().getTime() - segmentHeader.update.getTime()) > 25000) {
+            if (segmentHeader.update != null && (new Date().getTime() - segmentHeader.update.getTime()) > 25000) {
                 log.info("cleaning up " + segmentHeader.uuid + ", got(" + uMessages.get(segmentHeader).size() + "), missing(" + ((segmentHeader.count+2)-uMessages.get(segmentHeader).size()) + ")");
                 uMessages.remove(segmentHeader);
             }

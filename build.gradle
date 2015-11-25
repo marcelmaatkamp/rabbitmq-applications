@@ -22,7 +22,7 @@ allprojects {
 // apply plugin: "scala"
 
     jar {
-        
+
         version = "0.1"
     }
 

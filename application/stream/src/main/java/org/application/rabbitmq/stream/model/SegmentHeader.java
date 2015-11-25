@@ -29,4 +29,13 @@ public class SegmentHeader implements Serializable {
         this.count = count;
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SegmentHeader that = (SegmentHeader) o;
+        return uuid.equals(that.uuid);
+    }
 }

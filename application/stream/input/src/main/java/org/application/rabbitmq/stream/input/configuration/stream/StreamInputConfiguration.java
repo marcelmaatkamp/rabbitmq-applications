@@ -63,7 +63,6 @@ public class StreamInputConfiguration {
     void cut(Message message) {
         List<Message> messages = StreamUtils.cut(message, maxMessageSize, redundancyFactor);
 
-        Collections.shuffle(messages);
         log.info("cutting message("+message.getBody().length+") into " + messages.size() + " messages of " + maxMessageSize +" bytes..");
         for(Message m : messages) {
             rabbitTemplate.convertAndSend(cutterExchange().getName(), null, m);

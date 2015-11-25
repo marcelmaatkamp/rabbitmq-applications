@@ -79,6 +79,8 @@ public class StreamUtils {
             addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
+        // Collections.shuffle(results);
+
         return results;
     }
 
