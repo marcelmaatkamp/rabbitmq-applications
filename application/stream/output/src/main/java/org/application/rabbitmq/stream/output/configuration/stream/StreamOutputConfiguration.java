@@ -1,5 +1,6 @@
 package org.application.rabbitmq.stream.output.configuration.stream;
 
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
@@ -55,6 +56,9 @@ public class StreamOutputConfiguration implements MessageListener {
 
     }
 
+    @Autowired
+    XStream xStream;
+
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "cutter", durable = "true"),
@@ -65,6 +69,9 @@ public class StreamOutputConfiguration implements MessageListener {
         Object o = SerializationUtils.deserialize(message.getBody());
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
+            if(log.isDebugEnabled()) {
+                log.info("segmentHeader(" + xStream.toXML(segmentHeader) + ")");
+            }
             boolean found = false;
             for(SegmentHeader s : uMessages.keySet()) {
                 if(s.uuid.equals(segmentHeader.uuid)) {
@@ -76,7 +83,11 @@ public class StreamOutputConfiguration implements MessageListener {
                 uMessages.put(segmentHeader, new TreeSet<Segment>());
             }
         } else if (o instanceof Segment) {
+
             Segment segment = (Segment) o;
+            if(log.isDebugEnabled()) {
+                log.debug("segment(" + xStream.toXML(segment) + ")");
+            }
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {
                     segmentHeader.update = new Date();

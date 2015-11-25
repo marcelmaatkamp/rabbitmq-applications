@@ -83,7 +83,7 @@ public class StreamUtils {
         Collections.shuffle(results);
         headers.addAll(results);
 
-        return results;
+        return headers;
     }
 
     public static Message reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {

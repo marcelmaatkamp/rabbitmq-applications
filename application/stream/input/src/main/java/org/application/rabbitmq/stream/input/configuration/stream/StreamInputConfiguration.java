@@ -71,7 +71,7 @@ public class StreamInputConfiguration {
 
 
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 25)
     public void sendMessage() throws MalformedURLException {
         int length = 20000;
         rabbitTemplate.send("cut", null, new Message(RandomUtils.nextBytes(length), new MessageProperties()));
