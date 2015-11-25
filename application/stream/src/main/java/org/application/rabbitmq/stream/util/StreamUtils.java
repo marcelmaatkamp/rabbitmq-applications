@@ -47,7 +47,8 @@ public class StreamUtils {
         messageProperties.getHeaders().put("size", sh.size);
 
         // results.add(new Message(SerializationUtils.serialize(sh), messageProperties));
-        addRedundantly(results, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
+        List<Message> headers = new ArrayList();
+        addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
 
         // blocksize
         for(int i = 0; i < aantal; i++) {
@@ -79,7 +80,8 @@ public class StreamUtils {
             addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
-        // Collections.shuffle(results);
+        Collections.shuffle(results);
+        headers.addAll(results);
 
         return results;
     }
