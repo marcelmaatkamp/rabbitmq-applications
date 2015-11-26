@@ -25,6 +25,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,6 +47,17 @@ public class StreamInputConfiguration {
     @Value(value="${application.stream.cutter.redundancyFactor}")
     int redundancyFactor;
 
+    @Bean
+    MessageDigest messageDigest() throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        return messageDigest;
+    }
+
+    @Bean
+    StreamUtils streamUtils() {
+        StreamUtils streamUtils = new StreamUtils();
+        return streamUtils;
+    }
 
     @Bean
     org.springframework.amqp.core.Exchange cutterExchange() {

@@ -9,18 +9,38 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
+import java.security.MessageDigest;
 import java.util.*;
 
 /**
  * Created by marcelmaatkamp on 24/11/15.
  */
+@Component
 public class StreamUtils {
     private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
     @Autowired
     XStream xStream;
+
+    @Autowired
+    MessageDigest _messageDigest;
+
+    private static MessageDigest messageDigest;
+
+    @PostConstruct
+    public void init() {
+        messageDigest = _messageDigest;
+    }
+
+
+    @Value(value="${application.stream.cutter.digest}")
+    boolean doDigest;
+
 
     private static void addRedundantly(List<Message> messages, Message message, int redundancyFactor) {
         for(int i = 0; i< redundancyFactor; i++) {
@@ -32,11 +52,16 @@ public class StreamUtils {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
+        messageDigest.update(messageBytes);
 
         int aantal = (int)(messageBytes.length / bufSize);
         int modulo = messageBytes.length % bufSize;
 
-        SegmentHeader sh = new SegmentHeader().size(messageBytes.length).blockSize(bufSize).count(aantal);
+        SegmentHeader sh = new SegmentHeader().
+                size(messageBytes.length).
+                blockSize(bufSize).
+                count(aantal).
+                digest(messageDigest.digest());
 
         MessageProperties messageProperties = new MessageProperties();
         // messageProperties.setReceivedRoutingKey(sh.uuid.toString());
@@ -96,8 +121,18 @@ public class StreamUtils {
             bos2.write(segment.segment);
         }
         bos2.close();
-        Message message = (Message) SerializationUtils.deserialize(bos2.toByteArray());
-        return message;
+
+        byte[] data = bos2.toByteArray();
+        messageDigest.update(data);
+
+        // compare digest
+        if(Arrays.equals(messageDigest.digest(), segmentHeader.digest)) {
+            Message message = (Message) SerializationUtils.deserialize(data);
+            return message;
+        } else {
+            log.error("ERROR: Message digest did not match!");
+        }
+        return null;
     }
 
 

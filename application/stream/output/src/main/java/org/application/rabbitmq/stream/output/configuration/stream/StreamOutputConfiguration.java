@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
+import org.application.rabbitmq.stream.output.configuration.xstream.XStreamConfiguration;
 import org.application.rabbitmq.stream.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,6 +45,18 @@ public class StreamOutputConfiguration implements MessageListener {
 
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
+
+    @Bean
+    MessageDigest messageDigest() throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        return messageDigest;
+    }
+
+    @Bean
+    StreamUtils streamUtils() {
+        StreamUtils streamUtils = new StreamUtils();
+        return streamUtils;
+    }
 
     @Bean
     org.springframework.amqp.core.Exchange reconstructExchange() {
@@ -64,13 +79,15 @@ public class StreamOutputConfiguration implements MessageListener {
                     value = @Queue(value = "cutter", durable = "true"),
                     exchange = @Exchange(value = "cutter", durable = "true", autoDelete = "false", type = "fanout"))
     )
-
     public void onMessage(Message message) {
         Object o = SerializationUtils.deserialize(message.getBody());
+        if(log.isDebugEnabled()) {
+            log.debug("o("+xStream.toXML(o)+")");
+        }
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
             if(log.isDebugEnabled()) {
-                log.info("segmentHeader(" + xStream.toXML(segmentHeader) + ")");
+                log.debug("header("+segmentHeader.uuid+") of size("+segmentHeader.blockSize+") and count("+segmentHeader.count+")");
             }
             boolean found = false;
             for(SegmentHeader s : uMessages.keySet()) {
@@ -81,6 +98,9 @@ public class StreamOutputConfiguration implements MessageListener {
             }
             if(!found) {
                 uMessages.put(segmentHeader, new TreeSet<Segment>());
+                if(log.isDebugEnabled()) {
+                    log.debug("starting message("+segmentHeader.uuid+") of size("+segmentHeader.blockSize+") and count("+segmentHeader.count+")");
+                }
             }
         } else if (o instanceof Segment) {
 
@@ -106,7 +126,6 @@ public class StreamOutputConfiguration implements MessageListener {
                     }
                 }
             }
-
         } else {
             log.error("Error: Unknown object: " + o);
         }

@@ -15,7 +15,8 @@ public class SegmentHeader implements Serializable {
     public int blockSize;
     public int count;
     public Date insert = new Date();
-    public Date update;
+    public Date update = new Date();
+    public byte[] digest;
 
     public SegmentHeader size(final int size) {
         this.size = size;
@@ -27,6 +28,10 @@ public class SegmentHeader implements Serializable {
     }
     public SegmentHeader count(int count) {
         this.count = count;
+        return this;
+    }
+    public SegmentHeader digest(byte[] digest) {
+        this.digest = digest;
         return this;
     }
 
