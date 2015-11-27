@@ -3,7 +3,7 @@ package org.datadiode.red.configuration.rabbitmq;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.datadiode.red.listener.SensorEventListener;
+import org.datadiode.configuration.xstream.XStreamConfiguration;
 import org.datadiode.service.RabbitMQService;
 import org.datadiode.service.RabbitMQServiceImpl;
 import org.slf4j.Logger;
@@ -22,6 +22,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import java.util.Map;
  * Created by marcel on 23-09-15.
  */
 @Configuration
+@Import(XStreamConfiguration.class)
 public class RabbitmqConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitmqConfiguration.class);
@@ -110,11 +112,6 @@ public class RabbitmqConfiguration {
         log.info("rabbitmq(" + connectionFactory.getHost() + ":" + connectionFactory.getPort() + ").channelCacheSize(" + connectionFactory.getChannelCacheSize() + ")");
         return connectionFactory;
     }
-
-
-
-
-
 
     @Bean
     RabbitMQService rabbitMQService() {

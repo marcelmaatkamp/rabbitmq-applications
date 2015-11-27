@@ -15,6 +15,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
+import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
@@ -34,7 +35,7 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     @Autowired
     RabbitAdmin rabbitAdmin;
 
-    @Autowired
+    @Resource
     Map<String, Exchange> declaredExchanges;
 
     @Autowired
