@@ -16,9 +16,9 @@ include "application",
         "application:fileshare:external",
 
         // streams
-        "application:stream",
-        "application:stream:input",
-        "application:stream:output",
+        "application:splitter",
+        "application:splitter:split",
+        "application:splitter:merge",
 
         // search
         "application:search",

@@ -29,9 +29,6 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(EncryptMessageListener.class);
 
     @Autowired
-    UnicastSendingMessageHandler unicastSendingMessageHandler;
-
-    @Autowired
     RabbitTemplate rabbitTemplate;
 
     @Autowired

@@ -1,11 +1,9 @@
-package org.encryption.encrypt;
+package org.application.rabbitmq.splitter.split;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.config.EnableIntegration;
@@ -13,11 +11,12 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableRabbit
-public class EncryptionEncryptStarter {
-    private static final Logger log = LoggerFactory.getLogger(EncryptionEncryptStarter.class);
+@EnableIntegration
+@EnableAutoConfiguration
+public class SplitterSplitStarter {
+    private static final Logger log = LoggerFactory.getLogger(SplitterSplitStarter.class);
 
     public static void main(String[] args) throws IOException {
-        ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(EncryptionEncryptStarter.class).web(false).run(args);
+        ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(SplitterSplitStarter.class).web(false).run(args);
     }
 }

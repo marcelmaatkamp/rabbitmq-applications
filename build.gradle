@@ -185,26 +185,26 @@ project(":application:search:consumer") {
 }
 
 // stream
-project(":application:stream") {
+project(":application:splitter") {
     dependencies {
         compile project(':application')
 
     }
 }
-project(":application:stream:input") {
+project(":application:splitter:split") {
     dependencies {
-        compile project(':application:stream')
+        compile project(':application:splitter')
     }
     springBoot {
-        mainClass = "org.application.rabbitmq.stream.input.StreamInputStarter"
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
     }
 }
-project(":application:stream:output") {
+project(":application:splitter:merge") {
     dependencies {
-        compile project(':application:stream')
+        compile project(':application:splitter')
     }
     springBoot {
-        mainClass = "org.application.rabbitmq.stream.output.StreamOutputStarter"
+        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
     }
 }
 

@@ -9,6 +9,7 @@ import org.encryption.encrypt.listener.EncryptMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,28 +43,28 @@ public class EncryptConfiguration {
     String privateKeyFilename = "private.key";
 
     // signature 
-    @Value("${application.datadiode.black.cipher.signature}")
+    @Value("${application.datadiode.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.black.cipher.provider}")
+    @Value("${application.datadiode.cipher.provider}")
     String SECURITY_PROVIDER;
 
     // asymmetrical settings
     // http://www.bouncycastle.org/wiki/display/JA1/Frequently+Asked+Questions
-    @Value("${application.datadiode.black.cipher.asymmetrical.algorithm}")
+    @Value("${application.datadiode.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.black.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.black.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
     // symmetrical settings
-    @Value("${application.datadiode.black.cipher.symmetrical.algorithm}")
+    @Value("${application.datadiode.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.black.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.black.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
 
     @Bean
@@ -174,33 +175,36 @@ public class EncryptConfiguration {
         return encryptMessageListener;
     }
 
-    @Autowired
-    ConnectionFactory connectionFactory;
 
     @Autowired
-    RabbitAdmin rabbitAdmin;
+    RabbitTemplate rabbitTemplate;
+
+    @Bean
+    RabbitAdmin rabbitAdmin() {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
+        return rabbitAdmin;
+    }
 
     @Bean
     Exchange encryptExchange() {
         Exchange exchange = new FanoutExchange("encrypt");
-        rabbitAdmin.declareExchange(exchange);
+        rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
 
     @Bean
     Queue encryptQueue() {
         Queue queue = new Queue("encrypt");
-        rabbitAdmin.declareQueue(queue);
-
+        rabbitAdmin().declareQueue(queue);
         BindingBuilder.bind(queue).to(encryptExchange()).with("");
-        rabbitAdmin.declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, encryptExchange().getName(), "", null));
+        rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, encryptExchange().getName(), "", null));
         return queue;
     }
 
     @Bean
     SimpleMessageListenerContainer simpleMessageListenerContainerEncypted() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
+        simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
         simpleMessageListenerContainer.setQueueNames(encryptQueue().getName());
         simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(encryptMessageListener()));
         simpleMessageListenerContainer.setConcurrentConsumers(1);

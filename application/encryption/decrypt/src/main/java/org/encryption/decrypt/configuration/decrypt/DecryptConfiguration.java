@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter;
@@ -46,27 +47,27 @@ public class DecryptConfiguration {
     ApplicationContext applicationContext;
 
     // signature
-    @Value("${application.datadiode.red.cipher.signature}")
+    @Value("${application.datadiode.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.red.cipher.provider}")
+    @Value("${application.datadiode.cipher.provider}")
     String SECURITY_PROVIDER;
 
     // asymmetrical cipher settings
-    @Value("${application.datadiode.red.cipher.asymmetrical.algorithm}")
+    @Value("${application.datadiode.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.red.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.red.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
     // symmetrical cipher settings
-    @Value("${application.datadiode.red.cipher.symmetrical.algorithm}")
+    @Value("${application.datadiode.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.red.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.red.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
 
     @Bean
@@ -169,7 +170,14 @@ public class DecryptConfiguration {
     }
 
     @Autowired
-    RabbitAdmin rabbitAdmin;
+    RabbitTemplate rabbitTemplate;
+
+    @Bean
+    RabbitAdmin rabbitAdmin() {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
+        return rabbitAdmin;
+    }
+
 
 
     @Bean
@@ -181,13 +189,9 @@ public class DecryptConfiguration {
     @Bean
     Exchange encryptedExchange() {
         Exchange exchange = new FanoutExchange("encrypted");
-        rabbitAdmin.declareExchange(exchange);
+        rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
-
-
-    @Autowired
-    ConnectionFactory connectionFactory;
 
     @Bean
     EncryptedMessageListener encryptedEventListener() {
@@ -198,7 +202,7 @@ public class DecryptConfiguration {
     @Bean
     SimpleMessageListenerContainer encryptedListenerContainer() {
         SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
+        simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
         simpleMessageListenerContainer.setMessageListener(encryptedEventListener());
         simpleMessageListenerContainer.setQueueNames(encryptQueue().getName());
         simpleMessageListenerContainer.setConcurrentConsumers(1);
