@@ -70,63 +70,24 @@ public class RabbitmqConfiguration {
     int count = 1;
     @Autowired
     XStream xStream;
+
     Set<String> queueListeners = new TreeSet<String>();
 
-    @Bean
-    public MessageConverter jsonMessageConverter() {
-        JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
-        jsonMessageConverter.setJsonObjectMapper(objectMapper());
-        jsonMessageConverter.setClassMapper(defaultClassMapper());
-        return jsonMessageConverter;
-    }
-
-    @Bean
-    ObjectMapper objectMapper() {
-        ObjectMapper jsonObjectMapper = new ObjectMapper();
-        jsonObjectMapper
-                .configure(
-                        DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
-                        false);
-        jsonObjectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        return jsonObjectMapper;
-    }
-
-    @Bean
-    public DefaultClassMapper defaultClassMapper() {
-        DefaultClassMapper defaultClassMapper = new DefaultClassMapper();
-        return defaultClassMapper;
-    }
-
-    @Bean
-    public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost(environment.getProperty("spring.datadiode.rabbitmq.host"));
-        connectionFactory.setPort(environment.getProperty("spring.datadiode.rabbitmq.port", Integer.class));
-        connectionFactory.setUsername(environment.getProperty("spring.datadiode.rabbitmq.username"));
-        connectionFactory.setPassword(environment.getProperty("spring.datadiode.rabbitmq.password"));
-        connectionFactory.createConnection();
-        return connectionFactory;
-    }
-
-    @Bean
-    RabbitTemplate rabbitTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
-        // rabbitTemplate.setMessageConverter(jsonMessageConverter());
-        return rabbitTemplate;
-    }
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Bean
     RabbitAdmin rabbitAdmin() {
-        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory());
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
         return rabbitAdmin;
     }
 
     @Bean
     RabbitManagementTemplate rabbitManagementTemplate() {
         RabbitManagementTemplate rabbitManagementTemplate = new RabbitManagementTemplate(
-                "http://" + environment.getProperty("spring.datadiode.rabbitmq.host") + ":" + environment.getProperty("spring.datadiode.rabbitmq.port.management", Integer.class) + "/api/",
-                environment.getProperty("spring.datadiode.rabbitmq.username"),
-                environment.getProperty("spring.datadiode.rabbitmq.password")
+                "http://" + environment.getProperty("spring.rabbitmq.host") + ":" + environment.getProperty("spring.rabbitmq.management.port", Integer.class) + "/api/",
+                environment.getProperty("spring.rabbitmq.username"),
+                environment.getProperty("spring.rabbitmq.password")
         );
         return rabbitManagementTemplate;
     }
@@ -191,7 +152,7 @@ public class RabbitmqConfiguration {
                 if (!queueListeners.contains(queueName)) {
                     log.info("adding listener on " + queueName);
                     SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-                    simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
+                    simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
                     simpleMessageListenerContainer.setQueueNames(queueName);
                     simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
                     simpleMessageListenerContainer.start();

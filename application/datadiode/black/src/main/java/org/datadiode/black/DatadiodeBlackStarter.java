@@ -12,8 +12,6 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableIntegration
-@EnableAutoConfiguration(exclude = {RabbitAutoConfiguration.class})
 public class DatadiodeBlackStarter {
     private static final Logger log = LoggerFactory.getLogger(DatadiodeBlackStarter.class);
 

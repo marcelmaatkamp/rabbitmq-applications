@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,9 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     Integer throttleInMs;
     boolean compress;
     int maxBytes = 1450;
+
+    @Autowired
+    RabbitManagementTemplate rabbitManagementTemplate;
 
     public static int[][] chunkArray(int[] array, int chunkSize) {
         int numOfChunks = (int) Math.ceil((double) array.length / chunkSize);
@@ -69,7 +73,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         // convert to exchange message
 
         // TODO: seperate thread
-        ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(message);
+        ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
 
         // log results
         if (log.isDebugEnabled()) {

@@ -28,18 +28,15 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     RabbitTemplate rabbitTemplate;
 
     @Autowired
-    RabbitAdmin rabbitAdmin;
-
-    @Autowired
-    RabbitManagementTemplate rabbitManagementTemplate;
-
-    @Autowired
     XStream xStream;
 
     @Resource(name = "declaredExchanges")
     Map declaredExchanges;
 
-    public ExchangeMessage getExchangeMessage(Message message) {
+    @Autowired
+    RabbitAdmin rabbitAdmin;
+
+    public ExchangeMessage getExchangeMessage(RabbitManagementTemplate rabbitManagementTemplate, Message message) {
 
         String exchangeName = null;
 

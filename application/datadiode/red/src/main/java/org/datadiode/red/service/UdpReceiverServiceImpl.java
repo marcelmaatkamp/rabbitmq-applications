@@ -31,15 +31,6 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     RabbitTemplate rabbitTemplate;
 
     @Autowired
-    RabbitAdmin rabbitAdmin;
-
-    @Resource
-    Map<String, Exchange> declaredExchanges;
-
-    @Autowired
-    RabbitManagementTemplate rabbitManagementTemplate;
-
-    @Autowired
     XStream xStream;
 
     @Autowired
