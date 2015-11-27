@@ -7,7 +7,6 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.encryption.encrypt.listener.EncryptMessageListener;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -66,6 +65,8 @@ public class EncryptConfiguration {
     String ALGORITHM_SYMMETRICAL_CIPHER;
     @Value("${application.datadiode.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Bean
     KeyFactory keyFactory() throws NoSuchAlgorithmException {
@@ -166,18 +167,12 @@ public class EncryptConfiguration {
         return null;
     }
 
-
-
     @Bean
     EncryptMessageListener encryptMessageListener() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         EncryptMessageListener encryptMessageListener =
                 new EncryptMessageListener();
         return encryptMessageListener;
     }
-
-
-    @Autowired
-    RabbitTemplate rabbitTemplate;
 
     @Bean
     RabbitAdmin rabbitAdmin() {

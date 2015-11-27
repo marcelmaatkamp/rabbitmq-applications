@@ -11,7 +11,7 @@ public class TemperatureSensorEvent extends SensorEvent {
     private double temperature;
 
     public TemperatureSensorEvent(Sensor sensor, int index, double temperature) {
-        super(sensor,index);
+        super(sensor, index);
         this.temperature = temperature;
     }
 

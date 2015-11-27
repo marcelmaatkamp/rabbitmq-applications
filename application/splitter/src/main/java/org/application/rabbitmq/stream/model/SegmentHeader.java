@@ -22,14 +22,17 @@ public class SegmentHeader implements Serializable {
         this.size = size;
         return this;
     }
+
     public SegmentHeader blockSize(final int blockSize) {
         this.blockSize = blockSize;
         return this;
     }
+
     public SegmentHeader count(int count) {
         this.count = count;
         return this;
     }
+
     public SegmentHeader digest(byte[] digest) {
         this.digest = digest;
         return this;

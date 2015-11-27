@@ -20,14 +20,14 @@ public class CompressionUtils {
         deflater.setInput(data);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
         deflater.finish();
-        byte[] buffer = new byte[data.length>1024?1024:data.length];
+        byte[] buffer = new byte[data.length > 1024 ? 1024 : data.length];
         while (!deflater.finished()) {
             int count = deflater.deflate(buffer); // returns the generated code... index
             outputStream.write(buffer, 0, count);
         }
         outputStream.close();
         byte[] output = outputStream.toByteArray();
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Original: " + data.length + ", Compressed: " + output.length + " = " + (int) ((100.0 / data.length) * output.length) + "%");
         }
         return output;
@@ -37,7 +37,7 @@ public class CompressionUtils {
         Inflater inflater = new Inflater();
         inflater.setInput(data);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
-        byte[] buffer = new byte[data.length>1024?1024:data.length];
+        byte[] buffer = new byte[data.length > 1024 ? 1024 : data.length];
         while (!inflater.finished()) {
             int count = inflater.inflate(buffer);
             outputStream.write(buffer, 0, count);
@@ -45,7 +45,7 @@ public class CompressionUtils {
         outputStream.close();
         byte[] output = outputStream.toByteArray();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Original: " + data.length + ", Compressed: " + output.length + " = " + (int) ((100.0 / output.length) * data.length) + "%");
         }
         return output;

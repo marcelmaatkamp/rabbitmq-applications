@@ -11,7 +11,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
@@ -21,7 +20,7 @@ import java.security.*;
 
 /**
  * Encrypt and reemit message
- *
+ * <p>
  * Created by marcelmaatkamp on 15/10/15.
  */
 @Component
@@ -69,17 +68,16 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
 
         // convert that to an secure messagae
         SecureMessage secureMessage = encryptMessage(SerializationUtils.serialize(message));
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             Object o = rabbitTemplate.getMessageConverter().fromMessage(message);
-            log.debug("["+message.getMessageProperties().getReceivedRoutingKey()+"]: " + xStream.toXML(secureMessage) + ": " +xStream.toXML(message));
+            log.debug("[" + message.getMessageProperties().getReceivedRoutingKey() + "]: " + xStream.toXML(secureMessage) + ": " + xStream.toXML(message));
         }
         // and send it over to the encrypted exchange
-        rabbitTemplate.convertAndSend(encryptedExchange.getName(), message.getMessageProperties().getReceivedRoutingKey(),secureMessage);
+        rabbitTemplate.convertAndSend(encryptedExchange.getName(), message.getMessageProperties().getReceivedRoutingKey(), secureMessage);
     }
 
 
     /**
-     *
      * @param plain
      * @return
      * @throws InvalidKeyException

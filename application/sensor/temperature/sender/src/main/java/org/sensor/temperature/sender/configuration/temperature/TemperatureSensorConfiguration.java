@@ -39,17 +39,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EnableScheduling
 public class TemperatureSensorConfiguration {
     private static final Logger log = LoggerFactory.getLogger(TemperatureSensorConfiguration.class);
+    @Autowired
+    XStream xStream;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+    AtomicInteger atomicInteger = new AtomicInteger(1);
 
     @Bean
     GeoLocation geoLocationAmsterdam() {
         return new GeoLocation(52.379189, 4.899431);
     }
-
-    @Autowired
-    XStream xStream;
-
-    @Autowired
-    RabbitTemplate rabbitTemplate;
 
     @Bean
     RabbitAdmin rabbitAdmin() {
@@ -71,18 +70,16 @@ public class TemperatureSensorConfiguration {
         xStream.alias("temperatureSensorEvent", TemperatureSensorEvent.class);
     }
 
-
     @Bean
     TemperatureSensor temperatureSensor() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, IOException {
         TemperatureSensor temperatureSensor = new TemperatureSensor("temperature", 1, Base64Utils.encodeToString(new String("marcel").getBytes()), geoLocationAmsterdam());
         return temperatureSensor;
     }
 
-    AtomicInteger atomicInteger = new AtomicInteger(1);
     @Scheduled(fixedDelayString = "${application.sensor.temperature.interval}")
     void sendSensorMessages() throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         SensorEvent sensorEvent = temperatureSensor().generateEvent(atomicInteger.getAndIncrement());
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("sensor: " + xStream.toXML(sensorEvent));
         }
         rabbitTemplate.convertAndSend(sensorExchange().getName(), sensorEvent.getSensor().getTargetid(), sensorEvent);

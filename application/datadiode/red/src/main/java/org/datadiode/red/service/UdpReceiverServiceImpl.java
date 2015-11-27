@@ -16,11 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 /**
  * Created by marcel on 07-10-15.
@@ -46,6 +44,7 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
 
     @Autowired
     RabbitMQService rabbitMQService;
+    boolean compress;
 
     public boolean isCompress() {
         return compress;
@@ -55,15 +54,13 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
         this.compress = compress;
     }
 
-    boolean compress;
-
     public void udpMessage(Message message) throws IOException, DataFormatException {
 
         // from udp
         byte[] udpPacket = (byte[]) message.getPayload();
         byte[] data = udpPacket;
 
-        if(compress) {
+        if (compress) {
             data = CompressionUtils.decompress(udpPacket);
         }
 
@@ -71,16 +68,16 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
                 (ExchangeMessage) SerializationUtils.deserialize(
                         (byte[]) data);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             Object o = rabbitTemplate.getMessageConverter().fromMessage(exchangeMessage.getMessage());
-            if(o instanceof byte[]) {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing("+exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey()+"): " + new String((byte[])o, "UTF-8"));
+            if (o instanceof byte[]) {
+                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + new String((byte[]) o, "UTF-8"));
             } else {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing("+exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey()+"): " + o);
+                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + o);
             }
         }
 
-       rabbitMQService.sendExchangeMessage(exchangeMessage);
+        rabbitMQService.sendExchangeMessage(exchangeMessage);
     }
 
 

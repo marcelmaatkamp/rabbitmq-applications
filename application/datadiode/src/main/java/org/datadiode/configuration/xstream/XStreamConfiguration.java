@@ -2,8 +2,6 @@ package org.datadiode.configuration.xstream;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-
-import org.library.encryption.model.SecureMessage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -8,13 +8,12 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.encryption.decrypt.listener.EncryptedMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -69,13 +68,14 @@ public class DecryptConfiguration {
     String ALGORITHM_SYMMETRICAL_CIPHER;
     @Value("${application.datadiode.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Bean
     KeyFactory keyFactory() throws NoSuchAlgorithmException {
         KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM_ASYMMETRICAL);
         return keyFactory;
     }
-
 
     @Bean
     KeyPairGenerator keyPairGenerator() throws NoSuchAlgorithmException {
@@ -169,15 +169,11 @@ public class DecryptConfiguration {
         return null;
     }
 
-    @Autowired
-    RabbitTemplate rabbitTemplate;
-
     @Bean
     RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
         return rabbitAdmin;
     }
-
 
 
     @Bean

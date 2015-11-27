@@ -21,11 +21,9 @@ import java.util.Map;
  */
 public class RabbitMQServiceImpl implements RabbitMQService {
 
-    private static final Logger log = LoggerFactory.getLogger(RabbitMQServiceImpl.class);
-
     public static final String X_SHOVELLED = "x-shovelled";
     public static final String SRC_EXCHANGE = "src-exchange";
-
+    private static final Logger log = LoggerFactory.getLogger(RabbitMQServiceImpl.class);
     @Autowired
     RabbitTemplate rabbitTemplate;
 
@@ -38,30 +36,30 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     @Autowired
     XStream xStream;
 
-    @Resource(name="declaredExchanges")
+    @Resource(name = "declaredExchanges")
     Map declaredExchanges;
 
     public ExchangeMessage getExchangeMessage(Message message) {
 
         String exchangeName = null;
 
-        if(message.getMessageProperties().getHeaders().containsKey(X_SHOVELLED)) {
+        if (message.getMessageProperties().getHeaders().containsKey(X_SHOVELLED)) {
             ArrayList shovelled_headers = (ArrayList) message.getMessageProperties().getHeaders().get(X_SHOVELLED);
-            Map<String, Object> shovelled_headers_map = (Map)shovelled_headers.get(0);
+            Map<String, Object> shovelled_headers_map = (Map) shovelled_headers.get(0);
             exchangeName = (String) shovelled_headers_map.get(SRC_EXCHANGE);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("shovelled from:" + exchangeName);
             }
 
-            if(!declaredExchanges.containsKey(exchangeName)) {
+            if (!declaredExchanges.containsKey(exchangeName)) {
                 Exchange exchange = new FanoutExchange(exchangeName);
                 declaredExchanges.put(exchangeName, xStream.toXML(exchange));
             }
             return new ExchangeMessage(message, (String) declaredExchanges.get(exchangeName));
         } else {
             exchangeName = message.getMessageProperties().getReceivedExchange();
-            if(!declaredExchanges.containsKey(exchangeName)) {
+            if (!declaredExchanges.containsKey(exchangeName)) {
                 Exchange exchange = rabbitManagementTemplate.getExchange(message.getMessageProperties().getReceivedExchange());
                 declaredExchanges.put(exchangeName, xStream.toXML(exchange));
             }
@@ -73,13 +71,13 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
         Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
-        if(!declaredExchanges.keySet().contains(exchange)) {
+        if (!declaredExchanges.keySet().contains(exchange)) {
             rabbitAdmin.declareExchange(exchange);
-            declaredExchanges.put(exchange.getName(),exchange);
+            declaredExchanges.put(exchange.getName(), exchange);
         }
 
-        if(log.isDebugEnabled()) {
-            log.debug("exchange("+exchange.getName()+").routing("+exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey()+"): body("+xStream.toXML(exchangeMessage.getMessage())+")");
+        if (log.isDebugEnabled()) {
+            log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
         }
 
         // into rabbitmq

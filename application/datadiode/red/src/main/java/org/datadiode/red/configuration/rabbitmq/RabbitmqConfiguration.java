@@ -8,14 +8,12 @@ import org.datadiode.service.RabbitMQService;
 import org.datadiode.service.RabbitMQServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -80,6 +78,7 @@ public class RabbitmqConfiguration {
         rabbitAdmin.setAutoStartup(true);
         return rabbitAdmin;
     }
+
     @Bean
     RabbitManagementTemplate rabbitManagementTemplate() {
         RabbitManagementTemplate rabbitManagementTemplate = new RabbitManagementTemplate(
@@ -93,10 +92,10 @@ public class RabbitmqConfiguration {
     @Bean
     Map<String, Exchange> declaredExchanges() {
         Map<String, Exchange> declaredExchanges = new HashMap<>();
-        for(Exchange exchange : rabbitManagementTemplate().getExchanges()) {
+        for (Exchange exchange : rabbitManagementTemplate().getExchanges()) {
             declaredExchanges.put(exchange.getName(), exchange);
         }
-        return  declaredExchanges;
+        return declaredExchanges;
     }
 
     @Bean

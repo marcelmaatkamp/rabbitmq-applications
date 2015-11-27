@@ -14,7 +14,7 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableAutoConfiguration(exclude={RabbitAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {RabbitAutoConfiguration.class})
 @EnableIntegration
 @ImportResource("integration.xml")
 public class DatadiodeRedStarter {

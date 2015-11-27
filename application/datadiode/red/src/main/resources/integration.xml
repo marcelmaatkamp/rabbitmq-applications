@@ -15,7 +15,7 @@
                                         pool-size="10"
                                         receive-buffer-size="65535"
                                         lookup-host="false"
-            />
+    />
 
     <int:service-activator input-channel="serverBytes2StringChannel"
                            ref="udpReceiverService"

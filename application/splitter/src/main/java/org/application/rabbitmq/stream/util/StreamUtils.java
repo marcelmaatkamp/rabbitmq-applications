@@ -13,7 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -23,27 +24,16 @@ import java.util.*;
 @Component
 public class StreamUtils {
     private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
-
+    private static MessageDigest messageDigest;
     @Autowired
     XStream xStream;
-
     @Autowired
     MessageDigest _messageDigest;
-
-    private static MessageDigest messageDigest;
-
-    @PostConstruct
-    public void init() {
-        messageDigest = _messageDigest;
-    }
-
-
-    @Value(value="${application.stream.cutter.digest}")
+    @Value(value = "${application.stream.cutter.digest}")
     boolean doDigest;
 
-
     private static void addRedundantly(List<Message> messages, Message message, int redundancyFactor) {
-        for(int i = 0; i< redundancyFactor; i++) {
+        for (int i = 0; i < redundancyFactor; i++) {
             messages.add(message);
         }
     }
@@ -54,7 +44,7 @@ public class StreamUtils {
         byte[] messageBytes = SerializationUtils.serialize(message);
         messageDigest.update(messageBytes);
 
-        int aantal = (int)(messageBytes.length / bufSize);
+        int aantal = (int) (messageBytes.length / bufSize);
         int modulo = messageBytes.length % bufSize;
 
         SegmentHeader sh = new SegmentHeader().
@@ -76,10 +66,10 @@ public class StreamUtils {
         addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
 
         // blocksize
-        for(int i = 0; i < aantal; i++) {
+        for (int i = 0; i < aantal; i++) {
             int start = i * bufSize;
             int stop = start + bufSize;
-            Segment segment = new Segment().index(i).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, start,stop));
+            Segment segment = new Segment().index(i).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, start, stop));
             messageProperties = new MessageProperties();
             messageProperties.getHeaders().put("type", segment.getClass());
             messageProperties.getHeaders().put("uuid", segment.uuid);
@@ -87,14 +77,14 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
             results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
-            addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
         // and the rest
-        if(modulo>0) {
-            int start = aantal*bufSize;
+        if (modulo > 0) {
+            int start = aantal * bufSize;
             int stop = modulo;
-            Segment segment = new Segment().index(aantal).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, aantal*bufSize,aantal*bufSize+modulo));
+            Segment segment = new Segment().index(aantal).uuid(sh.uuid).segment(Arrays.copyOfRange(messageBytes, aantal * bufSize, aantal * bufSize + modulo));
             messageProperties = new MessageProperties();
             messageProperties.getHeaders().put("type", segment.getClass());
             messageProperties.getHeaders().put("uuid", segment.uuid);
@@ -102,7 +92,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
             results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
-            addRedundantly(results,new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
         Collections.shuffle(results);
@@ -117,7 +107,7 @@ public class StreamUtils {
         byte[] buffer = new byte[segmentHeader.size];
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
-        for(Segment segment : segments) {
+        for (Segment segment : segments) {
             bos2.write(segment.segment);
         }
         bos2.close();
@@ -126,7 +116,7 @@ public class StreamUtils {
         messageDigest.update(data);
 
         // compare digest
-        if(Arrays.equals(messageDigest.digest(), segmentHeader.digest)) {
+        if (Arrays.equals(messageDigest.digest(), segmentHeader.digest)) {
             Message message = (Message) SerializationUtils.deserialize(data);
             return message;
         } else {
@@ -135,6 +125,10 @@ public class StreamUtils {
         return null;
     }
 
+    @PostConstruct
+    public void init() {
+        messageDigest = _messageDigest;
+    }
 
 
 }

@@ -18,6 +18,7 @@ public class SecureMessage implements Serializable {
     private byte[] encryptedKey;
     private byte[] encryptedData;
     private byte[] iv;
+
     public SecureMessage() {
         index = atomicInteger.incrementAndGet();
     }

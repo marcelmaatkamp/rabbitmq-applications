@@ -25,7 +25,7 @@ public class Sensor implements Serializable {
         this.id = id;
         this.geoLocation = geoLocation;
         this.targetid = targetid;
-     }
+    }
 
     public Sensor() {
 

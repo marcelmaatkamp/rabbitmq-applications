@@ -20,7 +20,7 @@ public class TemperatureSensor extends Sensor {
     private transient Random random = new Random();
 
     public TemperatureSensor(String type, int id, String targetd, GeoLocation geoLocation) {
-        super(type,id,targetd,geoLocation);
+        super(type, id, targetd, geoLocation);
     }
 
     public static double round(double value, int places) {
@@ -32,7 +32,7 @@ public class TemperatureSensor extends Sensor {
     }
 
     public SensorEvent generateEvent(int index) {
-        TemperatureSensorEvent temperatureSensorEvent = new TemperatureSensorEvent(this, index, round(oldTemp + (random.nextDouble()*maxDev)-(maxDev/2),1));
+        TemperatureSensorEvent temperatureSensorEvent = new TemperatureSensorEvent(this, index, round(oldTemp + (random.nextDouble() * maxDev) - (maxDev / 2), 1));
         oldTemp = temperatureSensorEvent.getTemperature();
         return temperatureSensorEvent;
     }

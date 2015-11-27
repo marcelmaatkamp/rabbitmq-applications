@@ -11,5 +11,6 @@ import java.util.zip.DataFormatException;
 public interface UdpReceiverService {
 
     public void udpMessage(Message message) throws IOException, DataFormatException;
+
     public void setCompress(boolean compress);
 }

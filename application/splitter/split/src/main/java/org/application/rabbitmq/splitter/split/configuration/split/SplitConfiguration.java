@@ -32,15 +32,14 @@ import java.util.List;
 @EnableScheduling
 public class SplitConfiguration {
     private static final Logger log = LoggerFactory.getLogger(SplitConfiguration.class);
-
+    @Value(value = "${application.stream.cutter.size}")
+    int maxMessageSize;
+    @Value(value = "${application.stream.cutter.redundancyFactor}")
+    int redundancyFactor;
+    @Autowired
+    XStream xStream;
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
-
-    @Value(value="${application.stream.cutter.size}")
-    int maxMessageSize;
-
-    @Value(value="${application.stream.cutter.redundancyFactor}")
-    int redundancyFactor;
 
     @Bean
     MessageDigest messageDigest() throws NoSuchAlgorithmException {
@@ -60,9 +59,6 @@ public class SplitConfiguration {
         return exchange;
     }
 
-    @Autowired
-    XStream xStream;
-
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "cut", durable = "true"),
@@ -71,12 +67,11 @@ public class SplitConfiguration {
     void cut(Message message) {
         List<Message> messages = StreamUtils.cut(message, maxMessageSize, redundancyFactor);
 
-        log.info("cutting message("+message.getBody().length+") into " + messages.size() + " messages of " + maxMessageSize +" bytes..");
-        for(Message m : messages) {
+        log.info("cutting message(" + message.getBody().length + ") into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
+        for (Message m : messages) {
             rabbitTemplate.convertAndSend(cutterExchange().getName(), null, m);
         }
     }
-
 
 
     @Scheduled(fixedRate = 25)

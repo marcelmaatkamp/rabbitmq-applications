@@ -25,7 +25,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,7 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MergeConfiguration implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
     Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
-
+    @Autowired
+    XStream xStream;
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
 
@@ -65,9 +69,6 @@ public class MergeConfiguration implements MessageListener {
 
     }
 
-    @Autowired
-    XStream xStream;
-
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "splitter", durable = "true"),
@@ -75,31 +76,31 @@ public class MergeConfiguration implements MessageListener {
     )
     public void onMessage(Message message) {
         Object o = SerializationUtils.deserialize(message.getBody());
-        if(log.isDebugEnabled()) {
-            log.debug("o("+xStream.toXML(o)+")");
+        if (log.isDebugEnabled()) {
+            log.debug("o(" + xStream.toXML(o) + ")");
         }
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
-            if(log.isDebugEnabled()) {
-                log.debug("header("+segmentHeader.uuid+") of size("+segmentHeader.blockSize+") and count("+segmentHeader.count+")");
+            if (log.isDebugEnabled()) {
+                log.debug("header(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
             }
             boolean found = false;
-            for(SegmentHeader s : uMessages.keySet()) {
-                if(s.uuid.equals(segmentHeader.uuid)) {
+            for (SegmentHeader s : uMessages.keySet()) {
+                if (s.uuid.equals(segmentHeader.uuid)) {
                     found = true;
                     break;
                 }
             }
-            if(!found) {
+            if (!found) {
                 uMessages.put(segmentHeader, new TreeSet<Segment>());
-                if(log.isDebugEnabled()) {
-                    log.debug("starting message("+segmentHeader.uuid+") of size("+segmentHeader.blockSize+") and count("+segmentHeader.count+")");
+                if (log.isDebugEnabled()) {
+                    log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
                 }
             }
         } else if (o instanceof Segment) {
 
             Segment segment = (Segment) o;
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("segment(" + xStream.toXML(segment) + ")");
             }
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
@@ -133,7 +134,7 @@ public class MergeConfiguration implements MessageListener {
 
         for (SegmentHeader segmentHeader : uMessages.keySet()) {
             if (segmentHeader.update != null && (new Date().getTime() - segmentHeader.update.getTime()) > 25000) {
-                log.info("cleaning up " + segmentHeader.uuid + ", got(" + uMessages.get(segmentHeader).size() + "), missing(" + ((segmentHeader.count+2)-uMessages.get(segmentHeader).size()) + ")");
+                log.info("cleaning up " + segmentHeader.uuid + ", got(" + uMessages.get(segmentHeader).size() + "), missing(" + ((segmentHeader.count + 2) - uMessages.get(segmentHeader).size()) + ")");
                 uMessages.remove(segmentHeader);
             }
 

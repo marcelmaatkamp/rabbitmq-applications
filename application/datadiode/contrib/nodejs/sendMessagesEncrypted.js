@@ -1,13 +1,17 @@
 var forge = require('node-forge');
 
 var amqp = require('amqp');
-var connection = amqp.createConnection({ host: "rabbitmq", port: 5674 });
+var connection = amqp.createConnection({host: "rabbitmq", port: 5674});
 var count = 1;
 
 connection.on('ready', function () {
-    connection.exchange("testExchange", options = {type: 'headers', durable: true, autoDelete: false}, function (exchange) {
+    connection.exchange("testExchange", options = {
+        type: 'headers',
+        durable: true,
+        autoDelete: false
+    }, function (exchange) {
 
-        var sendMessage = function(exchange, payload) {
+        var sendMessage = function (exchange, payload) {
 
 
             var encoded_payload = JSON.stringify(payload);
@@ -15,7 +19,6 @@ connection.on('ready', function () {
             // RSA
             var rsa = forge.pki.rsa;
             var keypair = rsa.generateKeyPair({bits: 2048, e: 0x10001});
-
 
 
             var md = forge.md.sha1.create();
@@ -57,17 +60,17 @@ connection.on('ready', function () {
             console.log(encrypted.toHex());
 
             /**
-            var decipher = forge.cipher.createDecipher('AES-CBC', key);
-            decipher.start({iv: iv});
-            decipher.update(encrypted);
-            decipher.finish();
-            console.log(decipher.output.toHex());
+             var decipher = forge.cipher.createDecipher('AES-CBC', key);
+             decipher.start({iv: iv});
+             decipher.update(encrypted);
+             decipher.finish();
+             console.log(decipher.output.toHex());
              */
             exchange.publish('', encoded_payload, {})
         }
 
-        setInterval( function() {
-            var test_message = 'TEST '+count
+        setInterval(function () {
+            var test_message = 'TEST ' + count
             console.log('send ' + count + " ..")
             sendMessage(exchange, test_message)
             count += 1;

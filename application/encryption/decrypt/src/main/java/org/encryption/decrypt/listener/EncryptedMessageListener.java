@@ -100,8 +100,8 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
                     if (signature.verify(secureMessage.getSignature())) {
 
                         // detect missing packets
-                        if(index!=-1) {
-                            if((index+1) != secureMessage.getIndex()) {
+                        if (index != -1) {
+                            if ((index + 1) != secureMessage.getIndex()) {
                                 log.error("[" + secureMessage.getIndex() + "]: !!! MISSING SENSOR EVENT !!!");
                             }
                             index = secureMessage.getIndex();
@@ -113,9 +113,9 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
 
                         // ExchangeMessage exchangeMessage = (ExchangeMessage) SerializationUtils.deserialize(decyptedData);
 
-                        if(log.isDebugEnabled()) {
+                        if (log.isDebugEnabled()) {
                             Object o = rabbitTemplate.getMessageConverter().fromMessage(decryptedMessage);
-                            log.debug("["+routingKey+"]: secure(" + xStream.toXML(secureMessage) + "): exchange(" +xStream.toXML(decryptedMessage) + "): message: " + xStream.toXML(o));
+                            log.debug("[" + routingKey + "]: secure(" + xStream.toXML(secureMessage) + "): exchange(" + xStream.toXML(decryptedMessage) + "): message: " + xStream.toXML(o));
                         }
 
                         rabbitTemplate.send(decryptedMessage);

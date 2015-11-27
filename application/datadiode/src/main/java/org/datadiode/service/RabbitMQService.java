@@ -8,5 +8,6 @@ import org.springframework.amqp.core.Message;
  */
 public interface RabbitMQService {
     public ExchangeMessage getExchangeMessage(Message message);
+
     public void sendExchangeMessage(ExchangeMessage exchangeMessage);
 }

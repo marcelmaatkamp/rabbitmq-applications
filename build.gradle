@@ -208,7 +208,6 @@ project(":application:splitter:merge") {
     }
 }
 
-
 // sensor
 project(":application:sensor") {
     dependencies {

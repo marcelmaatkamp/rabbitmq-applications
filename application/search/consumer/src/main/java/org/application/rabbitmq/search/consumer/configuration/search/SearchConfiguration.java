@@ -4,7 +4,6 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.serialization.JsonMetadata;
-import org.apache.tika.metadata.serialization.JsonMetadataList;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
@@ -15,19 +14,13 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.xml.sax.SAXException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,40 +33,14 @@ public class SearchConfiguration {
 
     /**
      * System.getProperties().put( "proxySet", "true" );
-       System.getProperties().put( "socksProxyHost", "127.0.0.1" );
-       System.getProperties().put( "socksProxyPort", "1234" );
+     * System.getProperties().put( "socksProxyHost", "127.0.0.1" );
+     * System.getProperties().put( "socksProxyPort", "1234" );
      */
 
     private final AtomicInteger counter = new AtomicInteger();
 
     @Autowired
     ConnectionFactory connectionFactory;
-
-    @Bean
-    Tika tika() {
-        Tika tika = new Tika();
-        return tika;
-    }
-
-    @Bean
-    public SimpleRabbitListenerContainerFactory myRabbitListenerContainerFactory() {
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setMaxConcurrentConsumers(1);
-        return factory;
-    }
-
-    @RabbitListener(
-            containerFactory="myRabbitListenerContainerFactory",
-            bindings = @QueueBinding(
-            value = @Queue(value = "url", durable = "true"),
-            exchange = @Exchange(value = "url"))
-    )
-    public void process(URL url) throws IOException, TikaException, SAXException {
-        log.info("url("+url+")");
-        sendGET(url);
-
-    }
 
     private static void sendGET(URL url) throws IOException, TikaException, SAXException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -110,5 +77,31 @@ public class SearchConfiguration {
         log.info(writer.toString());
 
         return handler.toString();
+    }
+
+    @Bean
+    Tika tika() {
+        Tika tika = new Tika();
+        return tika;
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory myRabbitListenerContainerFactory() {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setMaxConcurrentConsumers(1);
+        return factory;
+    }
+
+    @RabbitListener(
+            containerFactory = "myRabbitListenerContainerFactory",
+            bindings = @QueueBinding(
+                    value = @Queue(value = "url", durable = "true"),
+                    exchange = @Exchange(value = "url"))
+    )
+    public void process(URL url) throws IOException, TikaException, SAXException {
+        log.info("url(" + url + ")");
+        sendGET(url);
+
     }
 }
