@@ -1,6 +1,7 @@
-package org.sensor.temperature.receiver.configuration.temperature;
+package org.sensor.temperature.receiver.temperature.configuration;
 
-import org.sensor.temperature.receiver.listener.TemperatureSensorEventListener;
+import org.event.configuration.xstream.XStreamConfiguration;
+import org.sensor.temperature.receiver.temperature.listener.TemperatureSensorEventListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -8,10 +9,14 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Created by marcel on 27-11-15.
  */
+@Configuration
+@Import(XStreamConfiguration.class)
 public class TemperatureReceiverConfiguration {
 
     @Autowired
