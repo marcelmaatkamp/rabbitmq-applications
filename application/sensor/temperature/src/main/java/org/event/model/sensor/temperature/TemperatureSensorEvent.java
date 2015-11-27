@@ -1,7 +1,7 @@
-package org.datadiode.model.event.sensor.temperature;
+package org.event.model.sensor.temperature;
 
-import org.datadiode.model.event.sensor.Sensor;
-import org.datadiode.model.event.sensor.SensorEvent;
+import org.event.model.sensor.Sensor;
+import org.event.model.sensor.SensorEvent;
 
 /**
  * Created by marcelmaatkamp on 02/11/15.

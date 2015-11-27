@@ -1,4 +1,4 @@
-package org.datadiode.model.event;
+package org.event.model;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 

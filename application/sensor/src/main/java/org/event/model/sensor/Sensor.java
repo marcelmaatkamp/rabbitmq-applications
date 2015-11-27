@@ -1,6 +1,6 @@
-package org.datadiode.model.event.sensor;
+package org.event.model.sensor;
 
-import org.datadiode.model.event.GeoLocation;
+import org.event.model.GeoLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

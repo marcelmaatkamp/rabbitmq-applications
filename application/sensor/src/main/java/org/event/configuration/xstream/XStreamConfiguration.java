@@ -1,11 +1,11 @@
-package org.datadiode.black.configuration.xstream;
+package org.event.configuration.xstream;
 
-        import com.thoughtworks.xstream.XStream;
-        import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-        import org.datadiode.model.event.sensor.Sensor;
-        import org.datadiode.model.event.sensor.SensorEvent;
-        import org.springframework.context.annotation.Bean;
-        import org.springframework.context.annotation.Configuration;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import org.event.model.sensor.Sensor;
+import org.event.model.sensor.SensorEvent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Created by marcelmaatkamp on 26/10/15.

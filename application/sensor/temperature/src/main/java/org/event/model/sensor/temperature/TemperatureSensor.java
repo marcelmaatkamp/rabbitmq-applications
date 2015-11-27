@@ -1,8 +1,8 @@
-package org.datadiode.model.event.sensor.temperature;
+package org.event.model.sensor.temperature;
 
-import org.datadiode.model.event.GeoLocation;
-import org.datadiode.model.event.sensor.Sensor;
-import org.datadiode.model.event.sensor.SensorEvent;
+import org.event.model.GeoLocation;
+import org.event.model.sensor.Sensor;
+import org.event.model.sensor.SensorEvent;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

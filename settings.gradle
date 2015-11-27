@@ -25,6 +25,13 @@ include "application",
         "application:search:producer",
         "application:search:consumer",
 
+        // sensor
+        "application:sensor",
+
+        // temperature
+        "application:sensor:temperature",
+        "application:sensor:temperature:sender",
+        "application:sensor:temperature:receiver",
 
         // libraries
         "library",

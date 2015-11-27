@@ -208,6 +208,42 @@ project(":application:splitter:merge") {
     }
 }
 
+
+// sensor
+project(":application:sensor") {
+    dependencies {
+        compile project(':application')
+
+    }
+}
+// temperature
+project(":application:sensor:temperature") {
+    dependencies {
+        compile project(':application:sensor')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+// temperature sender
+project(":application:sensor:temperature:sender") {
+    dependencies {
+        compile project(':application:sensor:temperature')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+// temperature receiver
+project(":application:sensor:temperature:receiver") {
+    dependencies {
+        compile project(':application:sensor:temperature')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+
 // library
 project(":library") {
 

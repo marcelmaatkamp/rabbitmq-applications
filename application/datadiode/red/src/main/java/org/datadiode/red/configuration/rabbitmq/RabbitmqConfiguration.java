@@ -112,41 +112,8 @@ public class RabbitmqConfiguration {
     }
 
 
-    @Bean
-    Exchange sensorExchange() {
-        Exchange exchange = new FanoutExchange("sensor");
-        return exchange;
-    }
 
-    @Bean
-    Queue sensorQueue() {
-        Queue queue = new Queue("sensor");
-        return queue;
-    }
 
-    @Bean
-    BindingBuilder.GenericArgumentsConfigurer sensorQueueBinding() {
-        BindingBuilder.GenericArgumentsConfigurer destinationConfigurer = BindingBuilder.bind(sensorQueue()).to(sensorExchange()).with("");
-        rabbitAdmin().declareBinding(new Binding(sensorQueue().getName(), Binding.DestinationType.QUEUE, sensorExchange().getName(), "", null));
-        return destinationConfigurer;
-    }
-
-    @Bean
-    SensorEventListener sensorEventListener() {
-        SensorEventListener sensorEventListenerer = new SensorEventListener();
-        return sensorEventListenerer;
-    }
-
-    @Bean
-    SimpleMessageListenerContainer sensorListenerContainer() {
-        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-        simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
-        MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(sensorEventListener());
-        simpleMessageListenerContainer.setQueueNames(sensorQueue().getName());
-        simpleMessageListenerContainer.setMessageListener(messageListenerAdapter);
-        simpleMessageListenerContainer.start();
-        return simpleMessageListenerContainer;
-    }
 
 
     @Bean

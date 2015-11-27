@@ -1,7 +1,7 @@
-package org.datadiode.model.event.sensor;
+package org.event.model.sensor;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.datadiode.model.event.Event;
+import org.event.model.Event;
 
 import java.io.Serializable;
 import java.util.Date;
