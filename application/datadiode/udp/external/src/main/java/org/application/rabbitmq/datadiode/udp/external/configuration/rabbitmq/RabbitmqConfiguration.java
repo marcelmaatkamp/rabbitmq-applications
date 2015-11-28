@@ -93,6 +93,9 @@ public class RabbitmqConfiguration {
         return declaredExchanges;
     }
 
+    /**
+     * Automatic adding listeners
+     */
     @Scheduled(fixedDelay = 5000)
     void checkForNewExchanges() {
 

@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
@@ -177,8 +178,8 @@ public class DecryptConfiguration {
 
 
     @Bean
-    Queue encryptQueue() {
-        Queue queue = new Queue("encrypt");
+    Queue encryptedQueue() {
+        Queue queue = new Queue("encrypted");
         return queue;
     }
 
@@ -186,6 +187,7 @@ public class DecryptConfiguration {
     Exchange encryptedExchange() {
         Exchange exchange = new FanoutExchange("encrypted");
         rabbitAdmin().declareExchange(exchange);
+        rabbitAdmin().declareBinding(new Binding(encryptedQueue().getName(), Binding.DestinationType.QUEUE, exchange.getName(), "", null));
         return exchange;
     }
 
@@ -200,7 +202,7 @@ public class DecryptConfiguration {
         SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
         simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
         simpleMessageListenerContainer.setMessageListener(encryptedEventListener());
-        simpleMessageListenerContainer.setQueueNames(encryptQueue().getName());
+        simpleMessageListenerContainer.setQueueNames(encryptedQueue().getName());
         simpleMessageListenerContainer.setConcurrentConsumers(1);
         simpleMessageListenerContainer.start();
         return simpleMessageListenerContainer;

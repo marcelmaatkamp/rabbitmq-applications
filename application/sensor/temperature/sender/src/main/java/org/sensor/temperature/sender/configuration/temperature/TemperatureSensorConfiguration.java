@@ -13,6 +13,7 @@ import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,10 +40,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EnableScheduling
 public class TemperatureSensorConfiguration {
     private static final Logger log = LoggerFactory.getLogger(TemperatureSensorConfiguration.class);
+
     @Autowired
     XStream xStream;
+
     @Autowired
     RabbitTemplate rabbitTemplate;
+
     AtomicInteger atomicInteger = new AtomicInteger(1);
 
     @Bean
@@ -60,6 +64,13 @@ public class TemperatureSensorConfiguration {
     @Bean
     Exchange sensorExchange() {
         Exchange exchange = new FanoutExchange("sensor");
+        rabbitAdmin().declareExchange(exchange);
+        return exchange;
+    }
+
+    @Bean
+    Exchange encryptedSensorExchange() {
+        Exchange exchange = new FanoutExchange("encrypt");
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }

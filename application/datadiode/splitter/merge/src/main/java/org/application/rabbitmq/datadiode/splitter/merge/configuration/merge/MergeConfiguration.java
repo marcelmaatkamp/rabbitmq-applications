@@ -126,6 +126,11 @@ public class MergeConfiguration implements MessageListener {
         }
     }
 
+    /**
+     * Cleaup function
+     *
+     * @throws MalformedURLException
+     */
     @Scheduled(fixedRate = 5000)
     public void cleanup() throws MalformedURLException {
         if (uMessages.keySet().size() > 0) {

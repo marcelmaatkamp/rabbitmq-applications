@@ -60,7 +60,6 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-
         MessageProperties messageProperties = message.getMessageProperties();
         String routingKey = messageProperties.getReceivedRoutingKey();
         Object msg = rabbitTemplate.getMessageConverter().fromMessage(message);
@@ -114,8 +113,7 @@ public class EncryptedMessageListener implements ChannelAwareMessageListener {
                         // ExchangeMessage exchangeMessage = (ExchangeMessage) SerializationUtils.deserialize(decyptedData);
 
                         if (log.isDebugEnabled()) {
-                            Object o = rabbitTemplate.getMessageConverter().fromMessage(decryptedMessage);
-                            log.debug("[" + routingKey + "]: secure(" + xStream.toXML(secureMessage) + "): exchange(" + xStream.toXML(decryptedMessage) + "): message: " + xStream.toXML(o));
+                            log.debug("[" + routingKey + "]: secure(" + xStream.toXML(secureMessage) + ") -> exchange(" + xStream.toXML(decryptedMessage) + ")");
                         }
 
                         rabbitTemplate.send(decryptedMessage);

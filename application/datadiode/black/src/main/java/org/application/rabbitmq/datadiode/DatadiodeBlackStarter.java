@@ -16,5 +16,6 @@ public class DatadiodeBlackStarter {
 
     public static void main(String[] args) throws IOException {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(DatadiodeBlackStarter.class).web(false).run(args);
+        configurableApplicationContext.start();
     }
 }
