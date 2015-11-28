@@ -5,20 +5,31 @@ include "application",
         "application:datadiode:black",
         "application:datadiode:red",
 
+        // datadiode
+        "application:datadiode",
+        "application:datadiode:udp",
+        "application:datadiode:udp:external",
+        "application:datadiode:udp:internal",
+
+        // streams
+        "application:datadiode:splitter",
+        "application:datadiode:splitter:split",
+        "application:datadiode:splitter:merge",
+
         // encryption
-        "application:encryption",
-        "application:encryption:encrypt",
-        "application:encryption:decrypt",
+        "application:datadiode:encryption",
+        "application:datadiode:encryption:encrypt",
+        "application:datadiode:encryption:decrypt",
+
+        // temperature
+        "application:sensor:temperature",
+        "application:sensor:temperature:sender",
+        "application:sensor:temperature:receiver",
 
         // fileshare
         "application:fileshare",
         "application:fileshare:internal",
         "application:fileshare:external",
-
-        // streams
-        "application:splitter",
-        "application:splitter:split",
-        "application:splitter:merge",
 
         // search
         "application:search",
@@ -27,11 +38,6 @@ include "application",
 
         // sensor
         "application:sensor",
-
-        // temperature
-        "application:sensor:temperature",
-        "application:sensor:temperature:sender",
-        "application:sensor:temperature:receiver",
 
         // libraries
         "library",

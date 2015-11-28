@@ -99,13 +99,15 @@ project(":application") {
 project(":application:datadiode") {
     dependencies {
         compile project(':application')
-        compile project(':library:encryption')
-
     }
 }
 project(":application:datadiode:black") {
     dependencies {
         compile project(':application:datadiode')
+        compile project(':application:datadiode:splitter:split')
+        compile project(':application:datadiode:udp:external')
+        compile project(':application:datadiode:encryption:encrypt')
+
     }
     springBoot {
         mainClass = "org.datadiode.black.DatadiodeBlackStarter"
@@ -115,6 +117,10 @@ project(":application:datadiode:black") {
 project(":application:datadiode:red") {
     dependencies {
         compile project(':application:datadiode')
+        compile project(':application:datadiode:splitter:merge')
+        compile project(':application:datadiode:udp:internal')
+        compile project(':application:datadiode:encryption:decrypt')
+
     }
     springBoot {
         mainClass = "org.datadiode.red.DatadiodeRedStarter"
@@ -122,25 +128,23 @@ project(":application:datadiode:red") {
 }
 
 // encryption
-project(":application:encryption") {
+project(":application:datadiode:encryption") {
     dependencies {
-        compile project(':application')
+        compile project(':application:datadiode')
         compile project(':library:encryption')
-
-
     }
 }
-project(":application:encryption:encrypt") {
+project(":application:datadiode:encryption:encrypt") {
     dependencies {
-        compile project(':application:encryption')
+        compile project(':application:datadiode:encryption')
     }
     springBoot {
         mainClass = "org.encryption.encrypt.EncryptionEncryptStarter"
     }
 }
-project(":application:encryption:decrypt") {
+project(":application:datadiode:encryption:decrypt") {
     dependencies {
-        compile project(':application:encryption')
+        compile project(':application:datadiode:encryption')
     }
     springBoot {
         mainClass = "org.encryption.decrypt.EncryptionDecryptStarter"
@@ -185,23 +189,47 @@ project(":application:search:consumer") {
 }
 
 // stream
-project(":application:splitter") {
+project(":application:datadiode:splitter") {
     dependencies {
-        compile project(':application')
+        compile project(':application:datadiode')
 
     }
 }
-project(":application:splitter:split") {
+project(":application:datadiode:splitter:split") {
     dependencies {
-        compile project(':application:splitter')
+        compile project(':application:datadiode:splitter')
     }
     springBoot {
         mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
     }
 }
-project(":application:splitter:merge") {
+project(":application:datadiode:splitter:merge") {
     dependencies {
-        compile project(':application:splitter')
+        compile project(':application:datadiode:splitter')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
+    }
+}
+
+// udp
+project(":application:datadiode:udp") {
+    dependencies {
+        compile project(':application:datadiode')
+
+    }
+}
+project(":application:datadiode:udp:external") {
+    dependencies {
+        compile project(':application:datadiode:udp')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+project(":application:datadiode:udp:internal") {
+    dependencies {
+        compile project(':application:datadiode:udp')
     }
     springBoot {
         mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
