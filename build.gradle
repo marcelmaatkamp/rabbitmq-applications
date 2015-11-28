@@ -107,11 +107,10 @@ project(":application:datadiode:black") {
         compile project(':application:datadiode:splitter:split')
         compile project(':application:datadiode:udp:external')
         compile project(':application:datadiode:encryption:encrypt')
-
+        compile project(":application:datadiode:exchanger:external")
     }
     springBoot {
         mainClass = "org.datadiode.black.DatadiodeBlackStarter"
-
     }
 }
 project(":application:datadiode:red") {
@@ -120,7 +119,7 @@ project(":application:datadiode:red") {
         compile project(':application:datadiode:splitter:merge')
         compile project(':application:datadiode:udp:internal')
         compile project(':application:datadiode:encryption:decrypt')
-
+        compile project(":application:datadiode:exchanger:internal")
     }
     springBoot {
         mainClass = "org.datadiode.red.DatadiodeRedStarter"

@@ -1,4 +1,4 @@
-package org.application.rabbitmq.datadiode.exchanger.configuration.internal;
+package org.application.rabbitmq.datadiode.exchanger.internal.configuration.internal;
 
 import org.springframework.context.annotation.Configuration;
 

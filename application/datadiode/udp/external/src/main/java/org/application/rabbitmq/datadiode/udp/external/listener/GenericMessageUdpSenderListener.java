@@ -39,21 +39,6 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     @Autowired
     RabbitManagementTemplate rabbitManagementTemplate;
 
-    public static int[][] chunkArray(int[] array, int chunkSize) {
-        int numOfChunks = (int) Math.ceil((double) array.length / chunkSize);
-        int[][] output = new int[numOfChunks][];
-
-        for (int i = 0; i < numOfChunks; ++i) {
-            int start = i * chunkSize;
-            int length = Math.min(array.length - start, chunkSize);
-
-            int[] temp = new int[length];
-            System.arraycopy(array, start, temp, 0, length);
-            output[i] = temp;
-        }
-
-        return output;
-    }
 
     public boolean isCompress() {
         return compress;
@@ -73,21 +58,10 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         // convert to exchange message
 
         // TODO: seperate thread
-        ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
-
-        // log results
-        if (log.isDebugEnabled()) {
-            Object o = rabbitTemplate.getMessageConverter().fromMessage(message);
-            if (o instanceof byte[]) {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + new String((byte[]) o, "UTF-8"));
-
-            } else {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + o);
-            }
-        }
+        // ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
 
         // convert to generic message
-        byte[] udpPacket = SerializationUtils.serialize(exchangeMessage);
+        byte[] udpPacket = SerializationUtils.serialize(message);
         byte[] data = udpPacket;
 
         if (compress) {
