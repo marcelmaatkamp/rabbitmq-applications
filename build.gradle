@@ -212,6 +212,30 @@ project(":application:datadiode:splitter:merge") {
     }
 }
 
+// exchanger
+project(":application:datadiode:exchanger") {
+    dependencies {
+        compile project(':application:datadiode')
+
+    }
+}
+project(":application:datadiode:exchanger:internal") {
+    dependencies {
+        compile project(':application:datadiode:exchanger')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+project(":application:datadiode:exchanger:external") {
+    dependencies {
+        compile project(':application:datadiode:exchanger')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
+    }
+}
+
 // udp
 project(":application:datadiode:udp") {
     dependencies {
