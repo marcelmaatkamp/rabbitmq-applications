@@ -47,27 +47,27 @@ public class DecryptConfiguration {
     ApplicationContext applicationContext;
 
     // signature
-    @Value("${application.datadiode.cipher.signature}")
+    @Value("${application.datadiode.encryption.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.cipher.provider}")
+    @Value("${application.datadiode.encryption.cipher.provider}")
     String SECURITY_PROVIDER;
 
     // asymmetrical cipher settings
-    @Value("${application.datadiode.cipher.asymmetrical.algorithm}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
     // symmetrical cipher settings
-    @Value("${application.datadiode.cipher.symmetrical.algorithm}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
     @Autowired
     RabbitTemplate rabbitTemplate;

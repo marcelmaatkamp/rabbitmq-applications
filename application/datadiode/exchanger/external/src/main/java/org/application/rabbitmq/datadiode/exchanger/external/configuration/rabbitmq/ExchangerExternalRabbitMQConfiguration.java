@@ -77,6 +77,7 @@ public class ExchangerExternalRabbitMQConfiguration {
     @Bean
     Queue exchangeQueue() {
         Queue queue = new Queue("exchange");
+        rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, exchangeExchange().getName(), "", null));
         return queue;
     }
 

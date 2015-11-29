@@ -6,6 +6,8 @@ import org.application.rabbitmq.datadiode.encryption.encrypt.listener.EncryptMes
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -17,6 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 
 import javax.crypto.Cipher;
@@ -35,6 +38,9 @@ import java.security.spec.X509EncodedKeySpec;
 @Configuration
 public class EncryptConfiguration {
 
+    private static final Logger log = LoggerFactory.getLogger(EncryptConfiguration.class);
+
+
     @Autowired
     ApplicationContext applicationContext;
 
@@ -42,28 +48,28 @@ public class EncryptConfiguration {
     String privateKeyFilename = "private.key";
 
     // signature 
-    @Value("${application.datadiode.cipher.signature}")
+    @Value("${application.datadiode.encryption.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
     // provider
-    @Value("${application.datadiode.cipher.provider}")
+    @Value("${application.datadiode.encryption.cipher.provider}")
     String SECURITY_PROVIDER;
 
     // asymmetrical settings
     // http://www.bouncycastle.org/wiki/display/JA1/Frequently+Asked+Questions
-    @Value("${application.datadiode.cipher.asymmetrical.algorithm}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.algorithm}")
     String ALGORITHM_ASYMMETRICAL;
-    @Value("${application.datadiode.cipher.asymmetrical.cipher}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.cipher}")
     String ALGORITHM_ASYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.cipher.asymmetrical.keysize}")
+    @Value("${application.datadiode.encryption.cipher.asymmetrical.keysize}")
     int ALGORITHM_ASYMMETRICAL_KEYSIZE;
 
     // symmetrical settings
-    @Value("${application.datadiode.cipher.symmetrical.algorithm}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.algorithm}")
     String ALGORITHM_SYMMETRICAL;
-    @Value("${application.datadiode.cipher.symmetrical.cipher}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.cipher}")
     String ALGORITHM_SYMMETRICAL_CIPHER;
-    @Value("${application.datadiode.cipher.symmetrical.keysize}")
+    @Value("${application.datadiode.encryption.cipher.symmetrical.keysize}")
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -171,6 +177,9 @@ public class EncryptConfiguration {
     EncryptMessageListener encryptMessageListener() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         EncryptMessageListener encryptMessageListener =
                 new EncryptMessageListener();
+        log.info("encryptMessageListener.exchange("+encryptedExchange()+")");
+
+        encryptMessageListener.setEncryptedExchange(encryptedExchange());
         return encryptMessageListener;
     }
 
@@ -180,22 +189,29 @@ public class EncryptConfiguration {
         return rabbitAdmin;
     }
 
+    @Autowired
+    Environment environment;
+    
     @Bean
     Exchange encryptedExchange() {
-        Exchange exchange = new FanoutExchange("encrypted");
-        rabbitAdmin().declareExchange(exchange);
-        return exchange;
+        String name = environment.getProperty("application.datadiode.encryption.encrypted.exchange");
+        Exchange encryptedExchange = new FanoutExchange(name);
+
+        log.info("encryptedExchange.name(" + name + ").exchange("+encryptedExchange+")");
+
+        rabbitAdmin().declareExchange(encryptedExchange);
+        return encryptedExchange;
     }
     @Bean
     Exchange encryptExchange() {
-        Exchange exchange = new FanoutExchange("encrypt");
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.encryption.encrypt.exchange"));
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
 
     @Bean
     Queue encryptQueue() {
-        Queue queue = new Queue("encrypt");
+        Queue queue = new Queue(environment.getProperty("application.datadiode.encryption.encrypt.queue"));
         rabbitAdmin().declareQueue(queue);
         BindingBuilder.bind(queue).to(encryptExchange()).with("");
         rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, encryptExchange().getName(), "", null));

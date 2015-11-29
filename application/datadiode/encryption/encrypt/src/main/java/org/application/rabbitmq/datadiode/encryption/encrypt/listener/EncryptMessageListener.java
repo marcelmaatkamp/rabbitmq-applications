@@ -30,7 +30,13 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
+    public Exchange getEncryptedExchange() {
+        return encryptedExchange;
+    }
+
+    public void setEncryptedExchange(Exchange encryptedExchange) {
+        this.encryptedExchange = encryptedExchange;
+    }
     Exchange encryptedExchange;
 
     @Autowired

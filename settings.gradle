@@ -12,9 +12,9 @@ include "application",
         "application:datadiode:udp:internal",
 
         // streams
-        "application:datadiode:splitter",
-        "application:datadiode:splitter:split",
-        "application:datadiode:splitter:merge",
+        "application:datadiode:cutter",
+        "application:datadiode:cutter:cut",
+        "application:datadiode:cutter:merge",
 
         // encryption
         "application:datadiode:encryption",
