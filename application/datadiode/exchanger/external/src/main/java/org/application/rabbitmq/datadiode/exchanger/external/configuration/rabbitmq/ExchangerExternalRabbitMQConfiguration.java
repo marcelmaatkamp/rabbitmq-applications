@@ -46,7 +46,7 @@ public class ExchangerExternalRabbitMQConfiguration {
                     //"amq.topic",
                     "encrypt",
                     "cut",
-                    "cutted",,
+                    "cutted",
                     "exchange",
                     "udp");
 
