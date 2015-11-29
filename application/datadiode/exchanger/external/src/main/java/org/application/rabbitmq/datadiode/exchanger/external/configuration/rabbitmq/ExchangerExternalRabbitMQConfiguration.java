@@ -19,11 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.*;
 
 @Configuration
+@EnableScheduling
 public class ExchangerExternalRabbitMQConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(ExchangerExternalRabbitMQConfiguration.class);
@@ -44,6 +46,7 @@ public class ExchangerExternalRabbitMQConfiguration {
                     //"amq.topic",
                     "encrypt",
                     "cut",
+                    "cutted",,
                     "exchange",
                     "udp");
 
