@@ -112,7 +112,7 @@ project(":application:datadiode:black") {
 
     }
     springBoot {
-        mainClass = "org.datadiode.black.DatadiodeBlackStarter"
+        mainClass = "org.application.rabbitmq.datadiode.DatadiodeBlackStarter"
     }
 }
 project(":application:datadiode:red") {
@@ -125,7 +125,7 @@ project(":application:datadiode:red") {
         // compile project(":application:sensor:temperature:receiver")
     }
     springBoot {
-        mainClass = "org.datadiode.red.DatadiodeRedStarter"
+        mainClass = "org.application.rabbitmq.datadiode.DatadiodeRedStarter"
     }
 }
 

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
+import javax.annotation.Resource;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.*;
@@ -23,7 +24,7 @@ import java.security.*;
  * <p>
  * Created by marcelmaatkamp on 15/10/15.
  */
-@Component
+@Resource
 public class EncryptMessageListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(EncryptMessageListener.class);
 

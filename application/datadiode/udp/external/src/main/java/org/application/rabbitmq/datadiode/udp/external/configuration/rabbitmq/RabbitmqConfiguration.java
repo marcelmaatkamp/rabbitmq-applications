@@ -22,6 +22,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by marcel on 23-09-15.
  */
@@ -33,8 +36,11 @@ public class RabbitMQConfiguration {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    RabbitAdmin rabbitAdmin;
+    @Bean
+    RabbitAdmin rabbitAdmin() {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
+        return rabbitAdmin;
+    }
 /**
     @Bean
     Exchange udpEchange() {
@@ -45,7 +51,7 @@ public class RabbitMQConfiguration {
 */
     @Bean
     Queue udpQueue() {
-        Queue queue = new Queue(environment.getProperty("application.datadiode.black.udp.queue", String.class));
+        Queue queue = new Queue(environment.getProperty("application.datadiode.udp.external.queue", String.class));
         // rabbitAdmin.declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(),"",null));
         return queue;
     }
@@ -67,7 +73,7 @@ public class RabbitMQConfiguration {
     @Bean
     GenericMessageUdpSenderListener genericMessageUdpSenderListener() {
         GenericMessageUdpSenderListener genericMessageUdpSenderListener = new GenericMessageUdpSenderListener();
-        genericMessageUdpSenderListener.setCompress(environment.getProperty("application.datadiode.black.udp.compress", Boolean.class));
+        genericMessageUdpSenderListener.setCompress(environment.getProperty("application.datadiode.udp.external.compress", Boolean.class));
         return genericMessageUdpSenderListener;
     }
 

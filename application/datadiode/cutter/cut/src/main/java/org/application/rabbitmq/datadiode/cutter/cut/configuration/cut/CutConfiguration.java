@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,6 @@ import java.util.List;
  * Created by marcelmaatkamp on 24/11/15.
  */
 @Configuration
-@EnableScheduling
 public class CutConfiguration {
     private static final Logger log = LoggerFactory.getLogger(CutConfiguration.class);
 
@@ -54,11 +54,17 @@ public class CutConfiguration {
         return streamUtils;
     }
 
+    @Bean
+    RabbitAdmin rabbitAdmin() {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
+        return rabbitAdmin;
+    }
     // TODO: naamgeving in application.properties
 
     @Bean
     org.springframework.amqp.core.Exchange cutterExchange() {
-        org.springframework.amqp.core.Exchange exchange = new FanoutExchange(environment.getProperty("${application.datadiode.cutter.cutted.exchange}"));
+        org.springframework.amqp.core.Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.cutter.cutted.exchange"));
+        rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
 

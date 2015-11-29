@@ -18,21 +18,17 @@ import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
  * Created by marcelmaatkamp on 15/10/15.
  */
 public class ExchangeMessageConverterListener implements ChannelAwareMessageListener {
-
-    // TODO: exchange::exchange -> exchanged
-
-    static final Integer lock = new Integer(-1);
     private static final Logger log = LoggerFactory.getLogger(ExchangeMessageConverterListener.class);
-    @Autowired
-    UnicastSendingMessageHandler unicastSendingMessageHandler;
+
     @Autowired
     RabbitMQService rabbitMQService;
+
     @Autowired
     RabbitTemplate rabbitTemplate;
+
     @Autowired
     XStream xStream;
-    @Value(value = "${application.datadiode.black.udp.throttleInMs}")
-    Integer throttleInMs;
+
     boolean compress;
 
     @Autowired

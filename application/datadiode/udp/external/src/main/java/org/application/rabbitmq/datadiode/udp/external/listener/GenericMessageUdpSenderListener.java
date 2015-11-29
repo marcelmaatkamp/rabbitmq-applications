@@ -25,20 +25,18 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
     @Autowired
     UnicastSendingMessageHandler unicastSendingMessageHandler;
-    @Autowired
-    RabbitMQService rabbitMQService;
+
     @Autowired
     RabbitTemplate rabbitTemplate;
     @Autowired
     XStream xStream;
-    @Value(value = "${application.datadiode.black.udp.throttleInMs}")
+
+    @Value(value = "${application.datadiode.udp.external.throttleInMs}")
     Integer throttleInMs;
+
     boolean compress;
+
     int maxBytes = 1450;
-
-    @Autowired
-    RabbitManagementTemplate rabbitManagementTemplate;
-
 
     public boolean isCompress() {
         return compress;
@@ -55,10 +53,6 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
      */
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-        // convert to exchange message
-
-        // TODO: seperate thread
-        // ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
 
         // convert to generic message
         byte[] udpPacket = SerializationUtils.serialize(message);
@@ -78,10 +72,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         if (data.length > maxBytes) {
             log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
         }
-        GenericMessage genericMessage = new GenericMessage<byte[]>(data);
-        // send over udp
 
-        // throttle thread
+        GenericMessage genericMessage = new GenericMessage<byte[]>(data);
         try {
             synchronized (lock) {
                 unicastSendingMessageHandler.handleMessageInternal(genericMessage);

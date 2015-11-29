@@ -29,7 +29,8 @@ public class StreamUtils {
     XStream xStream;
     @Autowired
     MessageDigest _messageDigest;
-    @Value(value = "${application.stream.cutter.digest}")
+
+    @Value(value = "${application.datadiode.cutter.digest}")
     boolean doDigest;
 
     private static void addRedundantly(List<Message> messages, Message message, int redundancyFactor) {

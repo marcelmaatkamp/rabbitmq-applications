@@ -31,7 +31,7 @@ public class UdpProducerConfiguration {
         return unicastSendingMessageHandler;
     }
 
-    @ConfigurationProperties(prefix = "application.datadiode.black")
+    @ConfigurationProperties(prefix = "application.datadiode.udp.external")
     public static class UdpProducerConfigurationProperties {
         String host;
         int port;

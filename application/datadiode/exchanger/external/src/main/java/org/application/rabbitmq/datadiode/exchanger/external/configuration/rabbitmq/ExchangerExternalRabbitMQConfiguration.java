@@ -70,13 +70,15 @@ public class ExchangerExternalRabbitMQConfiguration {
 
     @Bean
     Exchange exchangeExchange() {
-        Exchange exchange = new FanoutExchange("exchange");
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.exchange.exchange"));
+        rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
 
     @Bean
     Queue exchangeQueue() {
-        Queue queue = new Queue("exchange");
+        Queue queue = new Queue(environment.getProperty("application.datadiode.exchange.queue"));
+        rabbitAdmin().declareQueue(queue);
         rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, exchangeExchange().getName(), "", null));
         return queue;
     }
