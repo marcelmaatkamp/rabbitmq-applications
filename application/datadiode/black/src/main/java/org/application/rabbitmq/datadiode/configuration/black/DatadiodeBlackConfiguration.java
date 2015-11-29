@@ -23,7 +23,7 @@ public class DatadiodeBlackConfiguration {
     void init() {
         // rabbitAdmin.declareBinding(new Binding("udp", Binding.DestinationType.EXCHANGE, "cutter", "", null));
 
-        // Queue exchange -> exchange split
+        // Queue exchange -> exchange cut
         // Queue split -> exchange udp
 
     }
