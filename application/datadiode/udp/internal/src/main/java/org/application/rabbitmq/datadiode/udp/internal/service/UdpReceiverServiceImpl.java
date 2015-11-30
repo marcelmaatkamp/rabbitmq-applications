@@ -6,8 +6,12 @@ import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
@@ -28,17 +32,16 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     @Autowired
     XStream xStream;
 
-    @Autowired
-    RabbitMQService rabbitMQService;
     boolean compress;
 
-    public boolean isCompress() {
-        return compress;
+    @Autowired
+    Environment environment;
+
+    Exchange exchange() {
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.udp.internal.exchange"));
+        return exchange;
     }
 
-    public void setCompress(boolean compress) {
-        this.compress = compress;
-    }
 
     public void udpMessage(Message message) throws IOException, DataFormatException {
 
@@ -49,7 +52,10 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
         if (compress) {
             data = CompressionUtils.decompress(udpPacket);
         }
-
+        org.springframework.amqp.core.Message udpMessage =
+                (org.springframework.amqp.core.Message) SerializationUtils.deserialize(
+                        (byte[]) data);
+/**
         ExchangeMessage exchangeMessage =
                 (ExchangeMessage) SerializationUtils.deserialize(
                         (byte[]) data);
@@ -62,8 +68,16 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
                 log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + o);
             }
         }
+    rabbitMQService.sendExchangeMessage(exchange().getName());
 
-        rabbitMQService.sendExchangeMessage(exchangeMessage);
+ */
+
+        rabbitTemplate.send(udpMessage);
+    }
+
+    @Override
+    public void setCompress(boolean compress) {
+        this.compress = compress;
     }
 
 
