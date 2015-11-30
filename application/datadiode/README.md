@@ -1,6 +1,6 @@
 # RabbitMQ mirrored over a data diode
 
-![rmq dd](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/rmq_dd.png)
+![rmq dd](documentation/images/rmq_dd.png)
 
 Reference Implementation of RabbitMQ mirrored over a data diode. Nowhere near production-ready but in this state it will successfully transport messages from outside to inside and has a reference encryption mechanism in place how to send messages encrypted with AES wrapped in RSA.
 
@@ -31,20 +31,19 @@ Install unzip the JCE and place the jars in $JAVA_HOME/jre/lib/security:
 ```
 Install both outside (black) and inside (red) packages
 ```
- git clone https://github.com/marcelmaatkamp/docker-spring-datadiode-black
- git clone https://github.com/marcelmaatkamp/docker-spring-datadiode-red
+ git clone https://github.com/marcelmaatkamp/rabbitmq-applications
 ```
 
 # Start 
 First start both test rabbitmqs on a host called 'rabbitmq': 
 ```
-cd docker-spring-datadiode-black/contrib/rabbitmq
+cd rabbitmq-applications/datadiode/contrib/rabbitmq
 docker-compose up
 ```
 
 This will start the following setup:
 
-![rmq outside inside](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/rmq_dd_software_and_rmq.png)
+![rmq outside inside](documentation/images/rmq_dd_software_and_rmq.png)
 
 Validate by visiting the following pages:
 
@@ -153,31 +152,31 @@ Which produces the following message in the "sensor" exchange:
 ```
 
 Should this setup not work, properties to adjust can be found in:
-* [application.properties (black)](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/src/main/resources/application.properties)
-* [application.properties (red)](https://github.com/marcelmaatkamp/docker-spring-datadiode-red/blob/master/src/main/resources/application.properties)
+* [application.properties (black)](black/src/main/resources/application.properties)
+* [application.properties (red)](red/src/main/resources/application.properties)
 
 # from encrypted sensor to encrypted sites
-![encrypted sensor](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/documentation/images/rmq_dd_sensor_encr.png)
-![encrypted sensor exchange](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/documentation/images/rmq_dd_sensor_encr_ex.png)
-![encrypted exchange](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/documentation/images/rmq_dd_encr_ex.png)
+![encrypted sensor](documentation/images/rmq_dd_sensor_encr.png)
+![encrypted sensor exchange](documentation/images/rmq_dd_sensor_encr_ex.png)
+![encrypted exchange](documentation/images/rmq_dd_encr_ex.png)
 
 
 # Encrypted RabbitMQ streams between 2 sites
 A site has a DMZ where data is shoveled between the red and black, for incoming and outgoing data:
-![rmq outside dmz inside](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/rmq_dd_out_dmz_in.png)
+![rmq outside dmz inside](documentation/images/rmq_dd_out_dmz_in.png)
 
 This setup can be repeated for each site
-![encrypted RabbitMQ streanms between 2 sites](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/documentation/images/rmq_encrypted_sites.png)
+![encrypted RabbitMQ streanms between 2 sites](documentation/images/rmq_encrypted_sites.png)
 
 # CONTENT CHECKING
-![content checking](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/rmq_dd_validation.png)
+![content checking](documentation/images/rmq_dd_validation.png)
 
 The contents on the latest rabbitmq can be shoveled because it has been validated internally.
 
 # Classes
-![rmq_message](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/classes/rmq_message.png)
-![rmq_message_exchange](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/classes/rmq_message_exchangemessage.png)
-![rmq_secure_message](https://raw.githubusercontent.com/marcelmaatkamp/docker-spring-datadiode-black/master/documentation/images/classes/rmq_secureMessage.png)
+![rmq_message](documentation/images/classes/rmq_message.png)
+![rmq_message_exchange](documentation/images/classes/rmq_message_exchangemessage.png)
+![rmq_secure_message](documentation/images/classes/rmq_secureMessage.png)
 
 
 # Extra
