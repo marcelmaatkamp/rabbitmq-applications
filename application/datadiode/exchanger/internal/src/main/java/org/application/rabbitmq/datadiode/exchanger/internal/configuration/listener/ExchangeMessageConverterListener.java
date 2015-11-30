@@ -49,7 +49,6 @@ public class ExchangeMessageConverterListener implements ChannelAwareMessageList
     public void onMessage(Message message, Channel channel) throws Exception {
         ExchangeMessage exchangeMessage = (ExchangeMessage)rabbitTemplate.convertSendAndReceive(message);
 
-
         // exchangeMessage
         rabbitTemplate.send(exchangeMessage.getMessage());
     }

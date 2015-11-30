@@ -18,6 +18,7 @@ import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -38,11 +39,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @EnableScheduling
 public class MergeConfiguration implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
+
     Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+
     @Autowired
     XStream xStream;
+
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    Environment environment;
 
     @Bean
     MessageDigest messageDigest() throws NoSuchAlgorithmException {
@@ -58,21 +65,21 @@ public class MergeConfiguration implements MessageListener {
 
     @Bean
     org.springframework.amqp.core.Exchange reconstructExchange() {
-        org.springframework.amqp.core.Exchange exchange = new FanoutExchange("split");
+        org.springframework.amqp.core.Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.cutter.merged.exchange"));
         return exchange;
     }
 
     @Bean
     org.springframework.amqp.core.Queue cutterQueue() {
-        org.springframework.amqp.core.Queue queue = new org.springframework.amqp.core.Queue("split");
+        org.springframework.amqp.core.Queue queue = new org.springframework.amqp.core.Queue(environment.getProperty("application.datadiode.cutter.merged.queue"));
         return queue;
 
     }
 
     @RabbitListener(
             bindings = @QueueBinding(
-                    value = @Queue(value = "splitter", durable = "true"),
-                    exchange = @Exchange(value = "splitter", durable = "true", autoDelete = "false", type = "fanout"))
+                    value = @Queue(value = "${application.datadiode.cutter.queue}", durable = "true"),
+                    exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "fanout"))
     )
     public void onMessage(Message message) {
         Object o = SerializationUtils.deserialize(message.getBody());
