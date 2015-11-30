@@ -28,7 +28,7 @@ public class TemperatureSensorEventListener implements ChannelAwareMessageListen
         Object o = rabbitTemplate.getMessageConverter().fromMessage(message);
         if (o instanceof TemperatureSensorEvent) {
             TemperatureSensorEvent temperatureSensorEvent = (TemperatureSensorEvent) rabbitTemplate.getMessageConverter().fromMessage(message);
-            log.info("temperatureSensorEvent: " + xStream.toXML(temperatureSensorEvent));
+            log.info("["+temperatureSensorEvent.getIndex()+"]: on date(" + temperatureSensorEvent.getDate()+"), temp(" + temperatureSensorEvent.getTemperature()+"C) at "+xStream.toXML(temperatureSensorEvent.getSensor().getGeoLocation()));
         } else if (o instanceof SensorEvent) {
             SensorEvent sensorEvent = (SensorEvent) rabbitTemplate.getMessageConverter().fromMessage(message);
             log.info("sensorEvent: " + xStream.toXML(sensorEvent));

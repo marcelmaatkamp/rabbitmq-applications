@@ -21,11 +21,6 @@ include "application",
         "application:datadiode:encryption:encrypt",
         "application:datadiode:encryption:decrypt",
 
-        // exchange
-        "application:datadiode:exchanger",
-        "application:datadiode:exchanger:internal",
-        "application:datadiode:exchanger:external",
-
         // temperature
         "application:sensor:temperature",
         "application:sensor:temperature:sender",

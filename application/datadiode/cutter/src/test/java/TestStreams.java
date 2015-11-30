@@ -14,7 +14,6 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -159,7 +158,7 @@ public class TestStreams implements Serializable {
 
         StreamUtils streamUtils = new StreamUtils();
 
-        List<Message> messages = streamUtils.cut(message, bufSize, 2);
+        // List<Message> messages = streamUtils.cut(message, bufSize, 2);
         // Message cutMessage = streamUtils.reconstruct(messages);
 
         // md.update(cutMessage.getBody());

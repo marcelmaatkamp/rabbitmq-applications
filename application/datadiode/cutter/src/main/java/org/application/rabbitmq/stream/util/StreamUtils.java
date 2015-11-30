@@ -1,6 +1,7 @@
 package org.application.rabbitmq.stream.util;
 
 import com.thoughtworks.xstream.XStream;
+import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public class StreamUtils {
         }
     }
 
-    public static List<Message> cut(Message message, int bufSize, int redundancyFactor) {
+    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
@@ -102,7 +103,7 @@ public class StreamUtils {
         return headers;
     }
 
-    public static Message reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {
+    public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {
         // SegmentHeader segmentHeader = (SegmentHeader) SerializationUtils.deserialize(messages.get(0).getBody());
 
         byte[] buffer = new byte[segmentHeader.size];
@@ -118,7 +119,7 @@ public class StreamUtils {
 
         // compare digest
         if (Arrays.equals(messageDigest.digest(), segmentHeader.digest)) {
-            Message message = (Message) SerializationUtils.deserialize(data);
+            ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
             log.error("ERROR: Message digest did not match!");

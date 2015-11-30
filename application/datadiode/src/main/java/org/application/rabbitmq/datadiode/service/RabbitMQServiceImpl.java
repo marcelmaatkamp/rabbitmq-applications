@@ -11,14 +11,19 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by marcelmaatkamp on 29/10/15.
  */
+@Service
 public class RabbitMQServiceImpl implements RabbitMQService {
 
     public static final String X_SHOVELLED = "x-shovelled";
@@ -26,16 +31,36 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     private static final Logger log = LoggerFactory.getLogger(RabbitMQServiceImpl.class);
 
     @Autowired
+    Environment environment;
+
+    @Autowired
     RabbitTemplate rabbitTemplate;
 
     @Autowired
     XStream xStream;
 
-    @Resource(name = "declaredExchanges")
-    Map declaredExchanges;
-
     @Autowired
     RabbitAdmin rabbitAdmin;
+
+    @Bean
+    Map<String, String> declaredExchanges() {
+        Map<String, String> declaredExchanges = new HashMap();
+        for (Exchange exchange : rabbitManagementTemplate().getExchanges()) {
+            declaredExchanges.put(exchange.getName(), xStream.toXML(exchange));
+        }
+        return declaredExchanges;
+    }
+
+    @Bean
+    RabbitManagementTemplate rabbitManagementTemplate() {
+        RabbitManagementTemplate rabbitManagementTemplate = new RabbitManagementTemplate(
+                "http://" + environment.getProperty("spring.rabbitmq.host") + ":" + environment.getProperty("spring.rabbitmq.management.port", Integer.class) + "/api/",
+                environment.getProperty("spring.rabbitmq.username"),
+                environment.getProperty("spring.rabbitmq.password")
+        );
+        return rabbitManagementTemplate;
+    }
+
 
     public ExchangeMessage getExchangeMessage(RabbitManagementTemplate rabbitManagementTemplate, Message message) {
 
@@ -50,32 +75,28 @@ public class RabbitMQServiceImpl implements RabbitMQService {
                 log.debug("shovelled from:" + exchangeName);
             }
 
-            if (!declaredExchanges.containsKey(exchangeName)) {
+            if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = new FanoutExchange(exchangeName);
-                declaredExchanges.put(exchangeName, xStream.toXML(exchange));
+                declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            return new ExchangeMessage(message, (String) declaredExchanges.get(exchangeName));
+            return new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         } else {
             exchangeName = message.getMessageProperties().getReceivedExchange();
-            if (!declaredExchanges.containsKey(exchangeName)) {
+            if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = rabbitManagementTemplate.getExchange(message.getMessageProperties().getReceivedExchange());
-                declaredExchanges.put(exchangeName, xStream.toXML(exchange));
+                declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            return new ExchangeMessage(message, (String) declaredExchanges.get(exchangeName));
+            return new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         }
     }
 
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
-        if(log.isDebugEnabled()) {
-            log.debug(xStream.toXML(exchangeMessage));
-        }
-
         Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
-        if (!declaredExchanges.keySet().contains(exchange)) {
+        if (!declaredExchanges().keySet().contains(exchange)) {
             rabbitAdmin.declareExchange(exchange);
-            declaredExchanges.put(exchange.getName(), exchange);
+            declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
         }
 
         if (log.isDebugEnabled()) {

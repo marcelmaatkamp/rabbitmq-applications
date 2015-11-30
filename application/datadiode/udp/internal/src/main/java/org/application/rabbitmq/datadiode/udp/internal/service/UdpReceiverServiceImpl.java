@@ -1,17 +1,11 @@
 package org.application.rabbitmq.datadiode.udp.internal.service;
 
 import com.thoughtworks.xstream.XStream;
-import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
-import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Exchange;
-import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;

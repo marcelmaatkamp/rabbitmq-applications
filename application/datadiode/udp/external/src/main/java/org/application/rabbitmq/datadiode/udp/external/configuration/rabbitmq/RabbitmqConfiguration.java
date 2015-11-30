@@ -2,8 +2,6 @@ package org.application.rabbitmq.datadiode.udp.external.configuration.rabbitmq;
 
 
 import org.application.rabbitmq.datadiode.configuration.xstream.XStreamConfiguration;
-import org.application.rabbitmq.datadiode.service.RabbitMQService;
-import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
 import org.application.rabbitmq.datadiode.udp.external.listener.GenericMessageUdpSenderListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by marcel on 23-09-15.
@@ -52,6 +46,7 @@ public class RabbitMQConfiguration {
     @Bean
     Queue udpQueue() {
         Queue queue = new Queue(environment.getProperty("application.datadiode.udp.external.queue", String.class));
+        rabbitAdmin().declareQueue(queue);
         rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(),"",null));
         return queue;
     }

@@ -1,12 +1,14 @@
 package org.application.rabbitmq.datadiode.cutter.merge.configuration.merge;
 
 import com.thoughtworks.xstream.XStream;
+import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
+import org.application.rabbitmq.datadiode.service.RabbitMQService;
+import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
 import org.application.rabbitmq.stream.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -26,7 +28,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -64,6 +69,11 @@ public class MergeConfiguration implements MessageListener {
         return streamUtils;
     }
 
+    @Bean
+    RabbitMQService rabbitMQService() {
+        RabbitMQService rabbitMQService = new RabbitMQServiceImpl();
+        return rabbitMQService;
+    }
 
 
     @RabbitListener(
@@ -106,23 +116,9 @@ public class MergeConfiguration implements MessageListener {
                     messages.add(segment);
                     if (messages.size() == segmentHeader.count + 1) {
                         try {
-                            Message messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
-
-                            ArrayList shovelled_headers = (ArrayList) messageFromStream.getMessageProperties().getHeaders().get(X_SHOVELLED);
-                            if(shovelled_headers!=null) {
-                                Map<String, Object> shovelled_headers_map = (Map) shovelled_headers.get(0);
-                                String exchangeName = (String) shovelled_headers_map.get(SRC_QUEUE);
-                                if (log.isDebugEnabled()) {
-                                    log.debug("shovelled.exchange("+exchangeName+"): " + xStream.toXML(messageFromStream));
-                                }
-                                rabbitTemplate.send(exchangeName, null, messageFromStream);
-                                uMessages.remove(segmentHeader);
-                            } else {
-                                log.debug("exchange("+messageFromStream.getMessageProperties().getReceivedExchange()+"): " + xStream.toXML(messageFromStream));
-
-                                rabbitTemplate.send(messageFromStream);
-                                uMessages.remove(segmentHeader);
-                            }
+                            ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
+                            rabbitMQService().sendExchangeMessage(messageFromStream);
+                            uMessages.remove(segmentHeader);
                         } catch (IOException e) {
                             log.error("Exception: " + e);
                         }

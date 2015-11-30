@@ -104,11 +104,9 @@ project(":application:datadiode") {
 project(":application:datadiode:black") {
     dependencies {
         compile project(':application:datadiode')
+        compile project(':application:datadiode:encryption:encrypt')
         compile project(':application:datadiode:cutter:cut')
         compile project(':application:datadiode:udp:external')
-        compile project(':application:datadiode:encryption:encrypt')
-        compile project(":application:datadiode:exchanger:external")
-        // compile project(":application:sensor:temperature:sender")
 
     }
     springBoot {
@@ -118,11 +116,9 @@ project(":application:datadiode:black") {
 project(":application:datadiode:red") {
     dependencies {
         compile project(':application:datadiode')
+        compile project(':application:datadiode:encryption:decrypt')
         compile project(':application:datadiode:cutter:merge')
         compile project(':application:datadiode:udp:internal')
-        compile project(':application:datadiode:encryption:decrypt')
-        compile project(":application:datadiode:exchanger:internal")
-        // compile project(":application:sensor:temperature:receiver")
     }
     springBoot {
         mainClass = "org.application.rabbitmq.datadiode.DatadiodeRedStarter"
@@ -190,7 +186,7 @@ project(":application:search:consumer") {
     }
 }
 
-// stream
+// cutter
 project(":application:datadiode:cutter") {
     dependencies {
         compile project(':application:datadiode')
@@ -211,30 +207,6 @@ project(":application:datadiode:cutter:merge") {
     }
     springBoot {
         mainClass = "org.application.rabbitmq.cutter.merge.SplitterMergeStarter"
-    }
-}
-
-// exchanger
-project(":application:datadiode:exchanger") {
-    dependencies {
-        compile project(':application:datadiode')
-
-    }
-}
-project(":application:datadiode:exchanger:internal") {
-    dependencies {
-        compile project(':application:datadiode:exchanger')
-    }
-    springBoot {
-        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
-    }
-}
-project(":application:datadiode:exchanger:external") {
-    dependencies {
-        compile project(':application:datadiode:exchanger')
-    }
-    springBoot {
-        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
     }
 }
 
