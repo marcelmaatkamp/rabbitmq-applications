@@ -3,9 +3,6 @@
 ![rmq dd](documentation/images/rmq_dd.png)
 
 Reference Implementation of RabbitMQ mirrored over a data diode. Nowhere near production-ready but in this state it will successfully transport messages from outside to inside and has a reference encryption mechanism in place how to send messages encrypted with AES wrapped in RSA.
-
-Black side sends every 750ms an encrypted AES-256 wrapped with RSA-2048 encrypted message to the outside RabbitMQ which is mirrored to the inside RabbitMQ where it gets decrypted, verified, decoded and printed in the console.
-
 Settings for encryption like key size can be found in [application.properties](https://github.com/marcelmaatkamp/docker-spring-datadiode-black/blob/master/src/main/resources/application.properties)
 ```
 asymmetrical algorithm = RSA
@@ -202,8 +199,6 @@ and on the red side:
 socat UDP4-RECVFROM:1235,fork UDP4-SENDTO:172.16.128.4:1234
 ```
 # Restrictions
-* size of a message can only be as big as an UDP packet can be
 * there is a lot of overhead in a message, this can be optimized
-* crypt any headers
 
 
