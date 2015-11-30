@@ -69,6 +69,8 @@ rabbitblack:
     - "1234:1234/udp"
   expose:
     - "15672"
+  links:
+    - "proxy" 
 
 # 'inside' rabbitmq
 rabbitred:
@@ -87,6 +89,9 @@ rabbitred:
     - "1235:1234/udp"
   expose:
     - "15672"
+  links: 
+    - "proxy" 
+
 
 # and something to generate messages to rabbitblack (outside)
 nodered:
