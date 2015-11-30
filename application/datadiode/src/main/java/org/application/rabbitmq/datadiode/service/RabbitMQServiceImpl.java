@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,8 +62,9 @@ public class RabbitMQServiceImpl implements RabbitMQService {
 
 
     public ExchangeMessage getExchangeMessage(RabbitManagementTemplate rabbitManagementTemplate, Message message) {
-
         String exchangeName = null;
+
+        ExchangeMessage exchangeMessage;
 
         if (message.getMessageProperties().getHeaders().containsKey(X_SHOVELLED)) {
             ArrayList shovelled_headers = (ArrayList) message.getMessageProperties().getHeaders().get(X_SHOVELLED);
@@ -79,15 +79,17 @@ public class RabbitMQServiceImpl implements RabbitMQService {
                 Exchange exchange = new FanoutExchange(exchangeName);
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            return new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
+            exchangeMessage= new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         } else {
             exchangeName = message.getMessageProperties().getReceivedExchange();
             if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = rabbitManagementTemplate.getExchange(message.getMessageProperties().getReceivedExchange());
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            return new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
+            exchangeMessage= new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         }
+        // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
+        return exchangeMessage;
     }
 
 
@@ -103,6 +105,7 @@ public class RabbitMQServiceImpl implements RabbitMQService {
             log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
         }
 
+        // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
         // into rabbitmq
         rabbitTemplate.send(
                 exchange.getName(),

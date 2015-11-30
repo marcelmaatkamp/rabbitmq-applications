@@ -1,6 +1,9 @@
 package org.sensor.temperature.sender.configuration.temperature;
 
 import com.thoughtworks.xstream.XStream;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.event.configuration.xstream.XStreamConfiguration;
 import org.event.model.GeoLocation;
 import org.event.model.sensor.SensorEvent;
@@ -12,6 +15,8 @@ import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.DefaultClassMapper;
+import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,6 +53,35 @@ public class TemperatureSensorConfiguration {
 
     AtomicInteger atomicInteger = new AtomicInteger(1);
 
+
+    @Bean
+    public DefaultClassMapper defaultClassMapper() {
+        DefaultClassMapper defaultClassMapper = new DefaultClassMapper();
+        return defaultClassMapper;
+    }
+
+    @Bean
+    public JsonMessageConverter jsonMessageConverter() {
+        JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
+        jsonMessageConverter.setJsonObjectMapper(objectMapper());
+        jsonMessageConverter.setClassMapper(defaultClassMapper());
+        DefaultClassMapper defaultClassMapper = defaultClassMapper();
+        return jsonMessageConverter;
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+        ObjectMapper jsonObjectMapper = new ObjectMapper();
+        jsonObjectMapper
+                .configure(
+                        DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
+                        false);
+        jsonObjectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        return jsonObjectMapper;
+    }
+
+
+
     @Bean
     GeoLocation geoLocationAmsterdam() {
         return new GeoLocation(52.379189, 4.899431);
@@ -78,6 +112,9 @@ public class TemperatureSensorConfiguration {
     void init() {
         xStream.alias("temperatureSensor", TemperatureSensor.class);
         xStream.alias("temperatureSensorEvent", TemperatureSensorEvent.class);
+
+        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+
     }
 
     @Bean

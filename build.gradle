@@ -44,12 +44,11 @@ allprojects {
         esperVersion = "5.3.0"
         tikaVersion = "1.11"
         httpcomponentsHttpclientVersion = "4.5.1"
+        springIntegrationVersion = "4.2.2.RELEASE"
     }
 
     dependencies {
         compile "org.springframework.boot:spring-boot-starter-amqp"
-        compile "org.springframework.integration:spring-integration-ip:4.2.0.RELEASE"
-        compile "org.springframework.integration:spring-integration-amqp:4.2.0.RELEASE"
         compile "org.springframework.amqp:spring-rabbit:1.5.0.RELEASE"
         compile "org.springframework.amqp:spring-amqp:1.5.0.RELEASE"
 
@@ -149,6 +148,54 @@ project(":application:datadiode:encryption:decrypt") {
     }
 }
 
+// cutter
+project(":application:datadiode:cutter") {
+    dependencies {
+        compile project(':application:datadiode')
+
+    }
+}
+project(":application:datadiode:cutter:cut") {
+    dependencies {
+        compile project(':application:datadiode:cutter')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.cutter.cut.CutterCutStarter"
+    }
+}
+project(":application:datadiode:cutter:merge") {
+    dependencies {
+        compile project(':application:datadiode:cutter')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.cutter.merge.SplitterMergeStarter"
+    }
+}
+
+// udp
+project(":application:datadiode:udp") {
+    dependencies {
+        compile project(':application:datadiode')
+        compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+    }
+}
+project(":application:datadiode:udp:external") {
+    dependencies {
+        compile project(':application:datadiode:udp')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
+    }
+}
+project(":application:datadiode:udp:internal") {
+    dependencies {
+        compile project(':application:datadiode:udp')
+    }
+    springBoot {
+        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
+    }
+}
+
 // search
 project(":application:search") {
     dependencies {
@@ -186,53 +233,34 @@ project(":application:search:consumer") {
     }
 }
 
-// cutter
-project(":application:datadiode:cutter") {
+// search
+project(":application:fileshare") {
     dependencies {
-        compile project(':application:datadiode')
+        compile project(':application')
+    }
+}
+project(":application:fileshare:external") {
+    dependencies {
+        compile project(':application:fileshare')
+        compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+        // compile 'org.springframework.integration:spring-integration-flow:1.0.0.RELEASE'
+        compile 'org.springframework.integration:spring-integration-java-dsl:1.1.1.RELEASE'
+
 
     }
-}
-project(":application:datadiode:cutter:cut") {
-    dependencies {
-        compile project(':application:datadiode:cutter')
-    }
     springBoot {
-        mainClass = "org.application.rabbitmq.cutter.cut.CutterCutStarter"
+        mainClass = "org.search.producer.SearchProducerStarter"
     }
 }
-project(":application:datadiode:cutter:merge") {
+project(":application:fileshare:internal") {
     dependencies {
-        compile project(':application:datadiode:cutter')
+        compile project(':application:fileshare')
     }
     springBoot {
-        mainClass = "org.application.rabbitmq.cutter.merge.SplitterMergeStarter"
+        mainClass = "org.search.consumer.SearchConsumerStarter"
     }
 }
 
-// udp
-project(":application:datadiode:udp") {
-    dependencies {
-        compile project(':application:datadiode')
-
-    }
-}
-project(":application:datadiode:udp:external") {
-    dependencies {
-        compile project(':application:datadiode:udp')
-    }
-    springBoot {
-        mainClass = "org.application.rabbitmq.splitter.split.SplitterSplitStarter"
-    }
-}
-project(":application:datadiode:udp:internal") {
-    dependencies {
-        compile project(':application:datadiode:udp')
-    }
-    springBoot {
-        mainClass = "org.application.rabbitmq.splitter.merge.SplitterMergeStarter"
-    }
-}
 
 // sensor
 project(":application:sensor") {

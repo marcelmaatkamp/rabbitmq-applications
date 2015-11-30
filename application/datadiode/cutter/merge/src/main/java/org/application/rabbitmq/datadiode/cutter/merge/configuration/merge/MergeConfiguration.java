@@ -7,6 +7,9 @@ import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
 import org.application.rabbitmq.stream.model.Segment;
 import org.application.rabbitmq.stream.model.SegmentHeader;
 import org.application.rabbitmq.stream.util.StreamUtils;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -16,6 +19,8 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.DefaultClassMapper;
+import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +29,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
@@ -53,6 +59,38 @@ public class MergeConfiguration implements MessageListener {
 
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
+
+
+    @Bean
+    public JsonMessageConverter jsonMessageConverter() {
+        JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
+        jsonMessageConverter.setJsonObjectMapper(objectMapper());
+        jsonMessageConverter.setClassMapper(defaultClassMapper());
+        return jsonMessageConverter;
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+        ObjectMapper jsonObjectMapper = new ObjectMapper();
+        jsonObjectMapper
+                .configure(
+                        DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
+                        false);
+        jsonObjectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        return jsonObjectMapper;
+    }
+
+    @Bean
+    public DefaultClassMapper defaultClassMapper() {
+        DefaultClassMapper defaultClassMapper = new DefaultClassMapper();
+        return defaultClassMapper;
+    }
+
+    @PostConstruct
+    void init() {
+        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    }
+
 
     @Autowired
     Environment environment;

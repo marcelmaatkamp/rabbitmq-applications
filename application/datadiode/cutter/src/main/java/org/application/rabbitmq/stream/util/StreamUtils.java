@@ -40,6 +40,7 @@ public class StreamUtils {
         }
     }
 
+    // todo: msg fully loaded
     public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) {
         List<Message> results = new ArrayList();
 
@@ -55,7 +56,7 @@ public class StreamUtils {
                 count(aantal).
                 digest(messageDigest.digest());
 
-        MessageProperties messageProperties = new MessageProperties();
+        MessageProperties messageProperties = message.getMessage().getMessageProperties();
         // messageProperties.setReceivedRoutingKey(sh.uuid.toString());
         messageProperties.getHeaders().put("type", sh.getClass());
         messageProperties.getHeaders().put("uuid", sh.uuid);
@@ -78,7 +79,8 @@ public class StreamUtils {
             messageProperties.getHeaders().put("index", segment.index);
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
-            results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
+
+            // results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
             addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 
@@ -93,7 +95,8 @@ public class StreamUtils {
             messageProperties.getHeaders().put("index", segment.index);
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
-            results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
+
+            // results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
             addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
         }
 

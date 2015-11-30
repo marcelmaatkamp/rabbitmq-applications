@@ -8,10 +8,16 @@ import org.event.model.sensor.SensorEvent;
  */
 public class TemperatureSensorEvent extends SensorEvent {
 
+    public TemperatureSensorEvent() {}
+
     private double temperature;
 
     public TemperatureSensorEvent(Sensor sensor, int index, double temperature) {
         super(sensor, index);
+        this.temperature = temperature;
+    }
+
+    public TemperatureSensorEvent(double temperature) {
         this.temperature = temperature;
     }
 
