@@ -13,8 +13,6 @@ symmetrical.algorithm = AES
 symmetrical.cipher = AES/CBC/PKCS7Padding
 symmetrical.keysize = 256
 ```
-In this reference implementation messages can only be as big as an udp packet to avoid the problem of 'out-of-order' arriving packets.
-
 # Pre
 To enable strong encryption (AES-256) see 
 
