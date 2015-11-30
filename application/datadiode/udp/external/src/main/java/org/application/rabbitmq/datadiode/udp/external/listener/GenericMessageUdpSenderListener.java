@@ -21,13 +21,17 @@ import org.springframework.util.SerializationUtils;
  * Created by marcelmaatkamp on 15/10/15.
  */
 public class GenericMessageUdpSenderListener implements ChannelAwareMessageListener {
+
     static final Integer lock = new Integer(-1);
+
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
+
     @Autowired
     UnicastSendingMessageHandler unicastSendingMessageHandler;
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+
     @Autowired
     XStream xStream;
 
@@ -36,7 +40,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     boolean compress;
 
-    int maxBytes = 1450;
+    @Value(value = "${application.datadiode.udp.external.maxBytes}")
+    int maxBytes;
 
     public boolean isCompress() {
         return compress;
@@ -61,7 +66,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         if (compress) {
             data = CompressionUtils.compress(udpPacket);
             if (log.isDebugEnabled()) {
-                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "), message(" + SerializationUtils.serialize(message).length + "),  exchange(" + udpPacket.length + "), compressed(" + data.length + ")");
+                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "),  compressed(" + data.length + "), ratio("+Math.round((100.0/data.length)*message.getBody().length)+"%)");
             }
         } else {
             if (log.isDebugEnabled()) {

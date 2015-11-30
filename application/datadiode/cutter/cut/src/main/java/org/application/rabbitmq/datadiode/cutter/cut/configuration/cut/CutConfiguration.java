@@ -71,12 +71,14 @@ public class CutConfiguration {
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "${application.datadiode.cutter.queue}", durable = "true"),
-                    exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "true", type = "fanout"))
+                    exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", type = "fanout"))
     )
     void cut(Message message) {
         List<Message> messages = StreamUtils.cut(message, maxMessageSize, redundancyFactor);
 
-        log.info("cutting message(" + message.getBody().length + ") into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
+        if(log.isDebugEnabled()) {
+            log.debug("cutting (message.length(" + message.getBody().length + ") * redundancy("+redundancyFactor+")) into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
+        }
         for (Message m : messages) {
             rabbitTemplate.convertAndSend(cutterExchange().getName(), null, m);
         }

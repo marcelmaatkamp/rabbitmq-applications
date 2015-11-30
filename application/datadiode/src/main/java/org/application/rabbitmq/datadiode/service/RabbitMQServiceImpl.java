@@ -24,6 +24,7 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     public static final String X_SHOVELLED = "x-shovelled";
     public static final String SRC_EXCHANGE = "src-exchange";
     private static final Logger log = LoggerFactory.getLogger(RabbitMQServiceImpl.class);
+
     @Autowired
     RabbitTemplate rabbitTemplate;
 
@@ -66,6 +67,10 @@ public class RabbitMQServiceImpl implements RabbitMQService {
 
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
+        if(log.isDebugEnabled()) {
+            log.debug(xStream.toXML(exchangeMessage));
+        }
+
         Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
         if (!declaredExchanges.keySet().contains(exchange)) {

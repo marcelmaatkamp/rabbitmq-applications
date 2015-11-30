@@ -9,7 +9,7 @@
 
     <int-ip:udp-inbound-channel-adapter id="ChannelReceiver"
                                         channel="serverBytes2StringChannel"
-                                        port="${application.datadiode.udp.internal.port}"
+                                        port="4321"
                                         multicast="false"
                                         check-length="false"
                                         pool-size="10"

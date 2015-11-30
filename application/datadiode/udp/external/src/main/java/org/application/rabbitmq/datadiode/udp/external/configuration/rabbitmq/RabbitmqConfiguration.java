@@ -41,18 +41,18 @@ public class RabbitMQConfiguration {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
         return rabbitAdmin;
     }
-/**
+
+
     @Bean
     Exchange udpEchange() {
-        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.black.udp.exchange", String.class));
-        rabbitAdmin.declareExchange(exchange);
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.udp.external.exchange", String.class));
+        rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
-*/
     @Bean
     Queue udpQueue() {
         Queue queue = new Queue(environment.getProperty("application.datadiode.udp.external.queue", String.class));
-        // rabbitAdmin.declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(),"",null));
+        rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(),"",null));
         return queue;
     }
 
@@ -77,9 +77,4 @@ public class RabbitMQConfiguration {
         return genericMessageUdpSenderListener;
     }
 
-    @Bean
-    RabbitMQService rabbitMQService() {
-        RabbitMQService rabbitMQService = new RabbitMQServiceImpl();
-        return rabbitMQService;
-    }
 }

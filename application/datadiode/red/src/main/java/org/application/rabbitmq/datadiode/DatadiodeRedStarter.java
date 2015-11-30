@@ -21,6 +21,5 @@ public class DatadiodeRedStarter {
     public static void main(String[] args) throws IOException, InterruptedException {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(DatadiodeRedStarter.class).run(args);
         configurableApplicationContext.start();
-        // Thread.sleep(10000000);
     }
 }

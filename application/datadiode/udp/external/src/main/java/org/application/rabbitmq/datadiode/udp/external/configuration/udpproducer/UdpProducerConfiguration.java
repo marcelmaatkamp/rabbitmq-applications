@@ -28,6 +28,9 @@ public class UdpProducerConfiguration {
                 new UnicastSendingMessageHandler(
                         udpProducerConfigurationProperties.getHost(),
                         udpProducerConfigurationProperties.getPort());
+        if(log.isDebugEnabled()) {
+            log.debug("sending to " +udpProducerConfigurationProperties.getHost()+":" +udpProducerConfigurationProperties.getPort());
+        }
         return unicastSendingMessageHandler;
     }
 

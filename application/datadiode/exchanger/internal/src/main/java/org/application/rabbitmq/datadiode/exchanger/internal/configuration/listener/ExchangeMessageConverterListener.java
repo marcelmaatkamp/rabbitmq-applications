@@ -15,9 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 
+import javax.annotation.Resource;
+import java.util.Map;
+
 /**
  * Created by marcelmaatkamp on 15/10/15.
  */
+@Resource
 public class ExchangeMessageConverterListener implements ChannelAwareMessageListener {
 
     // TODO: exchange::exchange -> exchanged
@@ -25,8 +29,6 @@ public class ExchangeMessageConverterListener implements ChannelAwareMessageList
     static final Integer lock = new Integer(-1);
     private static final Logger log = LoggerFactory.getLogger(ExchangeMessageConverterListener.class);
 
-    @Autowired
-    RabbitMQService rabbitMQService;
 
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -40,6 +42,9 @@ public class ExchangeMessageConverterListener implements ChannelAwareMessageList
     @Autowired
     Exchange exchangeExchange;
 
+    @Autowired
+    RabbitMQService rabbitMQService;
+
     /**
      * @param message
      * @param channel
@@ -47,11 +52,10 @@ public class ExchangeMessageConverterListener implements ChannelAwareMessageList
      */
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-        ExchangeMessage exchangeMessage = (ExchangeMessage)rabbitTemplate.convertSendAndReceive(message);
-
-        // exchangeMessage
-        rabbitTemplate.send(exchangeMessage.getMessage());
+        rabbitMQService.sendExchangeMessage((ExchangeMessage)rabbitTemplate.getMessageConverter().fromMessage(message));
     }
 
+    @Resource
+    Map<String, String> declaredExchanges;
 
 }

@@ -26,10 +26,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,6 +36,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @EnableScheduling
 public class MergeConfiguration implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
+
+    public static final String X_SHOVELLED = "x-shovelled";
+    public static final String SRC_EXCHANGE = "src-exchange";
+    public static final String SRC_QUEUE = "src-queue";
 
     Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
 
@@ -63,18 +64,7 @@ public class MergeConfiguration implements MessageListener {
         return streamUtils;
     }
 
-    @Bean
-    org.springframework.amqp.core.Exchange reconstructExchange() {
-        org.springframework.amqp.core.Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.cutter.merged.exchange"));
-        return exchange;
-    }
 
-    @Bean
-    org.springframework.amqp.core.Queue cutterQueue() {
-        org.springframework.amqp.core.Queue queue = new org.springframework.amqp.core.Queue(environment.getProperty("application.datadiode.cutter.merged.queue"));
-        return queue;
-
-    }
 
     @RabbitListener(
             bindings = @QueueBinding(
@@ -83,9 +73,7 @@ public class MergeConfiguration implements MessageListener {
     )
     public void onMessage(Message message) {
         Object o = SerializationUtils.deserialize(message.getBody());
-        if (log.isDebugEnabled()) {
-            log.debug("o(" + xStream.toXML(o) + ")");
-        }
+
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
             if (log.isDebugEnabled()) {
@@ -108,7 +96,7 @@ public class MergeConfiguration implements MessageListener {
 
             Segment segment = (Segment) o;
             if (log.isDebugEnabled()) {
-                log.debug("segment(" + xStream.toXML(segment) + ")");
+               // log.debug("segment(" + xStream.toXML(segment) + ")");
             }
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {
@@ -119,9 +107,22 @@ public class MergeConfiguration implements MessageListener {
                     if (messages.size() == segmentHeader.count + 1) {
                         try {
                             Message messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
-                            log.info("reconstructed: " + messageFromStream);
-                            rabbitTemplate.send(messageFromStream);
-                            uMessages.remove(segmentHeader);
+
+                            ArrayList shovelled_headers = (ArrayList) messageFromStream.getMessageProperties().getHeaders().get(X_SHOVELLED);
+                            if(shovelled_headers!=null) {
+                                Map<String, Object> shovelled_headers_map = (Map) shovelled_headers.get(0);
+                                String exchangeName = (String) shovelled_headers_map.get(SRC_QUEUE);
+                                if (log.isDebugEnabled()) {
+                                    log.debug("shovelled.exchange("+exchangeName+"): " + xStream.toXML(messageFromStream));
+                                }
+                                rabbitTemplate.send(exchangeName, null, messageFromStream);
+                                uMessages.remove(segmentHeader);
+                            } else {
+                                log.debug("exchange("+messageFromStream.getMessageProperties().getReceivedExchange()+"): " + xStream.toXML(messageFromStream));
+
+                                rabbitTemplate.send(messageFromStream);
+                                uMessages.remove(segmentHeader);
+                            }
                         } catch (IOException e) {
                             log.error("Exception: " + e);
                         }

@@ -177,8 +177,6 @@ public class EncryptConfiguration {
     EncryptMessageListener encryptMessageListener() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         EncryptMessageListener encryptMessageListener =
                 new EncryptMessageListener();
-        log.info("encryptMessageListener.exchange("+encryptedExchange()+")");
-
         encryptMessageListener.setEncryptedExchange(encryptedExchange());
         return encryptMessageListener;
     }
@@ -194,11 +192,7 @@ public class EncryptConfiguration {
     
     @Bean
     Exchange encryptedExchange() {
-        String name = environment.getProperty("application.datadiode.encryption.encrypted.exchange");
-        Exchange encryptedExchange = new FanoutExchange(name);
-
-        log.info("encryptedExchange.name(" + name + ").exchange("+encryptedExchange+")");
-
+        Exchange encryptedExchange = new FanoutExchange(environment.getProperty("application.datadiode.encryption.encrypted.exchange"));
         rabbitAdmin().declareExchange(encryptedExchange);
         return encryptedExchange;
     }

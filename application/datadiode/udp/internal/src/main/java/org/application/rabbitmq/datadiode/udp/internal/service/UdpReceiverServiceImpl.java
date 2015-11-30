@@ -11,6 +11,7 @@ import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,11 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     @Autowired
     Environment environment;
 
-    Exchange exchange() {
-        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.udp.internal.exchange"));
-        return exchange;
-    }
-
-
     public void udpMessage(Message message) throws IOException, DataFormatException {
+
+        if(log.isDebugEnabled()) {
+            log.debug(xStream.toXML(message));
+        }
 
         // from udp
         byte[] udpPacket = (byte[]) message.getPayload();
@@ -72,7 +71,7 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
 
  */
 
-        rabbitTemplate.send(udpMessage);
+        rabbitTemplate.send(udpMessage.getMessageProperties().getReceivedExchange(),udpMessage.getMessageProperties().getReceivedRoutingKey(),udpMessage);
     }
 
     @Override
