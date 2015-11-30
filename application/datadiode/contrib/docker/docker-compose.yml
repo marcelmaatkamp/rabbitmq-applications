@@ -10,7 +10,8 @@ volumes:
   image: tianon/true
   volumes:
     - "./volumes/node-red/:/root/.node-red/"
-    - "./volumes/rabbitmq/:/var/lib/rabbitmq/"
+    - "./volumes/rabbitmq/lib:/var/lib/rabbitmq/"
+#    - "./volumes/rabbitmq/etc:/etc/rabbitmq/"
     - "./volumes/ldap/:/var/lib/ldap"
     - "./volumes/slap/:/etc/ldap/slapd.d"
 
