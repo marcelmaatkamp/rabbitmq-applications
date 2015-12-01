@@ -1,5 +1,6 @@
 import com.google.gson.*;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.datadiode.configuration.gson.adapters.ByteArrayToBase64TypeAdapter;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
@@ -18,6 +19,7 @@ import java.lang.reflect.Type;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -187,6 +189,51 @@ public class TestStreams implements Serializable {
 
         // Assert.assertEquals(segment, other);
         log.info("json("+other+"), other("+other.getClass()+"): " + other.keySet().contains("segment"));
+
+
+    }
+
+    @Test
+    public void testByteArray() throws IOException, NoSuchAlgorithmException {
+        UUID uuid = UUID.randomUUID();
+        int size = 15;
+        int blockSize = 16;
+        int count = 17;
+        Date insertDate = new Date();
+        byte[] digest;
+
+        int length = 65535;
+        byte[] randomBytes = RandomUtils.nextBytes(length);
+
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(randomBytes);
+        digest = Base64.encodeBase64(md.digest());
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+
+        oos.writeLong(uuid.getMostSignificantBits());
+        oos.writeLong(uuid.getLeastSignificantBits());
+        oos.write(size);
+        oos.write(blockSize);
+        oos.write(count);
+        oos.writeObject(insertDate);
+        oos.writeObject(md.digest());
+
+        oos.close();
+        bos.close();
+
+        log.info("header.size: " + bos.toByteArray().length);       // 122 bytes
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        
+        UUID uuid_other = new UUID(ois.readLong(), ois.readLong());
+
+        log.info("uuid: " +uuid.toString() + ", other: " + uuid_other.toString());
+
+        Assert.assertTrue(uuid.equals(uuid_other));
+
 
 
     }
