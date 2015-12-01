@@ -2,7 +2,6 @@ package org.sensor.temperature.receiver.temperature.listener;
 
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
-import org.event.model.sensor.SensorEvent;
 import org.event.model.sensor.temperature.TemperatureSensorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

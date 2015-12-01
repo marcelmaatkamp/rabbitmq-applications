@@ -1,9 +1,9 @@
-package org.application.rabbitmq.stream.util;
+package org.application.rabbitmq.datadiode.cutter.util;
 
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
-import org.application.rabbitmq.stream.model.Segment;
-import org.application.rabbitmq.stream.model.SegmentHeader;
+import org.application.rabbitmq.datadiode.cutter.model.Segment;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -25,11 +25,17 @@ import java.util.*;
 @Component
 public class StreamUtils {
     private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
+
     private static MessageDigest messageDigest;
-    @Autowired
-    XStream xStream;
+
     @Autowired
     MessageDigest _messageDigest;
+
+    @Autowired
+    private static XStream xStream;
+
+    @Autowired
+    XStream _xStream;
 
     @Value(value = "${application.datadiode.cutter.digest}")
     boolean doDigest;
@@ -57,16 +63,15 @@ public class StreamUtils {
                 digest(messageDigest.digest());
 
         MessageProperties messageProperties = message.getMessage().getMessageProperties();
-        // messageProperties.setReceivedRoutingKey(sh.uuid.toString());
         messageProperties.getHeaders().put("type", sh.getClass());
         messageProperties.getHeaders().put("uuid", sh.uuid);
         messageProperties.getHeaders().put("block", sh.blockSize);
         messageProperties.getHeaders().put("count", sh.count);
         messageProperties.getHeaders().put("size", sh.size);
 
-        // results.add(new Message(SerializationUtils.serialize(sh), messageProperties));
         List<Message> headers = new ArrayList();
-        addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
+        // addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
+        addRedundantly(headers, new Message(xStream.toXML(sh).getBytes(), messageProperties), redundancyFactor);
 
         // blocksize
         for (int i = 0; i < aantal; i++) {
@@ -80,8 +85,8 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
 
-            // results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
-            addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(xStream.toXML(segment).getBytes(), messageProperties), redundancyFactor);
         }
 
         // and the rest
@@ -96,8 +101,9 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
 
-            // results.add(new Message(SerializationUtils.serialize(segment), messageProperties));
-            addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(xStream.toXML(segment).getBytes(), messageProperties), redundancyFactor);
+
         }
 
         Collections.shuffle(results);
@@ -107,9 +113,6 @@ public class StreamUtils {
     }
 
     public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {
-        // SegmentHeader segmentHeader = (SegmentHeader) SerializationUtils.deserialize(messages.get(0).getBody());
-
-        byte[] buffer = new byte[segmentHeader.size];
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
         for (Segment segment : segments) {
@@ -125,7 +128,7 @@ public class StreamUtils {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
-            log.error("ERROR: Message digest did not match!");
+            log.error("ERROR: Message digest did not match: " + SerializationUtils.deserialize(data));
         }
         return null;
     }
@@ -133,6 +136,7 @@ public class StreamUtils {
     @PostConstruct
     public void init() {
         messageDigest = _messageDigest;
+        xStream = _xStream;
     }
 
 

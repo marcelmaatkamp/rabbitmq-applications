@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.util.xstream.JsonXStream;
 
 /**
  * Created by marcelmaatkamp on 26/10/15.
@@ -12,15 +13,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class XStreamConfiguration {
     @Bean
-    JettisonMappedXmlDriver jettisonMappedXmlDriver() {
-        JettisonMappedXmlDriver jettisonMappedXmlDriver = new JettisonMappedXmlDriver();
-        return jettisonMappedXmlDriver;
-    }
-
-    @Bean
     XStream xstream() {
-        XStream xStream = new XStream(jettisonMappedXmlDriver());
-        xStream.setMode(XStream.NO_REFERENCES);
+        XStream xStream = new XStream(); // JsonXStream.getInstance();
         return xStream;
     }
 }

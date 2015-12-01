@@ -1,4 +1,6 @@
-package org.application.rabbitmq.stream.model;
+package org.application.rabbitmq.datadiode.cutter.model;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -7,6 +9,7 @@ import java.util.UUID;
 /**
  * Created by marcelmaatkamp on 24/11/15.
  */
+@XStreamAlias("segmentHeader")
 public class SegmentHeader implements Serializable {
 
     public UUID uuid = UUID.randomUUID();

@@ -1,22 +1,18 @@
-package org.application.rabbitmq.datadiode.cutter.cut.configuration.xstream;
+package org.application.rabbitmq.datadiode.cutter.configuration;
 
 import com.thoughtworks.xstream.XStream;
-import org.application.rabbitmq.datadiode.configuration.xstream.XStreamConfiguration;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 import javax.annotation.PostConstruct;
 
 /**
- * Created by marcelmaatkamp on 26/10/15.
+ * Created by marcelmaatkamp on 01/12/15.
  */
-
 @Configuration
-@Import(XStreamConfiguration.class)
-public class XStreamSplitterSplitConfiguration {
+public class CutterConfiguration {
 
     @Autowired
     XStream xStream;

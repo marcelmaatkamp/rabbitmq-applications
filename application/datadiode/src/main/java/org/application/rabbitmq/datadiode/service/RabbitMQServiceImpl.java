@@ -96,6 +96,7 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
         Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
+
         if (!declaredExchanges().keySet().contains(exchange)) {
             rabbitAdmin.declareExchange(exchange);
             declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());

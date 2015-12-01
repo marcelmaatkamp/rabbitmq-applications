@@ -4,7 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.cutter.cut.configuration.listener.ExchangeMessageConverterListener;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
-import org.application.rabbitmq.stream.util.StreamUtils;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -48,32 +48,13 @@ public class CutConfiguration {
     @Bean
     public JsonMessageConverter jsonMessageConverter() {
         JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
-        jsonMessageConverter.setJsonObjectMapper(objectMapper());
-        jsonMessageConverter.setClassMapper(defaultClassMapper());
         return jsonMessageConverter;
     }
 
-    @Bean
-    ObjectMapper objectMapper() {
-        ObjectMapper jsonObjectMapper = new ObjectMapper();
-        jsonObjectMapper
-                .configure(
-                        DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
-                        false);
-        jsonObjectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        return jsonObjectMapper;
-    }
-
-    @Bean
-    public DefaultClassMapper defaultClassMapper() {
-        DefaultClassMapper defaultClassMapper = new DefaultClassMapper();
-        return defaultClassMapper;
-    }
-
-    @PostConstruct
-    void init() {
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
-    }
+    // @PostConstruct
+    // void init() {
+    //     rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    // }
 
 
     List<String> standardExchanges =

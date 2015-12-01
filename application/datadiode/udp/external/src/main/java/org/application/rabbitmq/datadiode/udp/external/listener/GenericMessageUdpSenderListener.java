@@ -57,8 +57,12 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     public void onMessage(Message message, Channel channel) throws Exception {
 
         // convert to generic message
-        byte[] udpPacket = SerializationUtils.serialize(message);
+        byte[] udpPacket = message.getBody();
         byte[] data = udpPacket;
+
+        if(log.isDebugEnabled()) {
+            log.debug("[" + data.length + "]: " + new String(data));
+        }
 
         if (compress) {
             data = CompressionUtils.compress(udpPacket);
@@ -76,6 +80,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         }
 
         GenericMessage genericMessage = new GenericMessage<byte[]>(data);
+
         try {
             synchronized (lock) {
                 unicastSendingMessageHandler.handleMessageInternal(genericMessage);

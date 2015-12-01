@@ -3,7 +3,7 @@ package org.application.rabbitmq.datadiode.cutter.cut.configuration.listener;
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
-import org.application.rabbitmq.stream.util.StreamUtils;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Exchange;

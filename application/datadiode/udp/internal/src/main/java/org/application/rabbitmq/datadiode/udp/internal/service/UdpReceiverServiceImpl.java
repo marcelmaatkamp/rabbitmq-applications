@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.XStream;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -45,27 +46,9 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
         if (compress) {
             data = CompressionUtils.decompress(udpPacket);
         }
-        org.springframework.amqp.core.Message udpMessage =
-                (org.springframework.amqp.core.Message) SerializationUtils.deserialize(
-                        (byte[]) data);
-/**
-        ExchangeMessage exchangeMessage =
-                (ExchangeMessage) SerializationUtils.deserialize(
-                        (byte[]) data);
 
-        if (log.isDebugEnabled()) {
-            Object o = rabbitTemplate.getMessageConverter().fromMessage(exchangeMessage.getMessage());
-            if (o instanceof byte[]) {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + new String((byte[]) o, "UTF-8"));
-            } else {
-                log.debug("exchangeMessage(" + exchangeMessage.getExchangeData() + "): routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): " + o);
-            }
-        }
-    rabbitMQService.sendExchangeMessage(exchange().getName());
-
- */
-
-        rabbitTemplate.send(udpMessage.getMessageProperties().getReceivedExchange(),udpMessage.getMessageProperties().getReceivedRoutingKey(),udpMessage);
+        org.springframework.amqp.core.Message messageToUdp = new org.springframework.amqp.core.Message(data, new MessageProperties());
+        rabbitTemplate.send("udp",null,messageToUdp);
     }
 
     @Override

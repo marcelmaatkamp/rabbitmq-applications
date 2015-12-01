@@ -1,8 +1,8 @@
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomUtils;
-import org.application.rabbitmq.stream.model.Segment;
-import org.application.rabbitmq.stream.model.SegmentHeader;
-import org.application.rabbitmq.stream.util.StreamUtils;
+import org.application.rabbitmq.datadiode.cutter.model.Segment;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

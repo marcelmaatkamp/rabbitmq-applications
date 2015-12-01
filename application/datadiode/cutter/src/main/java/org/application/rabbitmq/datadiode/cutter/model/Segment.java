@@ -1,4 +1,7 @@
-package org.application.rabbitmq.stream.model;
+package org.application.rabbitmq.datadiode.cutter.model;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -6,9 +9,14 @@ import java.util.UUID;
 /**
  * Created by marcelmaatkamp on 24/11/15.
  */
+
+@XStreamAlias("segment")
 public class Segment implements Serializable, Comparable<Segment> {
+
     public int index;
+
     public byte[] segment;
+
     public UUID uuid;
 
     public Segment index(final int index) {

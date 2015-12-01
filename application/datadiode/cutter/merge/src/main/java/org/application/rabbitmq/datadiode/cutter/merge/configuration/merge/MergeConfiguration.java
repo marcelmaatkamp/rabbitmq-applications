@@ -4,9 +4,9 @@ import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
-import org.application.rabbitmq.stream.model.Segment;
-import org.application.rabbitmq.stream.model.SegmentHeader;
-import org.application.rabbitmq.stream.util.StreamUtils;
+import org.application.rabbitmq.datadiode.cutter.model.Segment;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -21,7 +21,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
-import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -120,7 +119,9 @@ public class MergeConfiguration implements MessageListener {
                     exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "fanout"))
     )
     public void onMessage(Message message) {
-        Object o = SerializationUtils.deserialize(message.getBody());
+            String xml = new String(message.getBody());
+            Object o = xStream.fromXML(xml);
+
 
         if (o instanceof SegmentHeader) {
             SegmentHeader segmentHeader = (SegmentHeader) o;
@@ -166,6 +167,7 @@ public class MergeConfiguration implements MessageListener {
         } else {
             log.error("Error: Unknown object: " + o);
         }
+
     }
 
     /**

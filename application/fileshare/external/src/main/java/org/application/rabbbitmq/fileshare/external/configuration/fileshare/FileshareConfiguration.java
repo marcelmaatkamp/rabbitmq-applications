@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -22,8 +21,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.File;
 import java.util.Date;
-
-import static org.springframework.integration.dsl.IntegrationFlows.from;
 
 /**
  * Created by marcelmaatkamp on 30/11/15.

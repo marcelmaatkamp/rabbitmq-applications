@@ -4,8 +4,6 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.event.configuration.xstream.XStreamConfiguration;
-import org.event.model.sensor.temperature.TemperatureSensor;
-import org.event.model.sensor.temperature.TemperatureSensorEvent;
 import org.sensor.temperature.receiver.temperature.listener.TemperatureSensorEventListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
