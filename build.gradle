@@ -70,6 +70,8 @@ allprojects {
         compile "com.fasterxml.jackson.core:jackson-core:$jackson2Version"
         compile "com.fasterxml.jackson.core:jackson-databind:$jackson2Version"
 
+        compile "com.google.code.gson:gson:2.5"
+
         testCompile "junit:junit"
         testCompile "org.springframework.boot:spring-boot-starter-test"
 
@@ -152,7 +154,6 @@ project(":application:datadiode:encryption:decrypt") {
 project(":application:datadiode:cutter") {
     dependencies {
         compile project(':application:datadiode')
-
     }
 }
 project(":application:datadiode:cutter:cut") {

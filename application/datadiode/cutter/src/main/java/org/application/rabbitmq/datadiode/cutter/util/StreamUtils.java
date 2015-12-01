@@ -1,5 +1,6 @@
 package org.application.rabbitmq.datadiode.cutter.util;
 
+import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
@@ -31,11 +32,15 @@ public class StreamUtils {
     @Autowired
     MessageDigest _messageDigest;
 
-    @Autowired
     private static XStream xStream;
 
     @Autowired
     XStream _xStream;
+
+    @Autowired
+    Gson _gson;
+
+    static Gson gson;
 
     @Value(value = "${application.datadiode.cutter.digest}")
     boolean doDigest;
@@ -71,7 +76,7 @@ public class StreamUtils {
 
         List<Message> headers = new ArrayList();
         // addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
-        addRedundantly(headers, new Message(xStream.toXML(sh).getBytes(), messageProperties), redundancyFactor);
+        addRedundantly(headers, new Message(gson.toJson(sh).getBytes(), messageProperties), redundancyFactor);
 
         // blocksize
         for (int i = 0; i < aantal; i++) {
@@ -86,7 +91,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("size", segment.segment.length);
 
             // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
-            addRedundantly(results, new Message(xStream.toXML(segment).getBytes(), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(gson.toJson(segment).getBytes(), messageProperties), redundancyFactor);
         }
 
         // and the rest
@@ -102,7 +107,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("size", segment.segment.length);
 
             // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
-            addRedundantly(results, new Message(xStream.toXML(segment).getBytes(), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(gson.toJson(segment).getBytes(), messageProperties), redundancyFactor);
 
         }
 
@@ -137,6 +142,7 @@ public class StreamUtils {
     public void init() {
         messageDigest = _messageDigest;
         xStream = _xStream;
+        gson = _gson;
     }
 
 

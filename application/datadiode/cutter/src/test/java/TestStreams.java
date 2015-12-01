@@ -1,8 +1,11 @@
+import com.google.gson.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomUtils;
+import org.application.rabbitmq.datadiode.configuration.gson.adapters.ByteArrayToBase64TypeAdapter;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
 import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +14,12 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.utils.SerializationUtils;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -165,5 +170,24 @@ public class TestStreams implements Serializable {
         String cutDigest = Base64.encodeBase64String(md.digest());
 
         org.junit.Assert.assertEquals(digest, cutDigest);
+    }
+
+    @Test
+    public void testGson() {
+        Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(byte[].class,
+                new ByteArrayToBase64TypeAdapter()).create();
+
+        Segment segment = new Segment().index(1).uuid(UUID.randomUUID()).segment(RandomUtils.nextBytes(1500));
+
+        String json = gson.toJson(segment);
+        com.google.gson.internal.LinkedTreeMap other = gson.fromJson(json, com.google.gson.internal.LinkedTreeMap.class);
+
+        log.info(""+(UUID)other.get("uuid"));
+
+
+        // Assert.assertEquals(segment, other);
+        log.info("json("+other+"), other("+other.getClass()+"): " + other.keySet().contains("segment"));
+
+
     }
 }

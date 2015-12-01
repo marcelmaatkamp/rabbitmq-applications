@@ -1,5 +1,6 @@
 package org.application.rabbitmq.datadiode.cutter.merge.configuration.merge;
 
+import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
@@ -112,6 +113,8 @@ public class MergeConfiguration implements MessageListener {
         return rabbitMQService;
     }
 
+    @Autowired
+    Gson gson;
 
     @RabbitListener(
             bindings = @QueueBinding(
@@ -119,12 +122,15 @@ public class MergeConfiguration implements MessageListener {
                     exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "fanout"))
     )
     public void onMessage(Message message) {
-            String xml = new String(message.getBody());
-            Object o = xStream.fromXML(xml);
 
+        String xml = new String(message.getBody());
+        com.google.gson.internal.LinkedTreeMap json = gson.fromJson(new String(message.getBody()), com.google.gson.internal.LinkedTreeMap.class);
 
-        if (o instanceof SegmentHeader) {
-            SegmentHeader segmentHeader = (SegmentHeader) o;
+        json.keySet().contains("segment");
+
+        if (!json.keySet().contains("segment")) {
+            SegmentHeader segmentHeader = new SegmentHeader().blockSize((int)json.get("blockSize")).count((int)json.get("count")).digest((byte[])json.get("digest")).size((int)json.get("size"));
+            log.info(xStream.toXML(segmentHeader));
             if (log.isDebugEnabled()) {
                 log.debug("header(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
             }
@@ -141,7 +147,7 @@ public class MergeConfiguration implements MessageListener {
                     log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
                 }
             }
-        } else if (o instanceof Segment) {
+        } else {
 
             Segment segment = (Segment) o;
             if (log.isDebugEnabled()) {
@@ -164,8 +170,6 @@ public class MergeConfiguration implements MessageListener {
                     }
                 }
             }
-        } else {
-            log.error("Error: Unknown object: " + o);
         }
 
     }
