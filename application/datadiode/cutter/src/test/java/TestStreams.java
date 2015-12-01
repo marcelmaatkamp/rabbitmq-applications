@@ -5,6 +5,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.datadiode.configuration.gson.adapters.ByteArrayToBase64TypeAdapter;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
 import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -194,7 +195,7 @@ public class TestStreams implements Serializable {
     }
 
     @Test
-    public void testByteArray() throws IOException, NoSuchAlgorithmException {
+    public void testSegmentHeaderByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
         UUID uuid = UUID.randomUUID();
         int size = 15;
         int blockSize = 16;
@@ -212,28 +213,33 @@ public class TestStreams implements Serializable {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
 
+        oos.writeByte(SegmentType.SEGMENT_HEADER.getType());
         oos.writeLong(uuid.getMostSignificantBits());
         oos.writeLong(uuid.getLeastSignificantBits());
-        oos.write(size);
-        oos.write(blockSize);
-        oos.write(count);
+        oos.writeInt(size);
+        oos.writeInt(blockSize);
+        oos.writeInt(count);
         oos.writeObject(insertDate);
-        oos.writeObject(md.digest());
+        oos.write(md.digest());
 
         oos.close();
         bos.close();
 
-        log.info("header.size: " + bos.toByteArray().length);       // 122 bytes
+        log.info("header.size: " + bos.toByteArray().length);       // 111 bytes
 
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
         ObjectInputStream ois = new ObjectInputStream(bis);
-        
-        UUID uuid_other = new UUID(ois.readLong(), ois.readLong());
 
-        log.info("uuid: " +uuid.toString() + ", other: " + uuid_other.toString());
+        Assert.assertEquals(SegmentType.SEGMENT_HEADER.getType(),ois.readByte());
+        Assert.assertTrue(uuid.equals(new UUID(ois.readLong(), ois.readLong())));
+        Assert.assertEquals(size, ois.readInt());
+        Assert.assertEquals(blockSize, ois.readInt());
+        Assert.assertEquals(count, ois.readInt());
+        Assert.assertEquals(insertDate, ois.readObject());
 
-        Assert.assertTrue(uuid.equals(uuid_other));
-
+        byte[] other_digest = new byte[md.digest().length];
+        ois.read(other_digest);
+        Assert.assertArrayEquals(md.digest(),other_digest);
 
 
     }

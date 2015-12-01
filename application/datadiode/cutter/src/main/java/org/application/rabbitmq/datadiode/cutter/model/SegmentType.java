@@ -13,4 +13,8 @@ public enum SegmentType {
     SegmentType(byte type) {
         this.type = type;
     }
+
+    public byte getType() {
+        return type;
+    }
 }
