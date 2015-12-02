@@ -69,6 +69,8 @@ public class ExchangeMessageConverterListener implements MessageListener {
 
         } catch (IOException e) {
             log.error("Exception: ", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Exception: ", e);
         }
     }
 }

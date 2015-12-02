@@ -95,12 +95,6 @@ public class MergeConfiguration implements MessageListener {
     }
 
     @Bean
-    MessageDigest messageDigest() throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        return messageDigest;
-    }
-
-    @Bean
     StreamUtils streamUtils() {
         StreamUtils streamUtils = new StreamUtils();
         return streamUtils;

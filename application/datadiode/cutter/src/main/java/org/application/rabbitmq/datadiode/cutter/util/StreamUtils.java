@@ -2,6 +2,7 @@ package org.application.rabbitmq.datadiode.cutter.util;
 
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
+import org.apache.commons.codec.binary.*;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
@@ -28,11 +29,6 @@ import java.util.*;
 public class StreamUtils {
     private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
-    private static MessageDigest messageDigest;
-
-    @Autowired
-    MessageDigest _messageDigest;
-
     private static XStream xStream;
 
     @Autowired
@@ -55,11 +51,10 @@ public class StreamUtils {
     }
 
     // todo: msg fully loaded
-    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) throws IOException {
+    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) throws IOException, NoSuchAlgorithmException {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
-        messageDigest.update(messageBytes);
 
         int aantal = (int) (messageBytes.length / bufSize);
         int modulo = messageBytes.length % bufSize;
@@ -70,6 +65,8 @@ public class StreamUtils {
                 count(aantal);
 
         if(calculateDigest) {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA256");
+            messageDigest.update(messageBytes);
             sh.digest(messageDigest.digest());
         }
 
@@ -141,14 +138,14 @@ public class StreamUtils {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
-            log.error("ERROR: Message digest("+segmentHeader.digest+") vs actual("+messageDigest.digest()+") did not match: " + SerializationUtils.deserialize(data));
+            log.error("ERROR: Message digest("+ org.apache.commons.codec.binary.Base64.encodeBase64String(segmentHeader.digest)+") vs actual("+org.apache.commons.codec.binary.Base64.encodeBase64String(messageDigest.digest())+") did not match: " + SerializationUtils.deserialize(data));
         }
+
         return null;
     }
 
     @PostConstruct
     public void init() {
-        messageDigest = _messageDigest;
         xStream = _xStream;
         gson = _gson;
     }
