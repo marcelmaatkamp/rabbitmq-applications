@@ -134,7 +134,7 @@ public class StreamUtils {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
-            log.error("ERROR: Message digest("+ org.apache.commons.codec.binary.Base64.encodeBase64String(segmentHeader.digest)+") vs actual("+org.apache.commons.codec.binary.Base64.encodeBase64String(messageDigest.digest())+") did not match: " + SerializationUtils.deserialize(data));
+            log.error("ERROR: Message digest("+ Arrays.toString(segmentHeader.digest)+") vs actual("+Arrays.toString(messageDigest.digest())+") did not match: " + SerializationUtils.deserialize(data));
         }
 
         return null;

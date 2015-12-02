@@ -20,6 +20,8 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
@@ -114,7 +116,23 @@ public class MergeConfiguration implements MessageListener {
         return rabbitMQService;
     }
 
+    @Autowired
+    ConnectionFactory connectionFactory;
+
+    @Value(value = "${application.datadiode.cutter.merge.concurrentConsumers}")
+    int concurrentConsumers;
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setConcurrentConsumers(concurrentConsumers);
+        factory.setMaxConcurrentConsumers(10);
+        return factory;
+    }
+
     @RabbitListener(
+
             bindings = @QueueBinding(
                     value = @Queue(value = "${application.datadiode.cutter.queue}", durable = "true"),
                     exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "fanout"))

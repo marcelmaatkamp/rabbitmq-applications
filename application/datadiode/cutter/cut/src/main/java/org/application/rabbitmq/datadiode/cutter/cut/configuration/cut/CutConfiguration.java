@@ -177,6 +177,7 @@ public class CutConfiguration {
                     simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
                     simpleMessageListenerContainer.setQueueNames(queueName);
                     simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(exchangeMessageConverterListener()));
+                    simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.cutter.cutted.concurrentConsumers", Integer.class));
                     simpleMessageListenerContainer.start();
                     queueListeners.add(queueName);
                 }

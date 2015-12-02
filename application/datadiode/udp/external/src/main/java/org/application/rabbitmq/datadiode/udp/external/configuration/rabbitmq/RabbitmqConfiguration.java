@@ -96,6 +96,8 @@ public class RabbitMQConfiguration {
         simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
         simpleMessageListenerContainer.setQueueNames(udpQueue().getName());
         simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
+        simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
+
         simpleMessageListenerContainer.start();
         return  simpleMessageListenerContainer;
     }
