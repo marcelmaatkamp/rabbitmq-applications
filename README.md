@@ -1,9 +1,9 @@
 # RabbitMQ Applications 
 
 These are applications running on RabbitMQ:
-* [data diode](application/datadiode/README.md) (working)
-* [encryption](application/encryption/README.md) (working)
-* [stream](application/stream/README.md) (working)
-* [fileshare](application/fileshare/README.md) (wip)
-* [search](application/search/README.md) (wip)
+* [data diode](application/datadiode) (working)
+* [encryption](application/encryption) (working)
+* [stream](application/stream) (working)
+* [fileshare](application/fileshare) (wip)
+* [search](application/search) (wip)
 
