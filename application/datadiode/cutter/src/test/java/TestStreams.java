@@ -1,5 +1,6 @@
 import com.google.gson.*;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.datadiode.configuration.gson.adapters.ByteArrayToBase64TypeAdapter;
@@ -185,61 +186,11 @@ public class TestStreams implements Serializable {
         String json = gson.toJson(segment);
         com.google.gson.internal.LinkedTreeMap other = gson.fromJson(json, com.google.gson.internal.LinkedTreeMap.class);
 
-        log.info(""+(UUID)other.get("uuid"));
+        log.info("" + (UUID) other.get("uuid"));
 
 
         // Assert.assertEquals(segment, other);
-        log.info("json("+other+"), other("+other.getClass()+"): " + other.keySet().contains("segment"));
-
-
-    }
-
-    @Test
-    public void testSegmentHeaderByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        UUID uuid = UUID.randomUUID();
-        int size = 15;
-        int blockSize = 16;
-        int count = 17;
-        Date insertDate = new Date();
-        byte[] digest;
-
-        int length = 65535;
-        byte[] randomBytes = RandomUtils.nextBytes(length);
-
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(randomBytes);
-        digest = Base64.encodeBase64(md.digest());
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-
-        oos.writeByte(SegmentType.SEGMENT_HEADER.getType());
-        oos.writeLong(uuid.getMostSignificantBits());
-        oos.writeLong(uuid.getLeastSignificantBits());
-        oos.writeInt(size);
-        oos.writeInt(blockSize);
-        oos.writeInt(count);
-        oos.writeObject(insertDate);
-        oos.write(md.digest());
-
-        oos.close();
-        bos.close();
-
-        log.info("header.size: " + bos.toByteArray().length);       // 111 bytes
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-        ObjectInputStream ois = new ObjectInputStream(bis);
-
-        Assert.assertEquals(SegmentType.SEGMENT_HEADER.getType(),ois.readByte());
-        Assert.assertTrue(uuid.equals(new UUID(ois.readLong(), ois.readLong())));
-        Assert.assertEquals(size, ois.readInt());
-        Assert.assertEquals(blockSize, ois.readInt());
-        Assert.assertEquals(count, ois.readInt());
-        Assert.assertEquals(insertDate, ois.readObject());
-
-        byte[] other_digest = new byte[md.digest().length];
-        ois.read(other_digest);
-        Assert.assertArrayEquals(md.digest(),other_digest);
+        log.info("json(" + other + "), other(" + other.getClass() + "): " + other.keySet().contains("segment"));
 
 
     }

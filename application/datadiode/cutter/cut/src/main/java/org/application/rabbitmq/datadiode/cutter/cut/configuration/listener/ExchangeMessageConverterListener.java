@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
@@ -51,17 +53,22 @@ public class ExchangeMessageConverterListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message) {
-        ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
-        List<Message> messages = StreamUtils.cut(exchangeMessage, maxMessageSize, redundancyFactor);
+        try {
+            ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
+            List<Message> messages = null;
 
-        if(log.isDebugEnabled()) {
-            log.debug("cutting (message.length(" + message.getBody().length + ") * redundancy("+redundancyFactor+")) into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
-        }
+            messages = StreamUtils.cut(exchangeMessage, maxMessageSize, redundancyFactor);
 
-        for (Message m : messages) {
-            rabbitTemplate.convertAndSend(cutterExchange.getName(), null, m);
+            if (log.isDebugEnabled()) {
+                log.debug("cutting (message.length(" + message.getBody().length + ") * redundancy(" + redundancyFactor + ")) into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
+            }
+
+            for (Message m : messages) {
+                rabbitTemplate.convertAndSend(cutterExchange.getName(), null, m);
+            }
+
+        } catch (IOException e) {
+            log.error("Exception: ", e);
         }
     }
-
-
 }

@@ -2,6 +2,7 @@ package org.application.rabbitmq.datadiode.cutter.merge.configuration.merge;
 
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
@@ -30,7 +31,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -46,20 +50,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Configuration
 @EnableScheduling
 public class MergeConfiguration implements MessageListener {
-    private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
-
     public static final String X_SHOVELLED = "x-shovelled";
     public static final String SRC_EXCHANGE = "src-exchange";
     public static final String SRC_QUEUE = "src-queue";
-
+    private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
     Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
 
     @Autowired
     XStream xStream;
-
+    @Autowired
+    Environment environment;
+    boolean calculateDigest = true;
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
-
 
     @Bean
     public JsonMessageConverter jsonMessageConverter() {
@@ -91,10 +94,6 @@ public class MergeConfiguration implements MessageListener {
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
     }
 
-
-    @Autowired
-    Environment environment;
-
     @Bean
     MessageDigest messageDigest() throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
@@ -113,9 +112,6 @@ public class MergeConfiguration implements MessageListener {
         return rabbitMQService;
     }
 
-    @Autowired
-    Gson gson;
-
     @RabbitListener(
             bindings = @QueueBinding(
                     value = @Queue(value = "${application.datadiode.cutter.queue}", durable = "true"),
@@ -123,55 +119,73 @@ public class MergeConfiguration implements MessageListener {
     )
     public void onMessage(Message message) {
 
-        String xml = new String(message.getBody());
-        com.google.gson.internal.LinkedTreeMap json = gson.fromJson(new String(message.getBody()), com.google.gson.internal.LinkedTreeMap.class);
+        byte[] segment_or_header = message.getBody();
 
-        json.keySet().contains("segment");
+        try {
+            ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
+            BufferedInputStream bus = new BufferedInputStream(bis);
+            ObjectInputStream ois = new ObjectInputStream(bus);
 
-        if (!json.keySet().contains("segment")) {
-            SegmentHeader segmentHeader = new SegmentHeader().blockSize((int)json.get("blockSize")).count((int)json.get("count")).digest((byte[])json.get("digest")).size((int)json.get("size"));
-            log.info(xStream.toXML(segmentHeader));
-            if (log.isDebugEnabled()) {
-                log.debug("header(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
-            }
-            boolean found = false;
-            for (SegmentHeader s : uMessages.keySet()) {
-                if (s.uuid.equals(segmentHeader.uuid)) {
-                    found = true;
-                    break;
+            byte type = ois.readByte();
+
+            if (type == SegmentType.SEGMENT_HEADER.getType()) {
+                SegmentHeader segmentHeader = null;
+                try {
+                    segmentHeader = SegmentHeader.fromByteArray(ois, segment_or_header, calculateDigest);
+                    if (log.isDebugEnabled()) {
+                        log.debug("header(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
+                    }
+                    boolean found = false;
+                    for (SegmentHeader s : uMessages.keySet()) {
+                        if (s.uuid.equals(segmentHeader.uuid)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        uMessages.put(segmentHeader, new TreeSet<Segment>());
+                        if (log.isDebugEnabled()) {
+                            log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
+                        }
+                    }
+                } catch (IOException e) {
+                    log.error("Exception: ", e);
+                } catch (ClassNotFoundException e) {
+                    log.error("Exception: ", e);
                 }
-            }
-            if (!found) {
-                uMessages.put(segmentHeader, new TreeSet<Segment>());
+            } else if(type == SegmentType.SEGMENT.getType()) {
+
+                Segment segment = Segment.fromByteArray(ois, segment_or_header);
+
                 if (log.isDebugEnabled()) {
-                    log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
+                    log.debug("segment(" + xStream.toXML(segment) + ")");
                 }
-            }
-        } else {
+                for (SegmentHeader segmentHeader : uMessages.keySet()) {
+                    if (segmentHeader.uuid.equals(segment.uuid)) {
+                        segmentHeader.update = new Date();
+                        Set<Segment> messages = uMessages.get(segmentHeader);
 
-            Segment segment = (Segment) o;
-            if (log.isDebugEnabled()) {
-               // log.debug("segment(" + xStream.toXML(segment) + ")");
-            }
-            for (SegmentHeader segmentHeader : uMessages.keySet()) {
-                if (segmentHeader.uuid.equals(segment.uuid)) {
-                    segmentHeader.update = new Date();
-                    Set<Segment> messages = uMessages.get(segmentHeader);
-
-                    messages.add(segment);
-                    if (messages.size() == segmentHeader.count + 1) {
-                        try {
+                        messages.add(segment);
+                        if (messages.size() == segmentHeader.count + 1) {
                             ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
                             rabbitMQService().sendExchangeMessage(messageFromStream);
                             uMessages.remove(segmentHeader);
-                        } catch (IOException e) {
-                            log.error("Exception: " + e);
                         }
                     }
                 }
+            } else {
+                log.error("Unknown type("+type+"), not a segmentHeader or segment");
             }
-        }
 
+            ois.close();
+            bus.close();
+            bis.close();
+
+        } catch (IOException e) {
+            log.error("Exception: ", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Exception: ", e);
+        }
     }
 
     /**

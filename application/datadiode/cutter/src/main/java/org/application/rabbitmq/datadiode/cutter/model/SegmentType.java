@@ -8,7 +8,7 @@ public enum SegmentType {
     SEGMENT_HEADER((byte)0),
     SEGMENT((byte)1);
 
-    byte type;
+    private byte type;
 
     SegmentType(byte type) {
         this.type = type;

@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -42,6 +43,8 @@ public class StreamUtils {
 
     static Gson gson;
 
+    static boolean calculateDigest = true;
+
     @Value(value = "${application.datadiode.cutter.digest}")
     boolean doDigest;
 
@@ -52,7 +55,7 @@ public class StreamUtils {
     }
 
     // todo: msg fully loaded
-    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) {
+    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) throws IOException {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
@@ -64,8 +67,11 @@ public class StreamUtils {
         SegmentHeader sh = new SegmentHeader().
                 size(messageBytes.length).
                 blockSize(bufSize).
-                count(aantal).
-                digest(messageDigest.digest());
+                count(aantal);
+
+        if(calculateDigest) {
+            sh.digest(messageDigest.digest());
+        }
 
         MessageProperties messageProperties = message.getMessage().getMessageProperties();
         messageProperties.getHeaders().put("type", sh.getClass());
@@ -76,7 +82,8 @@ public class StreamUtils {
 
         List<Message> headers = new ArrayList();
         // addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
-        addRedundantly(headers, new Message(gson.toJson(sh).getBytes(), messageProperties), redundancyFactor);
+
+        addRedundantly(headers, new Message(sh.toByteArray(calculateDigest), messageProperties), redundancyFactor);
 
         // blocksize
         for (int i = 0; i < aantal; i++) {
@@ -91,7 +98,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("size", segment.segment.length);
 
             // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
-            addRedundantly(results, new Message(gson.toJson(segment).getBytes(), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
         }
 
         // and the rest
@@ -107,7 +114,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("size", segment.segment.length);
 
             // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
-            addRedundantly(results, new Message(gson.toJson(segment).getBytes(), messageProperties), redundancyFactor);
+            addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
 
         }
 
@@ -117,7 +124,7 @@ public class StreamUtils {
         return headers;
     }
 
-    public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException {
+    public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException, NoSuchAlgorithmException {
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
         for (Segment segment : segments) {
@@ -126,6 +133,7 @@ public class StreamUtils {
         bos2.close();
 
         byte[] data = bos2.toByteArray();
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA256");
         messageDigest.update(data);
 
         // compare digest
@@ -133,7 +141,7 @@ public class StreamUtils {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
-            log.error("ERROR: Message digest did not match: " + SerializationUtils.deserialize(data));
+            log.error("ERROR: Message digest("+segmentHeader.digest+") vs actual("+messageDigest.digest()+") did not match: " + SerializationUtils.deserialize(data));
         }
         return null;
     }
