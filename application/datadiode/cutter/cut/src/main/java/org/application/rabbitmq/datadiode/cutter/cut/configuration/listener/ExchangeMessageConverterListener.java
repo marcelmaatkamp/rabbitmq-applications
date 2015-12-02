@@ -44,6 +44,14 @@ public class ExchangeMessageConverterListener implements MessageListener {
     @Value(value = "${application.datadiode.cutter.redundancyFactor}")
     int redundancyFactor;
 
+
+    @Value("${application.datadiode.cutter.digest}")
+    boolean calculateDigest;
+
+    @Value("${application.datadiode.cutter.digest.name}")
+    String digestName;
+
+
     @Autowired
     Exchange cutterExchange;
 
@@ -57,7 +65,7 @@ public class ExchangeMessageConverterListener implements MessageListener {
             ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
             List<Message> messages = null;
 
-            messages = StreamUtils.cut(exchangeMessage, maxMessageSize, redundancyFactor);
+            messages = StreamUtils.cut(exchangeMessage, maxMessageSize, redundancyFactor, calculateDigest, digestName);
 
             if (log.isDebugEnabled()) {
                 log.debug("cutting (message.length(" + message.getBody().length + ") * redundancy(" + redundancyFactor + ")) into " + messages.size() + " messages of " + maxMessageSize + " bytes..");

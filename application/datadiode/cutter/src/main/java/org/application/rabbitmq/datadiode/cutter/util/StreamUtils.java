@@ -39,10 +39,6 @@ public class StreamUtils {
 
     static Gson gson;
 
-    static boolean calculateDigest = true;
-
-    @Value(value = "${application.datadiode.cutter.digest}")
-    boolean doDigest;
 
     private static void addRedundantly(List<Message> messages, Message message, int redundancyFactor) {
         for (int i = 0; i < redundancyFactor; i++) {
@@ -51,7 +47,7 @@ public class StreamUtils {
     }
 
     // todo: msg fully loaded
-    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor) throws IOException, NoSuchAlgorithmException {
+    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor, boolean calculateDigest, String digestName) throws IOException, NoSuchAlgorithmException {
         List<Message> results = new ArrayList();
 
         byte[] messageBytes = SerializationUtils.serialize(message);
@@ -65,7 +61,7 @@ public class StreamUtils {
                 count(aantal);
 
         if(calculateDigest) {
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA256");
+            MessageDigest messageDigest = MessageDigest.getInstance(digestName);
             messageDigest.update(messageBytes);
             sh.digest(messageDigest.digest());
         }
@@ -121,7 +117,7 @@ public class StreamUtils {
         return headers;
     }
 
-    public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments) throws IOException, NoSuchAlgorithmException {
+    public static ExchangeMessage reconstruct(SegmentHeader segmentHeader, Set<Segment> segments, boolean doDigest, String digestName) throws IOException, NoSuchAlgorithmException {
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
         for (Segment segment : segments) {
@@ -130,11 +126,11 @@ public class StreamUtils {
         bos2.close();
 
         byte[] data = bos2.toByteArray();
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA256");
+        MessageDigest messageDigest = MessageDigest.getInstance(digestName);
         messageDigest.update(data);
 
         // compare digest
-        if (Arrays.equals(messageDigest.digest(), segmentHeader.digest)) {
+        if (MessageDigest.isEqual(messageDigest.digest(), segmentHeader.digest)) {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {

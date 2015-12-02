@@ -94,26 +94,29 @@ public class RabbitMQServiceImpl implements RabbitMQService {
 
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
-        Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
+        try {
+            Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
 
-        if (!declaredExchanges().keySet().contains(exchange)) {
-            rabbitAdmin.declareExchange(exchange);
-            declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
+            if (!declaredExchanges().keySet().contains(exchange)) {
+                rabbitAdmin.declareExchange(exchange);
+                declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
+            }
+
+            // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
+            // into rabbitmq
+            rabbitTemplate.send(
+                    exchange.getName(),
+                    exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey(),
+                    exchangeMessage.getMessage()
+            );
+        } catch(NullPointerException e) {
+            log.error("Exception: " + e.getMessage());
         }
-
-        if (log.isDebugEnabled()) {
-            log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
-        }
-
-        // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
-        // into rabbitmq
-        rabbitTemplate.send(
-                exchange.getName(),
-                exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey(),
-                exchangeMessage.getMessage()
-        );
-
     }
 
 }

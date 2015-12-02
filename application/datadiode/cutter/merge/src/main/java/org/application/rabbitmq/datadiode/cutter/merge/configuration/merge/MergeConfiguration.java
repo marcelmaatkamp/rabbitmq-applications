@@ -24,6 +24,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -60,7 +61,14 @@ public class MergeConfiguration implements MessageListener {
     XStream xStream;
     @Autowired
     Environment environment;
-    boolean calculateDigest = true;
+
+    @Value("${application.datadiode.cutter.digest}")
+    boolean calculateDigest;
+
+    @Value("${application.datadiode.cutter.digest.name}")
+    String digestName;
+
+
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
 
@@ -161,7 +169,7 @@ public class MergeConfiguration implements MessageListener {
 
                         messages.add(segment);
                         if (messages.size() == segmentHeader.count + 1) {
-                            ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages);
+                            ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages, calculateDigest, digestName);
                             rabbitMQService().sendExchangeMessage(messageFromStream);
                             uMessages.remove(segmentHeader);
                         }
