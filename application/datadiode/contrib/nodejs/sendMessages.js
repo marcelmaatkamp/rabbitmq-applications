@@ -1,6 +1,6 @@
 var amqp = require('amqp');
 var connection = amqp.createConnection({host: "rabbitblack", port: 5673});
-var count = 1;
+var count = 8092;
 
 connection.on('ready', function () {
     connection.exchange("nodejsExchange", options = {
@@ -15,7 +15,7 @@ connection.on('ready', function () {
         }
 
         setInterval(function () {
-            var test_message = 'TEST ' + count
+            var test_message =  new Array(count);
             console.log('send ' + count + " ..")
             sendMessage(exchange, test_message)
             count += 1;
