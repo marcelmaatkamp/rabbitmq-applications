@@ -1,5 +1,8 @@
 package org.application.rabbitmq.datadiode.cutter.model;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.apache.commons.lang3.RandomUtils;
@@ -10,6 +13,9 @@ import java.io.*;
 import java.util.UUID;
 
 /**
+ * MTU 1500 bytes: 25 bytes header
+ * MTU 9000 bytes: 25 bytes header
+ * MTU 64k  bytes:
  * Created by marcelmaatkamp on 24/11/15.
  */
 
@@ -44,19 +50,17 @@ public class Segment implements Serializable, Comparable<Segment> {
         return this.index - o.index;
     }
 
+    static final int LONG_SIZE=8;
+    static final int INT_SIZE=4;
 
     public byte[] toByteArray() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-
-        oos.writeByte(SegmentType.SEGMENT.getType());
-        oos.writeLong(this.uuid.getMostSignificantBits());
-        oos.writeLong(this.uuid.getLeastSignificantBits());
-        oos.writeInt(this.index);
-        oos.writeInt(this.segment.length);
-        oos.write(this.segment);
-
-        oos.close();
+        bos.write(SegmentType.SEGMENT.getType());
+        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
+        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(index));
+        bos.write(Ints.toByteArray(segment.length));
+        bos.write(segment);
         bos.close();
 
         return bos.toByteArray();
@@ -65,28 +69,36 @@ public class Segment implements Serializable, Comparable<Segment> {
     public static Segment fromByteArray(byte[] segmentData) throws IOException {
         Segment segment = new Segment();
         ByteArrayInputStream bis = new ByteArrayInputStream(segmentData);
-        BufferedInputStream bus = new BufferedInputStream(bis);
-        ObjectInputStream ois = new ObjectInputStream(bus);
-        byte type = ois.readByte();
+
+        byte type = (byte)bis.read();
 
         if (type == SegmentType.SEGMENT.getType()) {
-            fromByteArray(ois, segmentData);
+            segment = fromByteArray(bis, segmentData);
         } else {
             log.warn("This array is not a segment type(" + type + ") unknown!");
         }
 
-        ois.close();
-        bus.close();
         bis.close();
         return segment;
     }
 
-    public static Segment fromByteArray(ObjectInputStream ois, byte[] segmentData) throws IOException {
+    public static Segment fromByteArray(ByteArrayInputStream bis, byte[] segmentData) throws IOException {
+        byte[] longByteArray = new byte[LONG_SIZE];
+        byte[] intByteArray = new byte[INT_SIZE];
+
         Segment segment = new Segment();
-        segment.uuid(new UUID(ois.readLong(), ois.readLong()));
-        segment.index(ois.readInt());
-        segment.segment = new byte[ois.readInt()];
-        ois.readFully(segment.segment);
+        bis.read(longByteArray);
+        long most = Longs.fromByteArray(longByteArray);
+
+        bis.read(longByteArray);
+        segment.uuid(new UUID(most, Longs.fromByteArray(longByteArray)));
+
+        bis.read(intByteArray);
+        segment.index(Ints.fromByteArray(intByteArray));
+
+        bis.read(intByteArray);
+        segment.segment = new byte[Ints.fromByteArray(intByteArray)];
+        bis.read(segment.segment);
         return segment;
     }
 }

@@ -183,6 +183,11 @@ sudo ifconfig eth0 mtu 16110
 ip link show eth0
 ```
 
+Mac:
+```
+sudo sysctl -w net.inet.raw.maxdgram=16384
+```
+
 To fake a data diode run a udp2udp tunnel with socat on another machine:
 ```
  socat UDP4-RECVFROM:1234,fork udp-datagram:<client ip>:1234,broadcast
@@ -196,6 +201,16 @@ and on the red side:
 ```
 socat UDP4-RECVFROM:1235,fork UDP4-SENDTO:172.16.128.4:1234
 ```
+Optimize
+
+http://stackoverflow.com/questions/1043567/java-ioexception-no-buffer-space-available-while-sending-udp-packets-on-linux
+When sending lots of messages, especially over gigabit ethernet in Linux, the stock parameters for your kernel are usually not optimal. You can increase the Linux kernel buffer size for networking through:
+
+echo 1048576 > /proc/sys/net/core/wmem_max
+echo 1048576 > /proc/sys/net/core/wmem_default
+echo 1048576 > /proc/sys/net/core/rmem_max
+echo 1048576 > /proc/sys/net/core/rmem_default
+
 # Restrictions
 * there is a lot of overhead in a message, this can be optimized
 

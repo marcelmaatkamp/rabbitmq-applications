@@ -8,6 +8,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import reactor.spring.context.config.EnableReactor;
 
 /**
@@ -16,6 +18,7 @@ import reactor.spring.context.config.EnableReactor;
 @Configuration
 @EnableConfigurationProperties(UdpProducerConfiguration.UdpProducerConfigurationProperties.class)
 @EnableReactor
+@EnableScheduling
 public class UdpProducerConfiguration {
     private static final Logger log = LoggerFactory.getLogger(UdpProducerConfiguration.class);
 
@@ -28,6 +31,17 @@ public class UdpProducerConfiguration {
                 new UnicastSendingMessageHandler(
                         udpProducerConfigurationProperties.getHost(),
                         udpProducerConfigurationProperties.getPort());
+
+        log.info("setSoSendBufferSize:"+ unicastSendingMessageHandler.getSoSendBufferSize());
+        log.info("isAcknowledge:"+ unicastSendingMessageHandler.isAcknowledge());
+        log.info("isCountsEnabled:"+ unicastSendingMessageHandler.isCountsEnabled());
+        log.info("isLoggingEnabled:"+ unicastSendingMessageHandler.isLoggingEnabled());
+        log.info("isStatsEnabled:"+ unicastSendingMessageHandler.isStatsEnabled());
+
+        unicastSendingMessageHandler.setSoSendBufferSize(udpProducerConfigurationProperties.getSoSendBufferSize()); // keeps udp flow constant
+        unicastSendingMessageHandler.setStatsEnabled(false);
+        unicastSendingMessageHandler.setLoggingEnabled(false);
+
         if(log.isDebugEnabled()) {
             log.debug("sending to " +udpProducerConfigurationProperties.getHost()+":" +udpProducerConfigurationProperties.getPort());
         }
@@ -38,6 +52,16 @@ public class UdpProducerConfiguration {
     public static class UdpProducerConfigurationProperties {
         String host;
         int port;
+
+        public int getSoSendBufferSize() {
+            return soSendBufferSize;
+        }
+
+        public void setSoSendBufferSize(int soSendBufferSize) {
+            this.soSendBufferSize = soSendBufferSize;
+        }
+
+        int soSendBufferSize;
 
         public String getHost() {
             return host;
@@ -56,5 +80,4 @@ public class UdpProducerConfiguration {
         }
 
     }
-
 }

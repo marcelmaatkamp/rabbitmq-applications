@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
@@ -33,21 +34,22 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     @Autowired
     Environment environment;
 
+    MessageProperties messageProperties = new MessageProperties();
+
     public void udpMessage(Message message) throws IOException, DataFormatException {
 
-        if(log.isDebugEnabled()) {
-            log.debug(xStream.toXML(message));
+        if(log.isTraceEnabled()) {
+            log.trace(xStream.toXML(message));
         }
 
         // from udp
         byte[] udpPacket = (byte[]) message.getPayload();
-        byte[] data = udpPacket;
 
-        if (compress) {
-            data = CompressionUtils.decompress(udpPacket);
-        }
+        org.springframework.amqp.core.Message messageToUdp = new org.springframework.amqp.core.Message(
+                (compress ?  CompressionUtils.decompress(udpPacket) : udpPacket),
+                messageProperties
+        );
 
-        org.springframework.amqp.core.Message messageToUdp = new org.springframework.amqp.core.Message(data, new MessageProperties());
         rabbitTemplate.send("udp",null,messageToUdp);
     }
 

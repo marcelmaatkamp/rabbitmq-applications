@@ -57,7 +57,13 @@ public class MergeConfiguration implements MessageListener {
     public static final String SRC_EXCHANGE = "src-exchange";
     public static final String SRC_QUEUE = "src-queue";
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
-    Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+    // static Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+
+    @Bean
+    Map<SegmentHeader, TreeSet<Segment>> uMessages() {
+        Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+        return uMessages;
+    }
 
     @Autowired
     XStream xStream;
@@ -127,7 +133,7 @@ public class MergeConfiguration implements MessageListener {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setConcurrentConsumers(concurrentConsumers);
-        factory.setMaxConcurrentConsumers(10);
+        factory.setMaxConcurrentConsumers(concurrentConsumers);
         return factory;
     }
 
@@ -135,7 +141,7 @@ public class MergeConfiguration implements MessageListener {
 
             bindings = @QueueBinding(
                     value = @Queue(value = "${application.datadiode.cutter.queue}", durable = "true"),
-                    exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "fanout"))
+                    exchange = @Exchange(value = "${application.datadiode.cutter.exchange}", durable = "true", autoDelete = "false", type = "direct"))
     )
     public void onMessage(Message message) {
 
@@ -143,27 +149,25 @@ public class MergeConfiguration implements MessageListener {
 
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
-            BufferedInputStream bus = new BufferedInputStream(bis);
-            ObjectInputStream ois = new ObjectInputStream(bus);
 
-            byte type = ois.readByte();
+            byte type = (byte)bis.read();
 
             if (type == SegmentType.SEGMENT_HEADER.getType()) {
                 SegmentHeader segmentHeader = null;
                 try {
-                    segmentHeader = SegmentHeader.fromByteArray(ois, segment_or_header, calculateDigest);
+                    segmentHeader = SegmentHeader.fromByteArray(bis, segment_or_header, calculateDigest);
                     if (log.isDebugEnabled()) {
                         log.debug("header(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
                     }
                     boolean found = false;
-                    for (SegmentHeader s : uMessages.keySet()) {
+                    for (SegmentHeader s : uMessages().keySet()) {
                         if (s.uuid.equals(segmentHeader.uuid)) {
                             found = true;
                             break;
                         }
                     }
                     if (!found) {
-                        uMessages.put(segmentHeader, new TreeSet<Segment>());
+                        uMessages().put(segmentHeader, new TreeSet<Segment>());
                         if (log.isDebugEnabled()) {
                             log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
                         }
@@ -175,21 +179,42 @@ public class MergeConfiguration implements MessageListener {
                 }
             } else if(type == SegmentType.SEGMENT.getType()) {
 
-                Segment segment = Segment.fromByteArray(ois, segment_or_header);
+                Segment segment = Segment.fromByteArray(bis, segment_or_header);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("segment(" + xStream.toXML(segment) + ")");
+                if (log.isTraceEnabled()) {
+                    log.trace("segment(" + xStream.toXML(segment) + ")");
                 }
-                for (SegmentHeader segmentHeader : uMessages.keySet()) {
-                    if (segmentHeader.uuid.equals(segment.uuid)) {
-                        segmentHeader.update = new Date();
-                        Set<Segment> messages = uMessages.get(segmentHeader);
 
-                        messages.add(segment);
-                        if (messages.size() == segmentHeader.count + 1) {
-                            ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages, calculateDigest, digestName);
-                            rabbitMQService().sendExchangeMessage(messageFromStream);
-                            uMessages.remove(segmentHeader);
+                for (SegmentHeader segmentHeader : uMessages().keySet()) {
+                    if (segmentHeader.uuid.equals(segment.uuid)) {
+                        synchronized (segmentHeader) {
+
+                            if (log.isDebugEnabled()) {
+                                log.debug("sh[" + segmentHeader.uuid.toString() + "]: ss[" + segment.uuid.toString() + "] index[" + segment.index + "]: count: " + uMessages().get(segmentHeader).size());
+                            }
+                            segmentHeader.update = new Date();
+                            Set<Segment> messages = uMessages().get(segmentHeader);
+                            if (segment != null && messages != null) {
+                                synchronized (uMessages()) {
+                                    messages.add(segment);
+                                    if (messages.size() == segmentHeader.count + 1) {
+                                        ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages, calculateDigest, digestName);
+                                        if (log.isDebugEnabled()) {
+                                            log.debug("sh[" + segmentHeader.uuid.toString() + "]: ss[" + segment.uuid.toString() + "] index[" + segment.index + "] count(" + messages.size() + "/" + segmentHeader.count + ") sending: " + messageFromStream.getMessage().getMessageProperties().getReceivedExchange());
+                                        }
+                                        synchronized (segmentHeader) {
+                                            rabbitMQService().sendExchangeMessage(messageFromStream);
+                                            uMessages().remove(segmentHeader);
+                                        }
+                                    }
+                                }
+
+                            } else {
+                                // late arriving message, set already cleaned
+                                // or duplicate segments where original is already constructed
+
+                                // TODO: into mongo and recontruct segments which arrive earlier than segmentHeaders
+                            }
                         }
                     }
                 }
@@ -197,8 +222,6 @@ public class MergeConfiguration implements MessageListener {
                 log.error("Unknown type("+type+"), not a segmentHeader or segment");
             }
 
-            ois.close();
-            bus.close();
             bis.close();
 
         } catch (IOException e) {
@@ -215,14 +238,16 @@ public class MergeConfiguration implements MessageListener {
      */
     @Scheduled(fixedRate = 5000)
     public void cleanup() throws MalformedURLException {
-        if (uMessages.keySet().size() > 0) {
-            log.info("concurrent active messages: " + uMessages.keySet().size());
+        if (uMessages().keySet().size() > 1) {
+            log.warn("concurrent active messages: " + uMessages().keySet().size());
         }
 
-        for (SegmentHeader segmentHeader : uMessages.keySet()) {
+        for (SegmentHeader segmentHeader : uMessages().keySet()) {
             if (segmentHeader.update != null && (new Date().getTime() - segmentHeader.update.getTime()) > 25000) {
-                log.info("cleaning up " + segmentHeader.uuid + ", got(" + uMessages.get(segmentHeader).size() + "), missing(" + ((segmentHeader.count + 2) - uMessages.get(segmentHeader).size()) + ")");
-                uMessages.remove(segmentHeader);
+                log.info("cleaning up " + segmentHeader.uuid + ", got(" + uMessages().get(segmentHeader).size() + "), missing(" + ((segmentHeader.count + 2) - uMessages().get(segmentHeader).size()) + ")");
+                synchronized (uMessages()) {
+                    uMessages().remove(segmentHeader);
+                }
             }
 
         }

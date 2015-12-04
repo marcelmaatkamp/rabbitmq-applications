@@ -1,5 +1,7 @@
 package org.application.rabbitmq.datadiode.cutter.model;
 
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
@@ -19,10 +21,11 @@ import static org.junit.Assert.*;
 public class SegmentTest {
     private static final Logger log = LoggerFactory.getLogger(SegmentTest.class);
 
-
-    int SEGMENT_SIZE=65536;
+    int SEGMENT_09K_SIZE=9000;
+    int SEGMENT_64K_SIZE=65535;
     int SEGMENT_MTU_SIZE=1500;
 
+    static final int SEGMENT_HEADER_SIZE=25;
 
     @Test
     public void testSegmentByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
@@ -31,17 +34,15 @@ public class SegmentTest {
         UUID uuid = UUID.randomUUID();
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
 
-        oos.writeByte(SegmentType.SEGMENT.getType());
-        oos.writeLong(uuid.getMostSignificantBits());
-        oos.writeLong(uuid.getLeastSignificantBits());
-        oos.writeInt(index);
-        oos.writeInt(segment.length);
-        oos.write(segment);
-        oos.flush();
+        bos.write(SegmentType.SEGMENT.getType());
+        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
+        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(index));
+        bos.write(Ints.toByteArray(segment.length));
+        bos.write(segment);
+        bos.flush();
 
-        oos.close();
         bos.close();
 
         byte[] result = bos.toByteArray();
@@ -68,9 +69,10 @@ public class SegmentTest {
 
     @Test
     public void testToAndFromByteArray() throws IOException {
-        Segment segment = new Segment().uuid(UUID.randomUUID()).index(10).segment(RandomUtils.nextBytes(SEGMENT_SIZE));
+        Segment segment = new Segment().uuid(UUID.randomUUID()).index(10).segment(RandomUtils.nextBytes(SEGMENT_64K_SIZE - SEGMENT_HEADER_SIZE));
 
         byte[] array = segment.toByteArray();
+        assertEquals(SEGMENT_64K_SIZE, array.length);
         Segment other = Segment.fromByteArray(array);
 
         assertEquals(segment.uuid, other.uuid);

@@ -1,7 +1,7 @@
 var amqp = require('amqp');
 var connection = amqp.createConnection({host: "rabbitblack", port: 5673});
-var count = 8092;
 
+var total = 256;
 connection.on('ready', function () {
     connection.exchange("nodejsExchange", options = {
         type: 'headers',
@@ -15,10 +15,23 @@ connection.on('ready', function () {
         }
 
         setInterval(function () {
-            var test_message =  new Array(count);
-            console.log('send ' + count + " ..")
+            var test_message = total + ", " + toBuffer(new ArrayBuffer(1024*192));
+            console.log(' ..' + total + " to go ..")
             sendMessage(exchange, test_message)
-            count += 1;
-        }, 1000)
+            total = total - 1;
+            if(total==0) {
+                process.exit()
+            }
+        }, 10)
     })
 })
+
+function toBuffer(ab) {
+    var buffer = new Buffer(ab.byteLength);
+    var view = new Uint8Array(ab);
+    for (var i = 0; i < buffer.length; ++i) {
+        buffer[i] = view[i];
+    }
+    return buffer;
+}
+

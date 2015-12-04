@@ -12,8 +12,9 @@
                                         port="4321"
                                         multicast="false"
                                         check-length="false"
-                                        pool-size="10"
+                                        pool-size="64"
                                         receive-buffer-size="65535"
+                                        so-receive-buffer-size="65535"
                                         lookup-host="false"
     />
 

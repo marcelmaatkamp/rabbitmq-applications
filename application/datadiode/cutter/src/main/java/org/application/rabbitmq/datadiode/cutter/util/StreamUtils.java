@@ -1,5 +1,6 @@
 package org.application.rabbitmq.datadiode.cutter.util;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.codec.binary.*;
@@ -134,7 +135,9 @@ public class StreamUtils {
             ExchangeMessage message = (ExchangeMessage) SerializationUtils.deserialize(data);
             return message;
         } else {
-            log.error("ERROR: Message digest("+ Arrays.toString(segmentHeader.digest)+") vs actual("+Arrays.toString(messageDigest.digest())+") did not match: " + SerializationUtils.deserialize(data));
+            if(data != null) {
+                log.error("ERROR: Message digest("+ Arrays.toString(segmentHeader.digest)+") vs actual("+Arrays.toString(messageDigest.digest())+") did not match: " + new String(data, "UTF-8"));
+            }
         }
 
         return null;

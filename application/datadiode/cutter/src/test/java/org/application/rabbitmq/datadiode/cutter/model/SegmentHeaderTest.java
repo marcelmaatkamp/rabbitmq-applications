@@ -21,12 +21,16 @@ import static org.junit.Assert.*;
 public class SegmentHeaderTest {
     private static final Logger log = LoggerFactory.getLogger(SegmentHeaderTest.class);
 
-    final int SEGMENT_HEADER_WITH_DIGEST_SIZE = 115; // 111 bytes
-    final int SEGMENT_HEADER_WITHOUT_DIGEST_SIZE = 77; // 77 bytes
+    int SEGMENT_09K_SIZE = 9000;
+    int SEGMENT_64K_SIZE = 65535;
+    int SEGMENT_MTU_SIZE = 1500;
+
+    final int SEGMENT_HEADER_WITH_DIGEST_SIZE    = 73;
+    final int SEGMENT_HEADER_WITHOUT_DIGEST_SIZE = 37;
 
     @Test
     public void testToAndFromByteArrayWithDigest() throws Exception {
-        byte[] randomBytes = RandomUtils.nextBytes(65535);
+        byte[] randomBytes = RandomUtils.nextBytes(SEGMENT_64K_SIZE);
         Date now = new Date();
 
         boolean calculateDigest = true;
@@ -43,7 +47,6 @@ public class SegmentHeaderTest {
 
         byte[] segmentHeaderData = segmentHeader.toByteArray(calculateDigest);
         assertEquals(segmentHeaderData.length, SEGMENT_HEADER_WITH_DIGEST_SIZE);
-
         SegmentHeader other = SegmentHeader.fromByteArray(segmentHeaderData, calculateDigest);
 
         assertEquals(segmentHeader.uuid, other.uuid);
@@ -57,7 +60,7 @@ public class SegmentHeaderTest {
     @Test
     public void testToAndFromByteArrayWithoutDigest() throws Exception {
 
-        byte[] randomBytes = RandomUtils.nextBytes(65535);
+        byte[] randomBytes = RandomUtils.nextBytes(SEGMENT_MTU_SIZE);
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(randomBytes);
 
@@ -79,47 +82,6 @@ public class SegmentHeaderTest {
         assertEquals(segmentHeader.count, other.count);
         assertEquals(segmentHeader.insert, other.insert);
         assertNull(other.digest);
-    }
-
-    @Test
-    public void testSegmentByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        byte[] segment =  RandomUtils.nextBytes(1500);
-        int index = 10;
-        UUID uuid = UUID.randomUUID();
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-
-        oos.writeByte(SegmentType.SEGMENT.getType());
-        oos.writeLong(uuid.getMostSignificantBits());
-        oos.writeLong(uuid.getLeastSignificantBits());
-        oos.writeInt(index);
-        oos.writeInt(segment.length);
-        oos.write(segment);
-        oos.flush();
-
-        oos.close();
-        bos.close();
-
-        byte[] result = bos.toByteArray();
-        log.info("length("+result.length+"), data: " + Hex.encodeHexString( result ) );
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(result);
-        ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(bis));
-
-        Assert.assertEquals(SegmentType.SEGMENT.getType(),ois.readByte());
-        Assert.assertTrue(uuid.equals(new UUID(ois.readLong(), ois.readLong())));
-        Assert.assertEquals(index, ois.readInt());
-        byte[] other_segment = new byte[ois.readInt()];
-        Assert.assertEquals(segment.length, other_segment.length);
-        ois.readFully(other_segment);
-        Assert.assertArrayEquals(segment, other_segment);
-
-        log.info("header.size("+(result.length-segment.length)+")"); //  1500, 39 bytes header
-        log.info("total.size("+result.length+")");
-
-        bis.close();
-        ois.close();
     }
 
 }

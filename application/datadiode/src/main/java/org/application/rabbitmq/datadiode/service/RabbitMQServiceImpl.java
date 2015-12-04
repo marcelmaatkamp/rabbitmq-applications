@@ -103,10 +103,13 @@ public class RabbitMQServiceImpl implements RabbitMQService {
                 declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
-            }
+            if(log.isTraceEnabled()) {
+                log.trace("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
 
+            } else if(log.isDebugEnabled()) {
+                log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body.length(" + exchangeMessage.getMessage().getBody().length + ")");
+
+            }
             // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
             // into rabbitmq
             rabbitTemplate.send(

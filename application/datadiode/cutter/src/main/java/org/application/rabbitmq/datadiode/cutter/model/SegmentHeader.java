@@ -1,5 +1,7 @@
 package org.application.rabbitmq.datadiode.cutter.model;
 
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -8,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -72,6 +75,9 @@ public class SegmentHeader implements Serializable {
         return uuid.equals(that.uuid);
     }
 
+    static final int LONG_SIZE=8;
+    static final int INT_SIZE=4;
+
     /**
      * Gegerate a bytestream containing a SegmentHeader.
      *
@@ -81,24 +87,19 @@ public class SegmentHeader implements Serializable {
     public byte[] toByteArray(boolean doDigest) throws IOException {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        bos.write(SEGMENT_HEADER.getType());
+        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
+        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(size));
 
-        oos.writeByte(SEGMENT_HEADER.getType());
-        oos.writeLong(uuid.getMostSignificantBits());
-        oos.writeLong(uuid.getLeastSignificantBits());
-        oos.writeInt(size);
-        oos.writeInt(blockSize);
-        oos.writeInt(count);
-        oos.writeObject(insert);
-
+        bos.write(Ints.toByteArray(blockSize));
+        bos.write(Ints.toByteArray(count));
+        bos.write(Longs.toByteArray(insert.getTime()));
         if(doDigest) {
-            oos.writeInt(digest.length);
-            oos.write(digest);
+            bos.write(Ints.toByteArray(digest.length));
+            bos.write(digest);
         }
-
-        oos.close();
         bos.close();
-
         return bos.toByteArray();
     }
 
@@ -106,35 +107,46 @@ public class SegmentHeader implements Serializable {
         SegmentHeader segmentHeader = null;
 
         ByteArrayInputStream bis = new ByteArrayInputStream(segmentHeaderData);
-        BufferedInputStream bus = new BufferedInputStream(bis);
-        ObjectInputStream ois = new ObjectInputStream(bus);
 
-        byte type = ois.readByte();
+
+        byte type = (byte)bis.read();
         if(type == SEGMENT_HEADER.getType()) {
-            segmentHeader = fromByteArray(ois,segmentHeaderData,doDigest);
+            segmentHeader = fromByteArray(bis,segmentHeaderData,doDigest);
         } else {
             log.warn("this is not a segment header, type("+type+") unknown!");
         }
 
-        ois.close();
-        bus.close();
         bis.close();
 
         return segmentHeader;
     }
 
-    public static SegmentHeader fromByteArray(ObjectInputStream ois, byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
+    public static SegmentHeader fromByteArray(ByteArrayInputStream bis, byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
         SegmentHeader segmentHeader = new SegmentHeader();
-        segmentHeader.
-                uuid(new UUID(ois.readLong(), ois.readLong())).
-                size(ois.readInt()).
-                blockSize(ois.readInt()).
-                count(ois.readInt()).
-                insert((Date) ois.readObject());
+        byte[] longByteArray = new byte[LONG_SIZE];
+        byte[] intByteArray = new byte[INT_SIZE];
+
+        bis.read(longByteArray);
+        long most = Longs.fromByteArray(longByteArray);
+
+        bis.read(longByteArray);
+        segmentHeader.uuid(new UUID(most, Longs.fromByteArray(longByteArray)));
+
+        bis.read(intByteArray);
+        segmentHeader.size(Ints.fromByteArray(intByteArray));
+        bis.read(intByteArray);
+        segmentHeader.blockSize(Ints.fromByteArray(intByteArray));
+        bis.read(intByteArray);
+        segmentHeader.count(Ints.fromByteArray(intByteArray));
+        bis.read(longByteArray);
+        segmentHeader.insert(new Date(Longs.fromByteArray(longByteArray)));
+
         if (doDigest) {
-            segmentHeader.digest(new byte[ois.readInt()]);
-            ois.readFully(segmentHeader.digest);
+            bis.read(intByteArray);
+            segmentHeader.digest(new byte[Ints.fromByteArray(intByteArray)]);
+            bis.read(segmentHeader.digest);
         }
+
         return segmentHeader;
     }
 

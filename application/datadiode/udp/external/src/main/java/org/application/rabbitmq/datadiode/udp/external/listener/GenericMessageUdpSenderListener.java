@@ -61,7 +61,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         byte[] data = udpPacket;
 
         if(log.isDebugEnabled()) {
-            log.debug("[" + data.length + "]: " + new String(data));
+            log.debug("[" + data.length + "]: " + new String(data, "UTF-8"));
         }
 
         if (compress) {
@@ -71,7 +71,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "), message(" + SerializationUtils.serialize(message).length + "),  exchange(" + udpPacket.length + ")");
+                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + ")");
             }
         }
 
@@ -80,6 +80,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         }
 
         GenericMessage genericMessage = new GenericMessage<byte[]>(data);
+
 
         try {
             synchronized (lock) {
