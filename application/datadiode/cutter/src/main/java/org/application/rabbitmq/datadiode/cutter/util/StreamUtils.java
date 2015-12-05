@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.codec.binary.*;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -75,8 +77,9 @@ public class StreamUtils {
         messageProperties.getHeaders().put("size", sh.size);
 
         List<Message> headers = new ArrayList();
-        // addRedundantly(headers, new Message(SerializationUtils.serialize(sh), messageProperties), redundancyFactor);
-
+        if(log.isDebugEnabled()) {
+            log.debug("[" + sh.uuid.toString() + "]:  sh(" + sh.toByteArray(calculateDigest).length + ")");
+        }
         addRedundantly(headers, new Message(sh.toByteArray(calculateDigest), messageProperties), redundancyFactor);
 
         // blocksize
@@ -90,8 +93,9 @@ public class StreamUtils {
             messageProperties.getHeaders().put("index", segment.index);
             messageProperties.getHeaders().put("count", sh.count);
             messageProperties.getHeaders().put("size", segment.segment.length);
-
-            // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            if(log.isDebugEnabled()) {
+                log.debug("[" + sh.uuid.toString() + "]: i[" + i + "] s(" + segment.toByteArray().length + ")");
+            }
             addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
         }
 
@@ -105,11 +109,13 @@ public class StreamUtils {
             messageProperties.getHeaders().put("uuid", segment.uuid);
             messageProperties.getHeaders().put("index", segment.index);
             messageProperties.getHeaders().put("count", sh.count);
-            messageProperties.getHeaders().put("size", segment.segment.length);
+            // messageProperties.getHeaders().put("size", segment.segment.length);
+            messageProperties.getHeaders().put("size", modulo);
 
-            // addRedundantly(results, new Message(SerializationUtils.serialize(segment), messageProperties), redundancyFactor);
+            if(log.isDebugEnabled()) {
+                log.info("[" + sh.uuid.toString() + "]: i[" + aantal + "]: s(" + segment.toByteArray().length + ") - l(" + segment.segment.length + "), mod(" + modulo + ")");
+            }
             addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
-
         }
 
         Collections.shuffle(results);
@@ -122,6 +128,9 @@ public class StreamUtils {
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 
         for (Segment segment : segments) {
+            if(log.isDebugEnabled()) {
+                log.debug("u[" + segment.uuid.toString() + "]: i[" + segment.index + "]: s[" + segment.segment.length + "]");
+            }
             bos2.write(segment.segment);
         }
         bos2.close();
@@ -136,7 +145,7 @@ public class StreamUtils {
             return message;
         } else {
             if(data != null) {
-                log.error("ERROR: Message digest("+ Arrays.toString(segmentHeader.digest)+") vs actual("+Arrays.toString(messageDigest.digest())+") did not match: " + new String(data, "UTF-8"));
+                log.error("ERROR: uuid("+segmentHeader.uuid.toString()+"): message.digest("+ Arrays.toString(segmentHeader.digest)+") vs actual("+Arrays.toString(messageDigest.digest())+") did not match: " );
             }
         }
 
@@ -148,6 +157,5 @@ public class StreamUtils {
         xStream = _xStream;
         gson = _gson;
     }
-
 
 }

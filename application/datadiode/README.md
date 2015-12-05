@@ -188,6 +188,12 @@ Mac:
 sudo sysctl -w net.inet.raw.maxdgram=16384
 ```
 
+Validate MTU 1500:
+```
+$ ping -s 1476 docker
+PING rabbitmq (192.168.178.18): 1476 data bytes
+```
+
 To fake a data diode run a udp2udp tunnel with socat on another machine:
 ```
  socat UDP4-RECVFROM:1234,fork udp-datagram:<client ip>:1234,broadcast

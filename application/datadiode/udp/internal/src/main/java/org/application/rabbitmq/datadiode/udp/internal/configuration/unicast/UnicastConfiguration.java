@@ -75,7 +75,7 @@ public class UnicastConfiguration {
 
     @Bean
     Exchange udpEchange() {
-        Exchange exchange = new DirectExchange(environment.getProperty("application.datadiode.udp.internal.exchange", String.class));
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.udp.internal.exchange", String.class));
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
@@ -150,7 +151,7 @@ public class CutConfiguration {
                             for (org.springframework.amqp.core.Queue queue : rabbitManagementTemplate().getQueues()) {
                                 // queue exists, bind
                                 if (queue.getName().equals(queueName)) {
-                                    log.info("found " + queueName);
+                                    // log.info("found " + queueName+": binding.dest: "+binding.getDestination());
                                     bindQueue = queue;
                                 }
                             }
@@ -178,6 +179,8 @@ public class CutConfiguration {
                     simpleMessageListenerContainer.setQueueNames(queueName);
                     simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(exchangeMessageConverterListener()));
                     simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.cutter.cutted.concurrentConsumers", Integer.class));
+                    simpleMessageListenerContainer.setMaxConcurrentConsumers(environment.getProperty("application.datadiode.cutter.cutted.concurrentConsumers", Integer.class));
+                    // simpleMessageListenerContainer.setPrefetchCount(32);
                     simpleMessageListenerContainer.start();
                     queueListeners.add(queueName);
                 }

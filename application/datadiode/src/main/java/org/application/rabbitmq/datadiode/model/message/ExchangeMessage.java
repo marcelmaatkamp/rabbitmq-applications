@@ -26,7 +26,6 @@ public class ExchangeMessage implements Serializable {
         return message;
     }
 
-
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }

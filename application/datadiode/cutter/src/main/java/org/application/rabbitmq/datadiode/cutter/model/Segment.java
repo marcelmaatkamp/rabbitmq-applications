@@ -62,7 +62,6 @@ public class Segment implements Serializable, Comparable<Segment> {
         bos.write(Ints.toByteArray(segment.length));
         bos.write(segment);
         bos.close();
-
         return bos.toByteArray();
     }
 

@@ -95,30 +95,34 @@ public class RabbitMQServiceImpl implements RabbitMQService {
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
         try {
-            Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
+            if(exchangeMessage.getExchangeData() != null) {
+                Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
 
-            if (!declaredExchanges().keySet().contains(exchange)) {
-                rabbitAdmin.declareExchange(exchange);
-                declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
+                if (!declaredExchanges().keySet().contains(exchange)) {
+                    rabbitAdmin.declareExchange(exchange);
+                    declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
+                }
+
+                if (log.isTraceEnabled()) {
+                    log.trace("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
+
+                } else if (log.isDebugEnabled()) {
+                    log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body.length(" + exchangeMessage.getMessage().getBody().length + ")");
+
+                }
+                // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
+                // into rabbitmq
+                rabbitTemplate.send(
+                        exchange.getName(),
+                        exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey(),
+                        exchangeMessage.getMessage()
+                );
+            } else {
+                log.error("exchangeMessage.getExchangeData() null: " + xStream.toXML(exchangeMessage));
             }
-
-            if(log.isTraceEnabled()) {
-                log.trace("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body(" + xStream.toXML(exchangeMessage.getMessage()) + ")");
-
-            } else if(log.isDebugEnabled()) {
-                log.debug("exchange(" + exchange.getName() + ").routing(" + exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey() + "): body.length(" + exchangeMessage.getMessage().getBody().length + ")");
-
-            }
-            // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
-            // into rabbitmq
-            rabbitTemplate.send(
-                    exchange.getName(),
-                    exchangeMessage.getMessage().getMessageProperties().getReceivedRoutingKey(),
-                    exchangeMessage.getMessage()
-            );
         } catch(NullPointerException e) {
-            log.error("Exception: " + e.getMessage());
+            log.error("Exception: ",e);
         }
     }
 

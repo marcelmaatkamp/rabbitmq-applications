@@ -75,7 +75,7 @@ public class RabbitMQConfiguration {
 
     @Bean
     Exchange udpEchange() {
-        Exchange exchange = new DirectExchange(environment.getProperty("application.datadiode.udp.external.exchange", String.class));
+        Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.udp.external.exchange", String.class));
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
@@ -95,6 +95,9 @@ public class RabbitMQConfiguration {
         simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
         simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
         simpleMessageListenerContainer.setMaxConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
+        simpleMessageListenerContainer.setPrefetchCount(128);
+        simpleMessageListenerContainer.setExclusive(true);
+        simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
         simpleMessageListenerContainer.start();
         return  simpleMessageListenerContainer;
     }
