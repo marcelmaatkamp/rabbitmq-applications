@@ -142,7 +142,7 @@ public class MergeConfiguration implements MessageListener {
         factory.setMaxConcurrentConsumers(concurrentConsumers);
         factory.setPrefetchCount(1024);
         factory.setTxSize(1024);
-
+factory.setAcknowledgeMode(AcknowledgeMode.NONE);
         return factory;
     }
 
