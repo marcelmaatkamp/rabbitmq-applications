@@ -9,6 +9,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,6 +32,8 @@ import java.util.Arrays;
 public class SocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(SocketConfiguration.class);
 
+    @Value( value = "${application.datadiode.udp.internal.port}")
+    int port;
 
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -49,7 +52,7 @@ public class SocketConfiguration {
 
     @Bean
     SocketAddress socketAddress() throws IOException {
-        SocketAddress address = new InetSocketAddress(4321);
+        SocketAddress address = new InetSocketAddress(port);
         socket().bind(address);
         return address;
     }
