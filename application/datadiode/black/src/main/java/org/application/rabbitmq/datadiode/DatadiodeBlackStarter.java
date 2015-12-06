@@ -20,17 +20,19 @@ public class DatadiodeBlackStarter {
     static int SEGMENT_1M_SIZE = 1024 * 1024;
 
     static int count = 1024;
-
+    static boolean sendTestMessages = true;
 
     public static void main(String[] args) throws IOException {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(DatadiodeBlackStarter.class).web(false).run(args);
         configurableApplicationContext.start();
 
-        RabbitTemplate rabbitTemplate = (RabbitTemplate)configurableApplicationContext.getBean("rabbitTemplate");
-        byte[] data = RandomUtils.nextBytes(SEGMENT_1M_SIZE);
+        if(sendTestMessages) {
+            RabbitTemplate rabbitTemplate = (RabbitTemplate) configurableApplicationContext.getBean("rabbitTemplate");
+            byte[] data = RandomUtils.nextBytes(SEGMENT_1M_SIZE);
 
-        for( int i = 0; i< count; i++) {
-            rabbitTemplate.send("nodejsExchange", null, new Message(data, new MessageProperties()));
+            for (int i = 0; i < count; i++) {
+                rabbitTemplate.send("nodejsExchange", null, new Message(data, new MessageProperties()));
+            }
         }
     }
 }
