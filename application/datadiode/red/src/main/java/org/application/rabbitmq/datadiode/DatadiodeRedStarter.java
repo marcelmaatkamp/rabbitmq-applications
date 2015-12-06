@@ -23,7 +23,7 @@ public class DatadiodeRedStarter {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(DatadiodeRedStarter.class).run(args);
         configurableApplicationContext.start();
 
-        SocketConfiguration socketConfiguration = configurableApplicationContext.getBean(SocketConfiguration.class);
-        socketConfiguration.receive();
+        // SocketConfiguration socketConfiguration = configurableApplicationContext.getBean(SocketConfiguration.class);
+        // socketConfiguration.receive();
     }
 }
