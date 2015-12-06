@@ -26,7 +26,7 @@ import java.util.Arrays;
 /**
  * Created by marcel on 06-12-15.
  */
-// @Configuration
+@Configuration
 @Import(XStreamConfiguration.class)
 public class SocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(SocketConfiguration.class);
