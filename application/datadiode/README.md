@@ -217,6 +217,43 @@ echo 1048576 > /proc/sys/net/core/wmem_default
 echo 1048576 > /proc/sys/net/core/rmem_max
 echo 1048576 > /proc/sys/net/core/rmem_default
 
+```
+^Cmarcel@marcel-desktop:~/projects/rabbitmq-applications/application/datadiode/red$ sudo iperf -s -u -l 8972
+------------------------------------------------------------
+Server listening on UDP port 5001
+Receiving 8972 byte datagrams
+UDP buffer size: 1.00 MByte (default)
+------------------------------------------------------------
+[  3] local 192.168.178.18 port 5001 connected with 192.168.178.17 port 63202
+[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+[  3]  0.0-10.0 sec  1.15 GBytes   991 Mbits/sec   0.017 ms 2615/140839 (1.9%)
+[  3]  0.0-10.0 sec  1 datagrams received out-of-order
+
+MacBook-Pro-van-marcel:~ marcel$ iperf -c docker -u -b 1000M  -l 8972 -i1 -t10
+------------------------------------------------------------
+Client connecting to docker, UDP port 5001
+Sending 8972 byte datagrams
+UDP buffer size: 9.00 KByte (default)
+------------------------------------------------------------
+[  5] local 192.168.178.17 port 63202 connected with 192.168.178.18 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  5]  0.0- 1.0 sec   121 MBytes  1.01 Gbits/sec
+[  5]  1.0- 2.0 sec   117 MBytes   980 Mbits/sec
+[  5]  2.0- 3.0 sec   121 MBytes  1.01 Gbits/sec
+[  5]  3.0- 4.0 sec   117 MBytes   980 Mbits/sec
+[  5]  4.0- 5.0 sec   121 MBytes  1.01 Gbits/sec
+[  5]  5.0- 6.0 sec   117 MBytes   980 Mbits/sec
+[  5]  6.0- 7.0 sec   117 MBytes   979 Mbits/sec
+[  5]  7.0- 8.0 sec   121 MBytes  1.01 Gbits/sec
+[  5]  8.0- 9.0 sec   117 MBytes   979 Mbits/sec
+[  5]  9.0-10.0 sec   117 MBytes   980 Mbits/sec
+[  5]  0.0-10.0 sec  1.15 GBytes   992 Mbits/sec
+[  5] Sent 140840 datagrams
+[  5] Server Report:
+[  5]  0.0-10.0 sec  1.15 GBytes   991 Mbits/sec   0.016 ms 2615/140839 (1.9%)
+[  5]  0.0-10.0 sec  1 datagrams received out-of-order
+```
+
 # Restrictions
 * there is a lot of overhead in a message, this can be optimized
 

@@ -95,7 +95,8 @@ public class RabbitMQConfiguration {
         simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
         simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
         simpleMessageListenerContainer.setMaxConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
-        simpleMessageListenerContainer.setPrefetchCount(128);
+        simpleMessageListenerContainer.setPrefetchCount(256);
+        simpleMessageListenerContainer.setTxSize(256);
         simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
         simpleMessageListenerContainer.start();
         return  simpleMessageListenerContainer;

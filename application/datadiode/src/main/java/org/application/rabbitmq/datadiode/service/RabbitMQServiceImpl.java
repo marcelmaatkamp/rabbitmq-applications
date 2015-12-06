@@ -53,7 +53,7 @@ public class RabbitMQServiceImpl implements RabbitMQService {
     @Bean
     RabbitManagementTemplate rabbitManagementTemplate() {
         RabbitManagementTemplate rabbitManagementTemplate = new RabbitManagementTemplate(
-                "http://" + environment.getProperty("spring.rabbitmq.host") + ":" + environment.getProperty("spring.rabbitmq.management.port", Integer.class) + "/api/",
+                "http://" + environment.getProperty("spring.rabbitmq.management.host") + ":" + environment.getProperty("spring.rabbitmq.management.port", Integer.class) + "/api/",
                 environment.getProperty("spring.rabbitmq.username"),
                 environment.getProperty("spring.rabbitmq.password")
         );
