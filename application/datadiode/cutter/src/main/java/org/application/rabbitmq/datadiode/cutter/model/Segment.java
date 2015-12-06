@@ -60,8 +60,8 @@ public class Segment implements Serializable, Comparable<Segment> {
         return this.index - o.index;
     }
 
-    static final int LONG_SIZE=8;
-    static final int INT_SIZE=4;
+    private static final int LONG_SIZE=8;
+    private static final int INT_SIZE=4;
 
     public byte[] toByteArray() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
