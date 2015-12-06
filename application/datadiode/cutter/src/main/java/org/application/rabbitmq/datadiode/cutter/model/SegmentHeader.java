@@ -10,9 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 import static org.application.rabbitmq.datadiode.cutter.model.SegmentType.*;
 
@@ -35,6 +33,19 @@ public class SegmentHeader implements Serializable {
     public Date insert = new Date();
     public Date update = new Date();
     public byte[] digest;
+
+    public boolean isSent() {
+        return sent;
+    }
+
+    public SegmentHeader setSent(boolean sent) {
+        this.sent = sent;
+        return this;
+    }
+
+    public boolean sent = false;
+
+    public Set<Segment> segments = new TreeSet();
 
     public SegmentHeader size(final int size) {
         this.size = size;
@@ -63,6 +74,15 @@ public class SegmentHeader implements Serializable {
 
     public SegmentHeader insert(final Date insert) {
         this.insert = insert;
+        return this;
+    }
+
+    public Set<Segment> segments() {
+        return this.segments;
+    }
+
+    public SegmentHeader addSegment(Segment segment) {
+        this.segments.add(segment);
         return this;
     }
 
@@ -149,6 +169,5 @@ public class SegmentHeader implements Serializable {
 
         return segmentHeader;
     }
-
 }
 

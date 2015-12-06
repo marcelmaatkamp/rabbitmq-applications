@@ -1,7 +1,7 @@
 var amqp = require('amqp');
 var connection = amqp.createConnection({host: "rabbitblack", port: 5673});
 
-var total = 128;
+var total = 2;
 connection.on('ready', function () {
     connection.exchange("nodejsExchange", options = {
         type: 'headers',

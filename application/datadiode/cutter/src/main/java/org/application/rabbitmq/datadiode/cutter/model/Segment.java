@@ -5,11 +5,14 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 /**
@@ -30,6 +33,8 @@ public class Segment implements Serializable, Comparable<Segment> {
 
     public UUID uuid;
 
+    public int count;
+
     public Segment index(final int index) {
         this.index = index;
         return this;
@@ -42,6 +47,11 @@ public class Segment implements Serializable, Comparable<Segment> {
 
     public Segment uuid(final UUID uuid) {
         this.uuid = uuid;
+        return this;
+    }
+
+    public Segment count(final int count) {
+        this.count = count;
         return this;
     }
 
@@ -58,6 +68,7 @@ public class Segment implements Serializable, Comparable<Segment> {
         bos.write(SegmentType.SEGMENT.getType());
         bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
         bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(count));
         bos.write(Ints.toByteArray(index));
         bos.write(Ints.toByteArray(segment.length));
         bos.write(segment);
@@ -93,6 +104,9 @@ public class Segment implements Serializable, Comparable<Segment> {
         segment.uuid(new UUID(most, Longs.fromByteArray(longByteArray)));
 
         bis.read(intByteArray);
+        segment.count(Ints.fromByteArray(intByteArray));
+
+        bis.read(intByteArray);
         segment.index(Ints.fromByteArray(intByteArray));
 
         bis.read(intByteArray);
@@ -100,5 +114,21 @@ public class Segment implements Serializable, Comparable<Segment> {
         bis.read(segment.segment);
         return segment;
     }
+
+    public String getDigest() throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(segment);
+        return Base64.encodeBase64String(messageDigest.digest());
+    }
+
+    public String toString() {
+        try {
+            return ("[" + uuid + "]: count("+count+").index(" + index + ").payload(" + segment.length + "): " + getDigest()+")");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
 

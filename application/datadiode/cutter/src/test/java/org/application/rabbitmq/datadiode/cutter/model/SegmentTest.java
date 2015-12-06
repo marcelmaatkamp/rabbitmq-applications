@@ -8,10 +8,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.*;
 
@@ -25,7 +29,7 @@ public class SegmentTest {
     int SEGMENT_64K_SIZE=65535;
     int SEGMENT_MTU_SIZE=1500;
 
-    static final int SEGMENT_HEADER_SIZE=25;
+    static final int SEGMENT_HEADER_SIZE=29;
 
     @Test
     public void testSegmentByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
@@ -38,11 +42,11 @@ public class SegmentTest {
         bos.write(SegmentType.SEGMENT.getType());
         bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
         bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(0));
         bos.write(Ints.toByteArray(index));
         bos.write(Ints.toByteArray(segment.length));
         bos.write(segment);
         bos.flush();
-
         bos.close();
 
         byte[] result = bos.toByteArray();
@@ -53,6 +57,7 @@ public class SegmentTest {
 
         Assert.assertEquals(SegmentType.SEGMENT.getType(),ois.readByte());
         Assert.assertTrue(uuid.equals(new UUID(ois.readLong(), ois.readLong())));
+        Assert.assertEquals(0, ois.readInt());
         Assert.assertEquals(index, ois.readInt());
         byte[] other_segment = new byte[ois.readInt()];
         Assert.assertEquals(segment.length, other_segment.length);
@@ -78,6 +83,14 @@ public class SegmentTest {
         assertEquals(segment.uuid, other.uuid);
         assertEquals(segment.index, other.index);
         assertArrayEquals(segment.segment, other.segment);
+    }
+
+    @Test
+    public void treeSetTest() {
+
+        Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+
+
     }
 
 }

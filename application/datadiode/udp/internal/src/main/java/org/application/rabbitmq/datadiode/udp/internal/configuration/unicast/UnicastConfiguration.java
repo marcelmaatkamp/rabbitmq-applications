@@ -24,8 +24,8 @@ import javax.annotation.PostConstruct;
 /**
  * Created by marcelmaatkamp on 27/10/15.
  */
-@Configuration
-@Import(XStreamConfiguration.class)
+// @Configuration
+// @Import(XStreamConfiguration.class)
 public class UnicastConfiguration {
     private static final Logger log = LoggerFactory.getLogger(UnicastConfiguration.class);
 

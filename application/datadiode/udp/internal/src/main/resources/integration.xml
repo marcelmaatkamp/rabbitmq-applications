@@ -14,6 +14,7 @@
                                         check-length="false"
                                         pool-size="10"
                                         receive-buffer-size="65535"
+                                        so-receive-buffer-size="65535"
                                         lookup-host="false"
     />
 

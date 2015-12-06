@@ -45,43 +45,26 @@ public class StreamUtilsTest {
             byte[] segment_or_header = message.getBody();
             ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
 
-            byte type = (byte)bis.read();
 
-            if (type == SegmentType.SEGMENT_HEADER.getType()) {
-                SegmentHeader segmentHeader = SegmentHeader.fromByteArray(bis, segment_or_header, calculateDigest);
-                boolean found = false;
-                for (SegmentHeader s : uMessages.keySet()) {
-                    if (s.uuid.equals(segmentHeader.uuid)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    uMessages.put(segmentHeader, new TreeSet<Segment>());
-                    if (log.isDebugEnabled()) {
-                        log.debug("starting message(" + segmentHeader.uuid + ") of size(" + segmentHeader.blockSize + ") and count(" + segmentHeader.count + ")");
-                    }
-                }
-            } else {
-                Segment segment = Segment.fromByteArray(bis, segment_or_header);
-                for (SegmentHeader segmentHeader : uMessages.keySet()) {
-                    if (segmentHeader.uuid.equals(segment.uuid)) {
+            Segment segment = Segment.fromByteArray(bis, segment_or_header);
+            for (SegmentHeader segmentHeader : uMessages.keySet()) {
+                if (segmentHeader.uuid.equals(segment.uuid)) {
 
-                            if (log.isDebugEnabled()) {
-                                log.debug("sh[" + segmentHeader.uuid.toString() + "]: ss[" + segment.uuid.toString() + "] index[" + segment.index + "]: count: " + uMessages.get(segmentHeader).size());
-                            }
-                            segmentHeader.update = new Date();
-                            Set<Segment> messages = uMessages.get(segmentHeader);
-                            if (segment != null && messages != null) {
-                                messages.add(segment);
-                                if (messages.size() == segmentHeader.count + 1) {
-                                    ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader, messages, calculateDigest, digestName);
-                                    log.info(ReflectionToStringBuilder.toString(messageFromStream));
-                                }
+                        if (log.isDebugEnabled()) {
+                            log.debug("sh[" + segmentHeader.uuid.toString() + "]: ss[" + segment.uuid.toString() + "] index[" + segment.index + "]: count: " + uMessages.get(segmentHeader).size());
+                        }
+                        segmentHeader.update = new Date();
+                        Set<Segment> messages = uMessages.get(segmentHeader);
+                        if (segment != null && messages != null) {
+                            messages.add(segment);
+                            if (messages.size() == segmentHeader.count) {
+                                ExchangeMessage messageFromStream = StreamUtils.reconstruct(messages, calculateDigest, digestName);
+                                log.info(ReflectionToStringBuilder.toString(messageFromStream));
                             }
                         }
                     }
                 }
+
             }
         }
 
