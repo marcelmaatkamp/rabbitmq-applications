@@ -9,7 +9,7 @@
 
     <int-ip:udp-inbound-channel-adapter id="ChannelReceiver"
                                         channel="serverBytes2StringChannel"
-                                        port="4321"
+                                        port="4322"
                                         multicast="false"
                                         check-length="false"
                                         pool-size="64"

@@ -80,15 +80,9 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         }
 
         GenericMessage genericMessage = new GenericMessage<byte[]>(data);
-        try {
-            synchronized (lock) {
                 unicastSendingMessageHandler.handleMessageInternal(genericMessage);
                 Thread.sleep(throttleInMs);
-            }
 
-        } catch (InterruptedException e) {
-            log.error("Exception: ", e);
-        }
     }
 
 
