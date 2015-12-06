@@ -26,7 +26,7 @@ import javax.annotation.PostConstruct;
 /**
  * Created by marcelmaatkamp on 27/10/15.
  */
-// @Configuration
+@Configuration
 @Import(XStreamConfiguration.class)
 @EnableIntegration
 @ImportResource("integration.xml")
