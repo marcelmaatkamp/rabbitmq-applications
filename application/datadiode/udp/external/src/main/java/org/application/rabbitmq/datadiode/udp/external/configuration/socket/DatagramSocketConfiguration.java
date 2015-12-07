@@ -14,7 +14,7 @@ import java.net.*;
 /**
  * Created by marcel on 06-12-15.
  */
-// @Configuration
+@Configuration
 @EnableConfigurationProperties(DatagramSocketConfiguration.DatagramSocketConfigurationProperties.class)
 public class DatagramSocketConfiguration {
 
