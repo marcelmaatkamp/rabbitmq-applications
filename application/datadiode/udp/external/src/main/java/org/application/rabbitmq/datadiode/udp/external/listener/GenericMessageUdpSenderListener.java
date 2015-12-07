@@ -24,8 +24,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
 
-    @Autowired
-    UnicastSendingMessageHandler unicastSendingMessageHandler;
+    // @Autowired
+    // UnicastSendingMessageHandler unicastSendingMessageHandler;
 
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -38,9 +38,6 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     boolean compress;
 
-    @Value(value = "${application.datadiode.udp.external.maxBytes}")
-    int maxBytes;
-
     public boolean isCompress() {
         return compress;
     }
@@ -49,8 +46,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         this.compress = compress;
     }
 
-    // @Autowired
-    // DatagramSocketService datagramSocketService;
+    @Autowired
+    DatagramSocketService datagramSocketService;
 
     /**
      * @param message
@@ -61,34 +58,34 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     public void onMessage(Message message, Channel channel) throws Exception {
 
         // convert to generic message
-        byte[] udpPacket = message.getBody();
-        byte[] data = udpPacket;
+        byte[] data = message.getBody();
 
         if(log.isDebugEnabled()) {
             log.debug("[" + data.length + "]: " + new String(data, "UTF-8"));
         }
 
         if (compress) {
-            data = CompressionUtils.compress(udpPacket);
+            data = CompressionUtils.compress(data);
             if (log.isDebugEnabled()) {
                 log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "),  compressed(" + data.length + "), ratio("+Math.round((100.0/data.length)*message.getBody().length)+"%)");
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + ")");
-            }
         }
+        // else {
+        //    if (log.isDebugEnabled()) {
+        //        log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + ")");
+        //    }
+        //}
 
-        if (data.length > maxBytes) {
-            log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
-        }
+        // if (data.length > maxBytes) {
+        //     log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
+        // }
 
 
-        GenericMessage genericMessage = new GenericMessage<byte[]>(data);
-                unicastSendingMessageHandler.handleMessageInternal(genericMessage);
-                Thread.sleep(throttleInMs);
+        // GenericMessage genericMessage = new GenericMessage<byte[]>(data);
+        // unicastSendingMessageHandler.handleMessageInternal(genericMessage);
+        // Thread.sleep(throttleInMs);
 
-        // datagramSocketService.send(data);
+        datagramSocketService.send(data);
 
     }
 

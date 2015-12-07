@@ -15,7 +15,7 @@ import reactor.spring.context.config.EnableReactor;
 /**
  * Created by marcel on 25-09-15.
  */
-@Configuration
+// @Configuration
 @EnableConfigurationProperties(UdpProducerConfiguration.UdpProducerConfigurationProperties.class)
 @EnableReactor
 @EnableScheduling
