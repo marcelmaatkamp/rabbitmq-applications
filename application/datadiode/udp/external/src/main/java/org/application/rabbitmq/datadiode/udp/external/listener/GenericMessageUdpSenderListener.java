@@ -2,6 +2,7 @@ package org.application.rabbitmq.datadiode.udp.external.listener;
 
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
+import org.application.rabbitmq.datadiode.udp.external.service.DatagramSocketService;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,9 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         this.compress = compress;
     }
 
+    // @Autowired
+    // DatagramSocketService datagramSocketService;
+
     /**
      * @param message
      * @param channel
@@ -79,9 +83,12 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
             log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
         }
 
+
         GenericMessage genericMessage = new GenericMessage<byte[]>(data);
                 unicastSendingMessageHandler.handleMessageInternal(genericMessage);
                 Thread.sleep(throttleInMs);
+
+        // datagramSocketService.send(data);
 
     }
 

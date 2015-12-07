@@ -41,6 +41,7 @@ public class UdpProducerConfiguration {
         unicastSendingMessageHandler.setSoSendBufferSize(udpProducerConfigurationProperties.getSoSendBufferSize()); // keeps udp flow constant
         unicastSendingMessageHandler.setStatsEnabled(false);
         unicastSendingMessageHandler.setLoggingEnabled(false);
+        unicastSendingMessageHandler.setSoSendBufferSize(16384);
 
         if(log.isDebugEnabled()) {
             log.debug("sending to " +udpProducerConfigurationProperties.getHost()+":" +udpProducerConfigurationProperties.getPort());

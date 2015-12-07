@@ -71,12 +71,8 @@ class SenderThread extends Thread {
                 DatagramPacket output = new DatagramPacket(array, array.length, server, port);
                 index++;
 
-                // log.info("Sending : " + array.length + " bytes " + Base64.encodeBase64String(array));
-                // log.info("Sending : " + array.length + " bytes " + index);
-
                 socket.send(output);
                 Thread.yield();
-                // TimeUnit.NANOSECONDS.sleep(1);
                 Thread.sleep(0,5);
             }
         }
