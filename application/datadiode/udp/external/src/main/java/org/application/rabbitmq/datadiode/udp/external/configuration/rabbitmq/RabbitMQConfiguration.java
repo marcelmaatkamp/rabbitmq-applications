@@ -45,7 +45,6 @@ public class RabbitMQConfiguration {
         JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
         jsonMessageConverter.setJsonObjectMapper(objectMapper());
         jsonMessageConverter.setClassMapper(defaultClassMapper());
-        DefaultClassMapper defaultClassMapper = defaultClassMapper();
         return jsonMessageConverter;
     }
 
