@@ -245,7 +245,7 @@ public class MergeConfiguration implements MessageListener {
                     }
                 }
             } else {
-                log.error("Unknown type("+type+"), not a segmentHeader or segment");
+                // log.error("Unknown type("+type+"), not a segmentHeader or segment");
             }
 
             bis.close();
