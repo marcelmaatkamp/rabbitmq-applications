@@ -1,5 +1,6 @@
 package org.application.rabbitmq.datadiode.udp.external.service;
 
+import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -15,12 +16,19 @@ public class DatagramSocketServiceImpl implements DatagramSocketService {
 
     private final DatagramSocket datagramSocket;
 
+    private RateLimiter rateLimiter;
+
+    public void setRate(double rate) {
+        rateLimiter = RateLimiter.create(rate);
+    }
+
     public DatagramSocketServiceImpl(DatagramSocket datagramSocket) {
         this.datagramSocket = datagramSocket;
     }
 
     public void send(byte[] array) throws IOException {
         DatagramPacket output = new DatagramPacket(array, array.length);
+        rateLimiter.acquire(1);
         datagramSocket.send(output);
     }
 

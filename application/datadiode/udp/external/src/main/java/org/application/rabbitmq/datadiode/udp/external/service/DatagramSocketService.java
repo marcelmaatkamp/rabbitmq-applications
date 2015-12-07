@@ -8,6 +8,7 @@ import java.net.DatagramSocket;
  */
 public interface DatagramSocketService {
 
+    public void setRate(double rate);
     public void send(byte[] array) throws IOException;
 
 }

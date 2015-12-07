@@ -38,6 +38,7 @@ public class DatagramSocketConfiguration {
     @Bean
     DatagramSocketService datagramSocketService() throws SocketException, UnknownHostException {
         DatagramSocketService datagramSocketService = new DatagramSocketServiceImpl(datagramSocket());
+        datagramSocketService.setRate(datagramSocketConfigurationProperties.getRate());
         return datagramSocketService;
     }
 
@@ -46,6 +47,16 @@ public class DatagramSocketConfiguration {
     public static class DatagramSocketConfigurationProperties {
         String host;
         int port;
+
+        public double getRate() {
+            return rate;
+        }
+
+        public void setRate(double rate) {
+            this.rate = rate;
+        }
+
+        double rate;
 
         public int getSoSendBufferSize() {
             return soSendBufferSize;
