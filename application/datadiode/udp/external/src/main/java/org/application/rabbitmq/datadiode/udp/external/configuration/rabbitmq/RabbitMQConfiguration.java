@@ -92,11 +92,11 @@ public class RabbitMQConfiguration {
         simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
         simpleMessageListenerContainer.setQueueNames(udpQueue().getName());
         simpleMessageListenerContainer.setMessageListener(new MessageListenerAdapter(genericMessageUdpSenderListener()));
-        // simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
-        // simpleMessageListenerContainer.setMaxConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
-        // simpleMessageListenerContainer.setPrefetchCount(256);
-        // simpleMessageListenerContainer.setTxSize(256);
-        // simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
+        simpleMessageListenerContainer.setConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
+        simpleMessageListenerContainer.setMaxConcurrentConsumers(environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class));
+        simpleMessageListenerContainer.setPrefetchCount(environment.getProperty("application.datadiode.udp.external.prefetchCount", Integer.class));
+        simpleMessageListenerContainer.setTxSize(environment.getProperty("application.datadiode.udp.external.prefetchCount", Integer.class));
+        simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
         simpleMessageListenerContainer.start();
         return  simpleMessageListenerContainer;
     }
