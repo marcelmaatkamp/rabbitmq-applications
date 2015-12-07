@@ -13,8 +13,8 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableIntegration
-@ImportResource("integration.xml")
+// @EnableIntegration
+// @ImportResource("integration.xml")
 public class DatadiodeRedStarter {
     private static final Logger log = LoggerFactory.getLogger(DatadiodeRedStarter.class);
 
