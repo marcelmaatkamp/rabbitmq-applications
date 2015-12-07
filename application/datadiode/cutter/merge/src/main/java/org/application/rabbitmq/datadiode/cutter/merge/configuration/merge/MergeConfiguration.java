@@ -133,14 +133,16 @@ public class MergeConfiguration implements MessageListener {
 
     @Value(value = "${application.datadiode.cutter.merge.concurrentConsumers}")
     int concurrentConsumers;
+    @Value(value = "${application.datadiode.cutter.merge.prefetchCount}")
+    int prefetchCount = 1024;
 
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
-        //factory.setConcurrentConsumers(concurrentConsumers);
-        //factory.setMaxConcurrentConsumers(concurrentConsumers);
-        //factory.setPrefetchCount(1024);
+        factory.setConcurrentConsumers(concurrentConsumers);
+        factory.setMaxConcurrentConsumers(concurrentConsumers);
+        factory.setPrefetchCount(prefetchCount);
         //factory.setTxSize(1024);
         //factory.setAcknowledgeMode(AcknowledgeMode.NONE);
         return factory;
