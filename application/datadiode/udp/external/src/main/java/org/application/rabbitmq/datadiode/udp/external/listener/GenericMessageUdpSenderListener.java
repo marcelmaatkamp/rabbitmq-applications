@@ -50,7 +50,10 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     @Autowired
     DatagramSocketService datagramSocketService;
 
-    final RateLimiter rateLimiter = RateLimiter.create(1000000.0); // rate = 1M
+    @Value(value = "${application.datadiode.udp.external.rate}")
+    double rate;
+
+    final RateLimiter rateLimiter = RateLimiter.create(rate); // rate = 1M
 
     /**
      * @param message
@@ -87,7 +90,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         // GenericMessage genericMessage = new GenericMessage<byte[]>(data);
         // unicastSendingMessageHandler.handleMessageInternal(genericMessage);
         // Thread.sleep(throttleInMs);
-        
+
         rateLimiter.acquire(1);
         datagramSocketService.send(data);
     }
