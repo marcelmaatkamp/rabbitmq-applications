@@ -51,6 +51,7 @@ public class SocketConfiguration {
 
     @Bean
     SocketAddress socketAddress() throws IOException {
+        log.info("listening for udp packets on port " + port);
         SocketAddress address = new InetSocketAddress(port);
         socket().bind(address);
         return address;
