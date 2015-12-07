@@ -1,5 +1,6 @@
 package org.application.rabbitmq.datadiode.udp.external.listener;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.udp.external.service.DatagramSocketService;
@@ -49,6 +50,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     @Autowired
     DatagramSocketService datagramSocketService;
 
+    final RateLimiter rateLimiter = RateLimiter.create(1000000.0); // rate = 1M
+
     /**
      * @param message
      * @param channel
@@ -84,9 +87,9 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         // GenericMessage genericMessage = new GenericMessage<byte[]>(data);
         // unicastSendingMessageHandler.handleMessageInternal(genericMessage);
         // Thread.sleep(throttleInMs);
-
+        
+        rateLimiter.acquire(1);
         datagramSocketService.send(data);
-
     }
 
 

@@ -62,10 +62,9 @@ public class ExchangeMessageConverterListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         try {
-            ExchangeMessage exchangeMessage = rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message);
-            List<Message> messages = null;
-
-            messages = StreamUtils.cut(exchangeMessage, maxMessageSize, redundancyFactor, calculateDigest, digestName);
+            List<Message> messages  = StreamUtils.cut(
+                    rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message),
+                    maxMessageSize, redundancyFactor, calculateDigest, digestName);
 
             if (log.isDebugEnabled()) {
                 log.debug("cutting (message.length(" + message.getBody().length + ") * redundancy(" + redundancyFactor + ")) into " + messages.size() + " messages of " + maxMessageSize + " bytes..");
