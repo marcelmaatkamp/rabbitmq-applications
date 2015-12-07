@@ -138,11 +138,11 @@ public class MergeConfiguration implements MessageListener {
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
-        factory.setConcurrentConsumers(concurrentConsumers);
-        factory.setMaxConcurrentConsumers(concurrentConsumers);
-        factory.setPrefetchCount(1024);
-        factory.setTxSize(1024);
-factory.setAcknowledgeMode(AcknowledgeMode.NONE);
+        //factory.setConcurrentConsumers(concurrentConsumers);
+        //factory.setMaxConcurrentConsumers(concurrentConsumers);
+        //factory.setPrefetchCount(1024);
+        //factory.setTxSize(1024);
+        //factory.setAcknowledgeMode(AcknowledgeMode.NONE);
         return factory;
     }
 
