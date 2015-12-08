@@ -19,7 +19,7 @@ public class DatadiodeBlackStarter {
     static int SEGMENT_64K_SIZE = 64 * 1024;
     static int SEGMENT_1M_SIZE = 1024 * 1024;
 
-    static int count = 0;
+    static int count = 64;
     static boolean sendTestMessages = true;
 
     public static void main(String[] args) throws IOException {
