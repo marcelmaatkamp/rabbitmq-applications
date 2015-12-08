@@ -16,23 +16,9 @@ import java.io.IOException;
 public class DatadiodeBlackStarter {
     private static final Logger log = LoggerFactory.getLogger(DatadiodeBlackStarter.class);
 
-    static int SEGMENT_64K_SIZE = 64 * 1024;
-    static int SEGMENT_1M_SIZE = 1024 * 1024;
-
-    static int count = 64;
-    static boolean sendTestMessages = true;
-
     public static void main(String[] args) throws IOException {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(DatadiodeBlackStarter.class).web(false).run(args);
         configurableApplicationContext.start();
 
-        if(sendTestMessages) {
-            RabbitTemplate rabbitTemplate = (RabbitTemplate) configurableApplicationContext.getBean("rabbitTemplate");
-            byte[] data = RandomUtils.nextBytes(SEGMENT_1M_SIZE);
-
-            for (int i = 0; i < count; i++) {
-                rabbitTemplate.send("nodejsExchange", null, new Message(data, new MessageProperties()));
-            }
-        }
     }
 }

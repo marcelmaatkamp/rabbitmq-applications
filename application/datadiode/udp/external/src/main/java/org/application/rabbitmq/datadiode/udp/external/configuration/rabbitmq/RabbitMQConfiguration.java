@@ -103,7 +103,7 @@ public class RabbitMQConfiguration {
         simpleMessageListenerContainer.setPrefetchCount(prefetchCount);
 
         // simpleMessageListenerContainer.setTxSize(prefetchCount);
-        simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
+        // simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
         simpleMessageListenerContainer.start();
         return  simpleMessageListenerContainer;
     }
