@@ -24,8 +24,8 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "192.168.178.18";
-    static int port = 4322;
+    static String hostname = "docker";
+    static int port = 9999;
 
     public static void main(String[] args) throws Exception {
         InetAddress ia = InetAddress.getByName(hostname);
@@ -59,15 +59,16 @@ class SenderThread extends Thread {
         return this.socket;
     }
 
-    final RateLimiter rateLimiter = RateLimiter.create(20000.0); // rate = 5000 permits per second
+    final RateLimiter rateLimiter = RateLimiter.create(15100.0); // 15100.0 = 118.1MB/sec
 
+    int pkt_size = 8192;
 
     public void run() {
 
         int index = 0;
         try {
-            byte[] array = RandomUtils.nextBytes(1400);
-            int count = 2048;
+            byte[] array = RandomUtils.nextBytes(pkt_size);
+            int count = 1024*128;
 
             int items = count;
             Date old = new Date();
@@ -81,14 +82,16 @@ class SenderThread extends Thread {
                 index++;
 
                 socket.send(output);
-                Thread.yield();
+                // Thread.yield();
                 items = items -1;
                 rateLimiter.acquire();
             }
 
             Date now = new Date();
             double secs = ((double)(now.getTime()-old.getTime()))/1000;
-            log.info("send " + count + " in " +secs+ " secs:  " + ((double)count)/(double)secs);
+            double pkt_secs = ((double)count)/(double)secs;
+
+            log.info("send " + count + " in " +secs+ " secs:  " + ((double)count)/(double)secs +" = " + ((double)(pkt_secs * pkt_size)/1024/1024) );
         }
         catch (Exception ex) {
             log.error("Exception: " ,ex);
