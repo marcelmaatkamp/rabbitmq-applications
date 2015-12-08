@@ -9,8 +9,9 @@ RUN rabbitmq-plugins enable --offline \
     rabbitmq_auth_backend_ldap \
     rabbitmq_management
 
-RUN apt-get update && apt-get dist-upgrade -fy && \
-    apt-get install -fy build-essential zip wget git python xsltproc erlang-dev
+RUN echo "deb http://http.us.debian.org/debian sid main non-free contrib" >> /etc/apt/sources.list
+RUN apt-get update && apt-get dist-upgrade -fy 
+RUN apt-get install -fy build-essential zip wget git python xsltproc erlang-dev erlang-src
 
 RUN mkdir /rabbitmq
 WORKDIR /rabbitmq
