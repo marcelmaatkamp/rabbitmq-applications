@@ -180,6 +180,9 @@ project(":application:datadiode:udp") {
     dependencies {
         compile project(':application:datadiode')
         compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+        springBoot {
+            mainClass = "org.udp.server.Server"
+        }
     }
 }
 project(":application:datadiode:udp:external") {

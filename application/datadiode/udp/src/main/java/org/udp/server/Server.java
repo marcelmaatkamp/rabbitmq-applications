@@ -12,11 +12,13 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.Date;
 
 
 /**
  * Created by marcel on 06-12-15.
  */
+
 public class Server {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
@@ -28,10 +30,11 @@ public class Server {
     public static void main(String[] args) throws Exception {
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
-        SocketAddress address = new InetSocketAddress(4321);
+        SocketAddress address = new InetSocketAddress(9999);
         socket.bind(address);
 
         byte[] message = new byte[8192];
+
 
         while (true) {
 
@@ -50,10 +53,11 @@ public class Server {
                 log.warn("packet loss: " + index + ", " + oldIndex);
             }
             oldIndex = index;
-
             // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
 
         }
+
+
     }
 
 

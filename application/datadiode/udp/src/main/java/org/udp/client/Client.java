@@ -1,6 +1,7 @@
 package org.udp.client;
 
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -22,8 +24,8 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "docker";
-    static int port = 4321;
+    static String hostname = "192.168.178.18";
+    static int port = 4322;
 
     public static void main(String[] args) throws Exception {
         InetAddress ia = InetAddress.getByName(hostname);
@@ -57,12 +59,19 @@ class SenderThread extends Thread {
         return this.socket;
     }
 
+    final RateLimiter rateLimiter = RateLimiter.create(20000.0); // rate = 5000 permits per second
+
+
     public void run() {
 
         int index = 0;
         try {
-            byte[] array = RandomUtils.nextBytes(8192);
-            while (true) {
+            byte[] array = RandomUtils.nextBytes(1400);
+            int count = 2048;
+
+            int items = count;
+            Date old = new Date();
+            while (items > 0) {
                 byte[] indexBytes = Ints.toByteArray(index);
                 for(int i = 0; i < 4; i++) {
                     array[i] = indexBytes[i];
@@ -73,11 +82,16 @@ class SenderThread extends Thread {
 
                 socket.send(output);
                 Thread.yield();
-                Thread.sleep(0,5);
+                items = items -1;
+                rateLimiter.acquire();
             }
+
+            Date now = new Date();
+            double secs = ((double)(now.getTime()-old.getTime()))/1000;
+            log.info("send " + count + " in " +secs+ " secs:  " + ((double)count)/(double)secs);
         }
         catch (Exception ex) {
-            System.err.println(ex);
+            log.error("Exception: " ,ex);
         }
     }
 }
