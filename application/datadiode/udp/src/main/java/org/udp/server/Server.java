@@ -49,7 +49,7 @@ public class Server {
             }
             int index = Ints.fromByteArray(m);
 
-            if(oldIndex != -1 && index != (oldIndex + 1)) {
+            if(oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
                 log.warn("packet loss: " + index + ", " + oldIndex);
             }
             oldIndex = index;
