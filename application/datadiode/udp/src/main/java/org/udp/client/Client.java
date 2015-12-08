@@ -25,7 +25,7 @@ public class Client {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
     static String hostname = "docker";
-    static int port = 9999;
+    static int port = 1235;
 
     public static void main(String[] args) throws Exception {
         InetAddress ia = InetAddress.getByName(hostname);
@@ -59,8 +59,13 @@ class SenderThread extends Thread {
         return this.socket;
     }
 
-    final RateLimiter rateLimiter = RateLimiter.create(15100.0); // 15100.0 = 118.1MB/sec
+    final RateLimiter rateLimiter = RateLimiter.create(100000);
+    // UDP Exchange:
+    // 8192 - 10150 = 91MB/sec
 
+    // Raw
+    //  9000 - 13173.0 = 113.2MB/sec
+    //  8192 - 15150.0 = 118.4MB/sec
     int pkt_size = 8192;
 
     public void run() {
@@ -68,12 +73,13 @@ class SenderThread extends Thread {
         int index = 0;
         try {
             byte[] array = RandomUtils.nextBytes(pkt_size);
-            int count = 1024*128;
+            int count = 1024*1;
 
             int items = count;
             Date old = new Date();
             while (items > 0) {
                 byte[] indexBytes = Ints.toByteArray(index);
+
                 for(int i = 0; i < 4; i++) {
                     array[i] = indexBytes[i];
                 }
