@@ -36,6 +36,13 @@ include "application",
         "application:search:producer",
         "application:search:consumer",
 
+        // search
+        "application:generator",
+        "application:generator:random",
+        "application:generator:random:producer",
+        "application:generator:random:consumer",
+
+
         // sensor
         "application:sensor",
 
