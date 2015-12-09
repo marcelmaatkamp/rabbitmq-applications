@@ -29,7 +29,7 @@ public class Server {
     Server() throws IOException {
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
-        socket.setReceiveBufferSize(8192*4);
+        socket.setReceiveBufferSize(8192);
 
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
