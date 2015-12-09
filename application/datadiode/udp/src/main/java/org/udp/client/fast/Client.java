@@ -10,9 +10,7 @@ import java.util.Date;
 
 /**
  *
- * 128M - 8192 - 14000 (109MB/sec) - 131067 - 131072 - 5 packets lost
- *                                            131063 - 9
- *                4000 (31MB/sec)             131060 - 7
+ * send 1048576 packets of 8192 bytes = 8192MB in 72.221 secs = 14518 pkts/sec or 113.0 MB/sec
  *
  * Created by marcel on 06-12-15.
  */
@@ -23,7 +21,10 @@ public class Client {
     static String hostname = "docker";
     static int port = 9999;
 
-    int packetSize = 8192;
+    // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
+    int packetSize  = 8192;
+    int packetCount = 1024 * 1024;
+    int packetRate  = 14500;
 
     Client() throws UnknownHostException, SocketException {
         InetAddress ia = InetAddress.getByName(hostname);
@@ -61,23 +62,15 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(14500); //
-        // UDP Exchange:
-        // 8192 - 10150 = 91MB/sec
-
-        // Raw
-        //  9000 - 13173.0 = 113.2MB/sec
-        //  8192 - 15150.0 = 118.4MB/sec
-        int pkt_size = 8192;
+        final RateLimiter rateLimiter = RateLimiter.create(packetRate);
 
         public void run() {
 
             int index = 0;
             try {
-                byte[] array = RandomUtils.nextBytes(pkt_size);
-                int count = 1024 * 256;
+                byte[] array = RandomUtils.nextBytes(packetSize);
 
-                int items = count;
+                int items = packetCount;
                 Date old = new Date();
                 while (items > 0) {
                     byte[] indexBytes = Ints.toByteArray(index);
@@ -96,10 +89,13 @@ public class Client {
                 }
 
                 Date now = new Date();
-                double secs = ((double) (now.getTime() - old.getTime())) / 1000;
-                double pkt_secs = ((double) count) / (double) secs;
 
-                log.info("send " + count + " packets of " + packetSize+" bytes = " + ((count*packetSize)/1024/1024)+ "MB in " + secs + " secs: " + Math.round(((double) count) / (double) secs) + " pkts/sec or " + Math.round(((double) (pkt_secs * pkt_size) / 1024 / 1024))+" MB/sec");
+                double secs = ((double) (now.getTime() - old.getTime())) / 1000;
+                long pkts = (((long)((long)packetCount*(long)packetSize))/1024/1024);
+                double pkt_secs =  Math.round(((double) packetCount) / (double) secs);
+                double mb_secs = Math.round(((double) (pkt_secs * packetSize) / 1024 / 1024));
+
+                log.info("send " + packetCount + " packets of " + packetSize+" bytes = " + pkts + " MB in " + secs + " secs = " + pkt_secs+ " pkts/sec or " + mb_secs +" MB/sec");
             } catch (Exception ex) {
                 log.error("Exception: ", ex);
             }
