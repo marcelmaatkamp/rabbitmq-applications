@@ -25,7 +25,7 @@ public class Client {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
     static String hostname = "docker";
-    static int port = 1235;
+    static int port = 4322;
 
     public static void main(String[] args) throws Exception {
         InetAddress ia = InetAddress.getByName(hostname);
@@ -59,7 +59,7 @@ class SenderThread extends Thread {
         return this.socket;
     }
 
-    final RateLimiter rateLimiter = RateLimiter.create(10150);
+    final RateLimiter rateLimiter = RateLimiter.create(5000);
     // UDP Exchange:
     // 8192 - 10150 = 91MB/sec
 
