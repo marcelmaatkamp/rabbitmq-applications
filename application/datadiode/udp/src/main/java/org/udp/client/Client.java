@@ -54,7 +54,7 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(15150);
+        final RateLimiter rateLimiter = RateLimiter.create(15000);
         // UDP Exchange:
         // 8192 - 10150 = 91MB/sec
 
@@ -68,7 +68,7 @@ public class Client {
             int index = 0;
             try {
                 byte[] array = RandomUtils.nextBytes(pkt_size);
-                int count = 1024 * 4;
+                int count = 1024 * 32;
 
                 int items = count;
                 Date old = new Date();

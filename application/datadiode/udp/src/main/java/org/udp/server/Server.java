@@ -90,7 +90,7 @@ public class Server {
                 log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")");
                 old=atomicInteger.get();
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
