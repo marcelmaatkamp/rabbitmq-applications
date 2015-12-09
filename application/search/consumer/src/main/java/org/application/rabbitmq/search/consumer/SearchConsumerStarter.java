@@ -11,7 +11,6 @@ import org.springframework.integration.config.EnableIntegration;
 import java.io.IOException;
 
 @SpringBootApplication
-@EnableIntegration
 @EnableAutoConfiguration
 public class SearchConsumerStarter {
     private static final Logger log = LoggerFactory.getLogger(SearchConsumerStarter.class);
