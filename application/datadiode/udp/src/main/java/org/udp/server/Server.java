@@ -87,7 +87,7 @@ public class Server {
 
         public void run() {
             while(true) {
-                log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")";
+                log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")");
                 old=atomicInteger.get();
                 try {
                     Thread.sleep(500);
