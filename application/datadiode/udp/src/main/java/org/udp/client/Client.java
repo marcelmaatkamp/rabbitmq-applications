@@ -9,6 +9,11 @@ import java.net.*;
 import java.util.Date;
 
 /**
+ *
+ * 128M - 8192 - 14000 (109MB/sec) - 131067 - 131072 - 5 packets lost
+ *                                            131063 - 9
+ *                4000 (31MB/sec)             131060 - 7
+ *
  * Created by marcel on 06-12-15.
  */
 public class Client {

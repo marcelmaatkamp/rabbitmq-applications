@@ -29,6 +29,8 @@ public class Server {
     Server() throws IOException {
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
+        socket.setReceiveBufferSize(8192*4);
+
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
 
@@ -90,7 +92,7 @@ public class Server {
                 log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")");
                 old=atomicInteger.get();
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(15000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
