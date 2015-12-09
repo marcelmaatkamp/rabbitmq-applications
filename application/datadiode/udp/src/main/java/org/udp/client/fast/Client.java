@@ -10,7 +10,7 @@ import java.util.Date;
 
 /**
  *
- * send 1048576 packets of 8192 bytes = 8192MB in 72.221 secs = 14518 pkts/sec or 113.0 MB/sec
+ * send 1048576 packets of 8192 bytes = 8192 MB in 72.221 secs = 14518 pkts/sec or 113.0 MB/sec
  *
  * Created by marcel on 06-12-15.
  */

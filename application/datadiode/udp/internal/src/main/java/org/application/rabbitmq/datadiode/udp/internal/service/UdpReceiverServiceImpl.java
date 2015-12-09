@@ -1,5 +1,9 @@
 package org.application.rabbitmq.datadiode.udp.internal.service;
 
+import com.google.common.primitives.Ints;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import com.thoughtworks.xstream.XStream;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
@@ -14,6 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
+import java.net.*;
+import java.nio.channels.DatagramChannel;
+import java.util.Arrays;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
 /**
@@ -36,21 +45,34 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
 
     MessageProperties messageProperties = new MessageProperties();
 
-    public void udpMessage(Message message) throws IOException, DataFormatException {
+    static int serverPort = 9999;
+    static int packetSize = 8192;
 
-        if(log.isTraceEnabled()) {
-            log.trace(xStream.toXML(message));
+    static byte[] b = new byte[packetSize];
+
+    ConnectionFactory factory;
+    Connection conn;
+    Channel channel;
+
+    public void start() throws IOException, TimeoutException {
+        channel = rabbitTemplate.getConnectionFactory().createConnection().createChannel(false);
+
+        DatagramChannel channel = DatagramChannel.open();
+        DatagramSocket socket = channel.socket();
+        socket.setReceiveBufferSize(8192 * 128); // THIS!
+
+        SocketAddress address = new InetSocketAddress(serverPort);
+        socket.bind(address);
+
+        byte[] message = new byte[packetSize];
+
+        log.info("receiving udp packets on port " + serverPort);
+        while (true) {
+            DatagramPacket packet = new DatagramPacket(message, message.length);
+            socket.receive(packet);
+            byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+            this.channel.basicPublish("udp", "", null, m);
         }
-
-        // from udp
-        byte[] udpPacket = (byte[]) message.getPayload();
-
-        org.springframework.amqp.core.Message messageToUdp = new org.springframework.amqp.core.Message(
-                (compress ?  CompressionUtils.decompress(udpPacket) : udpPacket),
-                messageProperties
-        );
-
-        rabbitTemplate.send("udp",null,messageToUdp);
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.application.rabbitmq.datadiode.udp.internal.service;
 import org.springframework.messaging.Message;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.DataFormatException;
 
 /**
@@ -10,7 +11,7 @@ import java.util.zip.DataFormatException;
  */
 public interface UdpReceiverService {
 
-    public void udpMessage(Message message) throws IOException, DataFormatException;
+    public void start() throws IOException, TimeoutException;
 
     public void setCompress(boolean compress);
 }
