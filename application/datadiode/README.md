@@ -226,9 +226,12 @@ sudo sysctl -w \
   net.ipv4.conf.all.send_redirects=0 \
   net.ipv4.conf.all.accept_redirects=0 \
   net.ipv4.conf.all.accept_source_route=0 \
-  net.ipv4.conf.all.log_martians=1
+  net.ipv4.conf.all.log_martians=1 \
+  net.ipv4.neigh.default.gc_thresh1=1024 \
+  net.ipv4.neigh.default.gc_thresh1=2048 \
+  net.ipv4.neigh.default.gc_thresh1=4096 \
 ```
-No packet loss anymore at ~118MB/sec
+No packet loss anymore at ~113MB/sec
 
 ```
 ^Cmarcel@marcel-desktop:~/projects/rabbitmq-applications/application/datadiode/red$ sudo iperf -s -u -l 8972

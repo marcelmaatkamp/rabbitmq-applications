@@ -23,6 +23,8 @@ public class Client {
     static String hostname = "docker";
     static int port = 9999;
 
+    int packetSize = 8192;
+
     Client() throws UnknownHostException, SocketException {
         InetAddress ia = InetAddress.getByName(hostname);
         ClientThread clientThread = new ClientThread(ia, port);
@@ -59,7 +61,7 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(14500);
+        final RateLimiter rateLimiter = RateLimiter.create(14500); //
         // UDP Exchange:
         // 8192 - 10150 = 91MB/sec
 
@@ -73,7 +75,7 @@ public class Client {
             int index = 0;
             try {
                 byte[] array = RandomUtils.nextBytes(pkt_size);
-                int count = 1024 * 128;
+                int count = 1024 * 256;
 
                 int items = count;
                 Date old = new Date();
@@ -97,7 +99,7 @@ public class Client {
                 double secs = ((double) (now.getTime() - old.getTime())) / 1000;
                 double pkt_secs = ((double) count) / (double) secs;
 
-                log.info("send " + count + " in " + secs + " secs:  " + ((double) count) / (double) secs + " = " + ((double) (pkt_secs * pkt_size) / 1024 / 1024));
+                log.info("send " + count + " packets of " + packetSize+" bytes = " + ((count*packetSize)/1024/1024)+ "MB in " + secs + " secs: " + Math.round(((double) count) / (double) secs) + " pkts/sec or " + Math.round(((double) (pkt_secs * pkt_size) / 1024 / 1024))+" MB/sec");
             } catch (Exception ex) {
                 log.error("Exception: ", ex);
             }
