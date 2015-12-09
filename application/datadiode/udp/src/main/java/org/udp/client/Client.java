@@ -25,7 +25,7 @@ public class Client {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
     static String hostname = "docker";
-    static int port = 4322;
+    static int port = 9999;
 
     public static void main(String[] args) throws Exception {
         InetAddress ia = InetAddress.getByName(hostname);
