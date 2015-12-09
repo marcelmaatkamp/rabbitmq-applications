@@ -1,9 +1,8 @@
 package org.application.rabbitmq.datadiode.cutter.cut.configuration.listener;
 
 import com.thoughtworks.xstream.XStream;
-import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
-import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
+import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Exchange;
@@ -62,7 +61,7 @@ public class ExchangeMessageConverterListener implements MessageListener {
     @Override
     public void onMessage(Message message) {
         try {
-            List<Message> messages  = StreamUtils.cut(
+            List<Message> messages = StreamUtils.cut(
                     rabbitMQService.getExchangeMessage(rabbitManagementTemplate, message),
                     maxMessageSize, redundancyFactor, calculateDigest, digestName);
 

@@ -1,12 +1,7 @@
 package org.rabbitmq.application.generator.random.producer;
 
-import org.apache.commons.lang3.RandomUtils;
-import org.rabbitmq.application.generator.random.producer.service.RandomGeneratorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;

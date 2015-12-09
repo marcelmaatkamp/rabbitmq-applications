@@ -81,7 +81,6 @@ public class TemperatureSensorConfiguration {
     }
 
 
-
     @Bean
     GeoLocation geoLocationAmsterdam() {
         return new GeoLocation(52.379189, 4.899431);

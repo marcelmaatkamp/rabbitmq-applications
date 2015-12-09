@@ -1,10 +1,8 @@
 package org.application.rabbitmq.datadiode.configuration.xstream;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.util.xstream.JsonXStream;
 
 /**
  * Created by marcelmaatkamp on 26/10/15.

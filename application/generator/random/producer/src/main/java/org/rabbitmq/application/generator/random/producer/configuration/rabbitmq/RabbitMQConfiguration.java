@@ -1,10 +1,6 @@
 package org.rabbitmq.application.generator.random.producer.configuration.rabbitmq;
 
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Method;
 import org.rabbitmq.application.generator.random.producer.configuration.generator.RandomGeneratorConfiguration;
-import org.rabbitmq.application.generator.random.producer.service.RandomGeneratorService;
-import org.rabbitmq.application.generator.random.producer.service.RandomGeneratorServiceImpl;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;

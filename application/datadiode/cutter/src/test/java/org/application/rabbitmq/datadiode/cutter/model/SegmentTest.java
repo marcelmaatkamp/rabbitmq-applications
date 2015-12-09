@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
@@ -17,23 +16,22 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by marcelmaatkamp on 02/12/15.
  */
 public class SegmentTest {
+    static final int SEGMENT_HEADER_SIZE = 29;
     private static final Logger log = LoggerFactory.getLogger(SegmentTest.class);
-
-    int SEGMENT_09K_SIZE=9000;
-    int SEGMENT_64K_SIZE=65535;
-    int SEGMENT_MTU_SIZE=1500;
-
-    static final int SEGMENT_HEADER_SIZE=29;
+    int SEGMENT_09K_SIZE = 9000;
+    int SEGMENT_64K_SIZE = 65535;
+    int SEGMENT_MTU_SIZE = 1500;
 
     @Test
     public void testSegmentByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        byte[] segment =  RandomUtils.nextBytes(1255);
+        byte[] segment = RandomUtils.nextBytes(1255);
         int index = 10;
         UUID uuid = UUID.randomUUID();
 
@@ -50,12 +48,12 @@ public class SegmentTest {
         bos.close();
 
         byte[] result = bos.toByteArray();
-        log.info("length("+result.length+"), data: " + Hex.encodeHexString( result ) );
+        log.info("length(" + result.length + "), data: " + Hex.encodeHexString(result));
 
         ByteArrayInputStream bis = new ByteArrayInputStream(result);
         ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(bis));
 
-        Assert.assertEquals(SegmentType.SEGMENT.getType(),ois.readByte());
+        Assert.assertEquals(SegmentType.SEGMENT.getType(), ois.readByte());
         Assert.assertTrue(uuid.equals(new UUID(ois.readLong(), ois.readLong())));
         Assert.assertEquals(0, ois.readInt());
         Assert.assertEquals(index, ois.readInt());
@@ -65,8 +63,8 @@ public class SegmentTest {
         Assert.assertArrayEquals(segment, other_segment);
 
         // 0:31, 1:31,
-        log.info("header.size("+(result.length-segment.length)+")"); //  0..230: 31, 231..999: 34, 1000..1254: 36, 1255..(1500)..: 39, 2048: 41, 64k: 351 bytes header
-        log.info("total.size("+result.length+")");
+        log.info("header.size(" + (result.length - segment.length) + ")"); //  0..230: 31, 231..999: 34, 1000..1254: 36, 1255..(1500)..: 39, 2048: 41, 64k: 351 bytes header
+        log.info("total.size(" + result.length + ")");
 
         bis.close();
         ois.close();

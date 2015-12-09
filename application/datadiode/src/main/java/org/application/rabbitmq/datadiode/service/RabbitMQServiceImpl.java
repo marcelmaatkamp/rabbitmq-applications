@@ -79,14 +79,14 @@ public class RabbitMQServiceImpl implements RabbitMQService {
                 Exchange exchange = new FanoutExchange(exchangeName);
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            exchangeMessage= new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
+            exchangeMessage = new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         } else {
             exchangeName = message.getMessageProperties().getReceivedExchange();
             if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = rabbitManagementTemplate.getExchange(message.getMessageProperties().getReceivedExchange());
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
-            exchangeMessage= new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
+            exchangeMessage = new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         }
         // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
         return exchangeMessage;
@@ -95,7 +95,7 @@ public class RabbitMQServiceImpl implements RabbitMQService {
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
         try {
-            if(exchangeMessage.getExchangeData() != null) {
+            if (exchangeMessage.getExchangeData() != null) {
                 Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
 
 
@@ -121,8 +121,8 @@ public class RabbitMQServiceImpl implements RabbitMQService {
             } else {
                 log.error("exchangeMessage.getExchangeData() null: " + xStream.toXML(exchangeMessage));
             }
-        } catch(NullPointerException e) {
-            log.error("Exception: ",e);
+        } catch (NullPointerException e) {
+            log.error("Exception: ", e);
         }
     }
 

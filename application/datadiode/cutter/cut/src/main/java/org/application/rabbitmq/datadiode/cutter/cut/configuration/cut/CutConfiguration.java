@@ -2,24 +2,19 @@ package org.application.rabbitmq.datadiode.cutter.cut.configuration.cut;
 
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.cutter.cut.configuration.listener.ExchangeMessageConverterListener;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
-import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,9 +23,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import javax.annotation.PostConstruct;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -45,19 +37,6 @@ public class CutConfiguration {
     private static final Logger log = LoggerFactory.getLogger(CutConfiguration.class);
 
     String DATA_DIODE_QUEUENAME_SUFFIX = ".dd";
-
-    @Bean
-    public JsonMessageConverter jsonMessageConverter() {
-        JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
-        return jsonMessageConverter;
-    }
-
-    // @PostConstruct
-    // void init() {
-    //     rabbitTemplate.setMessageConverter(jsonMessageConverter());
-    // }
-
-
     List<String> standardExchanges =
             Arrays.asList(
                     //"amq.direct",
@@ -72,15 +51,23 @@ public class CutConfiguration {
                     "cutted",
                     "udp");
 
-
+    // @PostConstruct
+    // void init() {
+    //     rabbitTemplate.setMessageConverter(jsonMessageConverter());
+    // }
     @Autowired
     XStream xStream;
-
+    @Autowired
+    Environment environment;
+    Set<String> queueListeners = new TreeSet<String>();
     @Autowired
     private volatile RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    Environment environment;
+    @Bean
+    public JsonMessageConverter jsonMessageConverter() {
+        JsonMessageConverter jsonMessageConverter = new JsonMessageConverter();
+        return jsonMessageConverter;
+    }
 
     @Bean
     StreamUtils streamUtils() {
@@ -93,13 +80,13 @@ public class CutConfiguration {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
         return rabbitAdmin;
     }
+    // TODO: naamgeving in application.properties
 
     @Bean
     RabbitMQService rabbitMQService() {
         RabbitMQService rabbitMQService = new RabbitMQServiceImpl();
         return rabbitMQService;
     }
-    // TODO: naamgeving in application.properties
 
     @Bean
     org.springframework.amqp.core.Exchange cutterExchange() {
@@ -117,9 +104,6 @@ public class CutConfiguration {
         );
         return rabbitManagementTemplate;
     }
-
-
-    Set<String> queueListeners = new TreeSet<String>();
 
     /**
      * Automatic adding listeners
@@ -196,11 +180,11 @@ public class CutConfiguration {
 
 
 /**
-    @Scheduled(fixedRate = 25)
-    public void sendMessage() throws MalformedURLException {
-        int length = 20000;
-        rabbitTemplate.send("cut", null, new Message(RandomUtils.nextBytes(length), new MessageProperties()));
-    }
-*/
+ @Scheduled(fixedRate = 25)
+ public void sendMessage() throws MalformedURLException {
+ int length = 20000;
+ rabbitTemplate.send("cut", null, new Message(RandomUtils.nextBytes(length), new MessageProperties()));
+ }
+ */
 
 }

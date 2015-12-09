@@ -11,27 +11,26 @@ import java.util.UUID;
  */
 public class ExchangeMessage implements Serializable {
 
-    public UUID getUuid() {
-        return uuid;
-    }
-
     UUID uuid = UUID.randomUUID();
     Message message;
     String exchangeData;
+    byte[] digest;
 
-    public void setDigest(byte[] digest) {
+    public ExchangeMessage(Message message, String exchangeData) {
+        this.message = message;
+        this.exchangeData = exchangeData;
         this.digest = digest;
     }
 
-    byte[] digest;
+    public UUID getUuid() {
+        return uuid;
+    }
 
     public byte[] getDigest() {
         return digest;
     }
 
-    public ExchangeMessage(Message message, String exchangeData) {
-        this.message = message;
-        this.exchangeData = exchangeData;
+    public void setDigest(byte[] digest) {
         this.digest = digest;
     }
 

@@ -7,16 +7,10 @@ import com.thoughtworks.xstream.converters.basic.ByteConverter;
 import com.thoughtworks.xstream.core.util.Base64Encoder;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by marcelmaatkamp on 01/12/15.
@@ -41,7 +35,7 @@ public class ByteArrayConverter implements Converter {
         String key = reader.getNodeName();
         String data = reader.getValue();
 
-        log.info("key("+key+"): value("+data+")");
+        log.info("key(" + key + "): value(" + data + ")");
 
         if (!reader.hasMoreChildren()) {
             return fromString(data);
@@ -63,13 +57,12 @@ public class ByteArrayConverter implements Converter {
             String key = reader.getNodeName();
             String value = reader.getValue();
 
-            if(key.equals("segment")) {
+            if (key.equals("segment")) {
 
             }
             reader.moveUp();
             firstIteration = false;
         }
-
 
 
         return null;

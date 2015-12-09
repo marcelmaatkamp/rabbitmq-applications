@@ -1,10 +1,8 @@
 package org.application.rabbitmq.datadiode.udp.external.listener;
 
-import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.RateLimiter;
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
-import org.apache.commons.lang3.RandomUtils;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +11,9 @@ import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Date;
 
 /**
  * Created by marcelmaatkamp on 15/10/15.
@@ -29,8 +23,8 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
 
     String hostname = "docker";
     int port = 9999;
-    int packetSize  = 8192;
-    int packetRate  = 14500;
+    int packetSize = 8192;
+    int packetRate = 14500;
     RateLimiter rateLimiter;
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -47,7 +41,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
     private DatagramSocket socket;
 
     public GenericMessageUdpSenderListener(int port, int packetSize, int packetRate, boolean compress) throws UnknownHostException, SocketException, IOException {
-        this.port  = port;
+        this.port = port;
         this.packetSize = packetSize;
         this.compress = compress;
         server = InetAddress.getByName(hostname);
@@ -75,7 +69,7 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         if (compress) {
             data = CompressionUtils.compress(data);
             if (log.isDebugEnabled()) {
-                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "),  compressed(" + data.length + "), ratio("+Math.round((100.0/data.length)*message.getBody().length)+"%)");
+                log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "),  compressed(" + data.length + "), ratio(" + Math.round((100.0 / data.length) * message.getBody().length) + "%)");
             }
         }
 

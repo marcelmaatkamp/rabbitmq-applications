@@ -8,7 +8,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -38,6 +41,8 @@ public class RabbitMQConfiguration {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    Environment environment;
 
     @Bean
     public DefaultClassMapper defaultClassMapper() {
@@ -69,13 +74,11 @@ public class RabbitMQConfiguration {
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
     }
 
-
     @Bean
     RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
         return rabbitAdmin;
     }
-
 
     @Bean
     Exchange udpEchange() {
@@ -83,11 +86,12 @@ public class RabbitMQConfiguration {
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
+
     @Bean
     Queue udpQueue() {
         Queue queue = new Queue(environment.getProperty("application.datadiode.udp.external.queue", String.class));
         rabbitAdmin().declareQueue(queue);
-        rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(),"",null));
+        rabbitAdmin().declareBinding(new Binding(queue.getName(), Binding.DestinationType.QUEUE, udpEchange().getName(), "", null));
         return queue;
     }
 
@@ -97,7 +101,7 @@ public class RabbitMQConfiguration {
         int concurrentConsumers = environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class);
         int prefetchCount = environment.getProperty("application.datadiode.udp.external.prefetchCount", Integer.class);
 
-        log.info("udp.listener.concurrent("+concurrentConsumers+").prefetch("+prefetchCount+")");
+        log.info("udp.listener.concurrent(" + concurrentConsumers + ").prefetch(" + prefetchCount + ")");
 
         SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
         simpleMessageListenerContainer.setConnectionFactory(rabbitTemplate.getConnectionFactory());
@@ -110,12 +114,8 @@ public class RabbitMQConfiguration {
         // simpleMessageListenerContainer.setTxSize(prefetchCount);
         // simpleMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
         simpleMessageListenerContainer.start();
-        return  simpleMessageListenerContainer;
+        return simpleMessageListenerContainer;
     }
-
-
-    @Autowired
-    Environment environment;
 
     @Bean
     GenericMessageUdpSenderListener genericMessageUdpSenderListener() throws IOException {
@@ -128,6 +128,8 @@ public class RabbitMQConfiguration {
     public static class DatagramSocketConfigurationProperties {
         String host;
         int port;
+        double rate;
+        int soSendBufferSize;
 
         public double getRate() {
             return rate;
@@ -137,8 +139,6 @@ public class RabbitMQConfiguration {
             this.rate = rate;
         }
 
-        double rate;
-
         public int getSoSendBufferSize() {
             return soSendBufferSize;
         }
@@ -146,8 +146,6 @@ public class RabbitMQConfiguration {
         public void setSoSendBufferSize(int soSendBufferSize) {
             this.soSendBufferSize = soSendBufferSize;
         }
-
-        int soSendBufferSize;
 
         public String getHost() {
             return host;

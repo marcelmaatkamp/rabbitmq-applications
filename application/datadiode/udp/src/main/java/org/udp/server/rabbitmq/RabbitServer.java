@@ -47,7 +47,7 @@ public class RabbitServer {
 
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
-        socket.setReceiveBufferSize(8192* 128); // THIS!
+        socket.setReceiveBufferSize(8192 * 128); // THIS!
 
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
@@ -57,7 +57,7 @@ public class RabbitServer {
 
         ServerThread serverThread = new ServerThread(atomicInteger);
         serverThread.start();
-        log.info("receiving: " + serverPort + " " +socket);
+        log.info("receiving: " + serverPort + " " + socket);
 
         try {
 
@@ -107,9 +107,9 @@ public class RabbitServer {
         }
 
         public void run() {
-            while(true) {
-                log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")");
-                old=atomicInteger.get();
+            while (true) {
+                log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
+                old = atomicInteger.get();
                 try {
                     Thread.sleep(15000);
                 } catch (InterruptedException e) {

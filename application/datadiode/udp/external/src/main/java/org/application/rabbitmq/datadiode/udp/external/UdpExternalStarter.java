@@ -1,4 +1,3 @@
-
 package org.application.rabbitmq.datadiode.udp.external;
 
 import org.slf4j.Logger;

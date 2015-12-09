@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class RandomGeneratorServiceImpl implements RandomGeneratorService {
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+    private int size;
+    private int count;
+    private String exchangeName;
+
     public int getSize() {
         return size;
     }
@@ -29,9 +35,6 @@ public class RandomGeneratorServiceImpl implements RandomGeneratorService {
         this.count = count;
     }
 
-    private int size;
-    private int count;
-
     public String getExchangeName() {
         return exchangeName;
     }
@@ -39,11 +42,6 @@ public class RandomGeneratorServiceImpl implements RandomGeneratorService {
     public void setExchangeName(String exchangeName) {
         this.exchangeName = exchangeName;
     }
-
-    private String exchangeName;
-
-    @Autowired
-    RabbitTemplate rabbitTemplate;
 
     public void generateRandomMessages() {
         byte[] data = RandomUtils.nextBytes(size);

@@ -1,15 +1,11 @@
 package org.application.rabbitmq.datadiode.cutter.model;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -20,13 +16,11 @@ import static org.junit.Assert.*;
  */
 public class SegmentHeaderTest {
     private static final Logger log = LoggerFactory.getLogger(SegmentHeaderTest.class);
-
+    final int SEGMENT_HEADER_WITH_DIGEST_SIZE = 73;
+    final int SEGMENT_HEADER_WITHOUT_DIGEST_SIZE = 37;
     int SEGMENT_09K_SIZE = 9000;
     int SEGMENT_64K_SIZE = 65535;
     int SEGMENT_MTU_SIZE = 1500;
-
-    final int SEGMENT_HEADER_WITH_DIGEST_SIZE    = 73;
-    final int SEGMENT_HEADER_WITHOUT_DIGEST_SIZE = 37;
 
     @Test
     public void testToAndFromByteArrayWithDigest() throws Exception {
@@ -39,7 +33,7 @@ public class SegmentHeaderTest {
                 uuid(UUID.randomUUID()).
                 size(15).blockSize(16).count(17).insert(now);
 
-        if(calculateDigest) {
+        if (calculateDigest) {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(randomBytes);
             segmentHeader.digest(md.digest());

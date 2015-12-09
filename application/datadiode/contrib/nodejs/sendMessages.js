@@ -15,10 +15,10 @@ connection.on('ready', function () {
         }
 
         setInterval(function () {
-            var test_message = total + ", " + toBuffer(new ArrayBuffer(1024*192));
+            var test_message = total + ", " + toBuffer(new ArrayBuffer(1024 * 192));
             console.log(' ..' + total + " to go ..")
             sendMessage(exchange, test_message)
-            if(total==0) {
+            if (total == 0) {
                 process.exit()
             }
             total = total - 1;

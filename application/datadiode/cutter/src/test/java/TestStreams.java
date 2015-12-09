@@ -1,14 +1,11 @@
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.application.rabbitmq.datadiode.configuration.gson.adapters.ByteArrayToBase64TypeAdapter;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
-import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
 import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +14,9 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.utils.SerializationUtils;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;

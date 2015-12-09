@@ -75,7 +75,7 @@ public class FileshareConfiguration {
 
                 File file = (File) message.getPayload();
 
-                if(file.lastModified() < new Date().getTime()-genericDiskProducerConfigurationProperties.getWaitForFileToBeOlderThanMs()) {
+                if (file.lastModified() < new Date().getTime() - genericDiskProducerConfigurationProperties.getWaitForFileToBeOlderThanMs()) {
 
                 } else {
                     try {
@@ -84,11 +84,11 @@ public class FileshareConfiguration {
                         Thread.currentThread().interrupt();
                     }
                 }
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("handleMessage: " + message.getHeaders() + ", path (" + file + ")");
                 }
-                if(file.isDirectory()) {
-                    if(log.isDebugEnabled()) {
+                if (file.isDirectory()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("handleMessage: " + message.getHeaders() + ", dir(" + file + ")");
                     }
                 } else {
@@ -96,7 +96,7 @@ public class FileshareConfiguration {
                         byte[] body = FileUtils.readFileToByteArray(file);
 
 
-                        MessageProperties properties =new MessageProperties();
+                        MessageProperties properties = new MessageProperties();
                         properties.setHeader("raptor.id", message.getHeaders().get("id"));
                         properties.setHeader("raptor.file.timestamp", message.getHeaders().get("timestamp"));
                         properties.setHeader("raptor.file.name", file.getName());
@@ -106,14 +106,14 @@ public class FileshareConfiguration {
                         properties.setHeader("raptor.insertDate", new Date());
                         properties.setHeader("raptor.producer.type", "generic/disk");
 
-                        if(genericDiskProducerConfigurationProperties.isConvert()) {
+                        if (genericDiskProducerConfigurationProperties.isConvert()) {
                             MediaType mediaType = tikaService.detect(body);
                             properties.setHeader("raptor.producer.mimetype", mediaType.toString());
 
-                            if(genericDiskProducerConfigurationProperties.isConvertXmlToJson() && "application/xml".equals(mediaType.toString()) ) {
+                            if (genericDiskProducerConfigurationProperties.isConvertXmlToJson() && "application/xml".equals(mediaType.toString())) {
                                 String xml = new String(body);
                                 com.gemstone.org.json.JSONObject xmlJSONObj = XML.toJSONObject(xml);
-                                byte[] result =xmlJSONObj.toString().getBytes();
+                                byte[] result = xmlJSONObj.toString().getBytes();
                                 Message message1 = new Message(result, properties);
                                 rabbitMQService.getAmqpTemplate().send(genericDiskProducerConfigurationProperties.getExchange().getValue(), genericDiskProducerConfigurationProperties.getRoutingkey(), message1);
                             }
@@ -129,13 +129,13 @@ public class FileshareConfiguration {
 
                     log.debug("Deleting: " + file.getPath());
                     try {
-                        log.debug("CanWrite= "+ file.canWrite());
-                        log.debug("isFile= "+ file.isFile());
+                        log.debug("CanWrite= " + file.canWrite());
+                        log.debug("isFile= " + file.isFile());
                         boolean isDeleted;
                         isDeleted = file.delete();
                         log.debug("isDeleted= " + isDeleted);
                     } catch (Exception ex) {
-                        log.error("Excetpion while deleting: " + file.getPath() + " : ", ex );
+                        log.error("Excetpion while deleting: " + file.getPath() + " : ", ex);
                     }
 
                 }
@@ -179,6 +179,7 @@ public class FileshareConfiguration {
         boolean calculateHash;
         String algorithm;
         int waitForFileToBeOlderThanMs = 1000;
+        String routingkey;
 
         public String getRoutingkey() {
             return routingkey;
@@ -187,8 +188,6 @@ public class FileshareConfiguration {
         public void setRoutingkey(String routingkey) {
             this.routingkey = routingkey;
         }
-
-        String routingkey;
 
         public boolean isConvert() {
             return convert;

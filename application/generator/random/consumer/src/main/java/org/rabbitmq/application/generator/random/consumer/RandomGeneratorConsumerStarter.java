@@ -26,7 +26,7 @@ public class RandomGeneratorConsumerStarter {
         ConfigurableApplicationContext configurableApplicationContext = new SpringApplicationBuilder(RandomGeneratorConsumerStarter.class).web(false).run(args);
         configurableApplicationContext.start();
 
-        if(sendTestMessages) {
+        if (sendTestMessages) {
             RabbitTemplate rabbitTemplate = (RabbitTemplate) configurableApplicationContext.getBean("rabbitTemplate");
             byte[] data = RandomUtils.nextBytes(SEGMENT_1M_SIZE);
 

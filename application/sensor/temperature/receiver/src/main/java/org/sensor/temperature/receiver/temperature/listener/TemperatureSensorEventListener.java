@@ -25,6 +25,6 @@ public class TemperatureSensorEventListener implements ChannelAwareMessageListen
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         TemperatureSensorEvent temperatureSensorEvent = (TemperatureSensorEvent) rabbitTemplate.getMessageConverter().fromMessage(message);
-        log.info("["+temperatureSensorEvent.getIndex()+"]: on date(" + temperatureSensorEvent.getDate()+"), temp(" + temperatureSensorEvent.getTemperature()+"C) at "+xStream.toXML(temperatureSensorEvent.getSensor().getGeoLocation()));
+        log.info("[" + temperatureSensorEvent.getIndex() + "]: on date(" + temperatureSensorEvent.getDate() + "), temp(" + temperatureSensorEvent.getTemperature() + "C) at " + xStream.toXML(temperatureSensorEvent.getSensor().getGeoLocation()));
     }
 }

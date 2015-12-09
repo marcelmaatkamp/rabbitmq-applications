@@ -1,20 +1,22 @@
 package org.application.rabbitmq.datadiode.cutter.merge.configuration.merge;
 
-import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
+import org.application.rabbitmq.datadiode.cutter.model.Segment;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
+import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.application.rabbitmq.datadiode.service.RabbitMQService;
 import org.application.rabbitmq.datadiode.service.RabbitMQServiceImpl;
-import org.application.rabbitmq.datadiode.cutter.model.Segment;
-import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
-import org.application.rabbitmq.datadiode.cutter.util.StreamUtils;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
@@ -34,17 +36,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.MalformedURLException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -58,27 +55,30 @@ public class MergeConfiguration implements MessageListener {
     public static final String SRC_QUEUE = "src-queue";
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
     // static Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+    @Autowired
+    XStream xStream;
+    @Autowired
+    Environment environment;
+    @Value("${application.datadiode.cutter.digest}")
+    boolean calculateDigest;
+    @Value("${application.datadiode.cutter.digest.name}")
+    String digestName;
+    @Autowired
+    ConnectionFactory connectionFactory;
+    @Value(value = "${application.datadiode.cutter.merge.concurrentConsumers}")
+    int concurrentConsumers;
+    @Value(value = "${application.datadiode.cutter.merge.prefetchCount}")
+    int prefetchCount = 1024;
+    boolean parse = true;
+    boolean sendToExchanges = false;
+    @Autowired
+    private volatile RabbitTemplate rabbitTemplate;
 
     @Bean
     Map<String, SegmentHeader> uMessages() {
         Map<String, SegmentHeader> uMessages = new ConcurrentHashMap();
         return uMessages;
     }
-
-    @Autowired
-    XStream xStream;
-    @Autowired
-    Environment environment;
-
-    @Value("${application.datadiode.cutter.digest}")
-    boolean calculateDigest;
-
-    @Value("${application.datadiode.cutter.digest.name}")
-    String digestName;
-
-
-    @Autowired
-    private volatile RabbitTemplate rabbitTemplate;
 
     @Bean
     public JsonMessageConverter jsonMessageConverter() {
@@ -122,19 +122,13 @@ public class MergeConfiguration implements MessageListener {
         return rabbitMQService;
     }
 
-    @Autowired
-    ConnectionFactory connectionFactory;
+    // segments
 
     @Bean
     RabbitAdmin rabbitAdmin() {
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         return rabbitAdmin;
     }
-
-    @Value(value = "${application.datadiode.cutter.merge.concurrentConsumers}")
-    int concurrentConsumers;
-    @Value(value = "${application.datadiode.cutter.merge.prefetchCount}")
-    int prefetchCount = 1024;
 
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
@@ -148,14 +142,13 @@ public class MergeConfiguration implements MessageListener {
         return factory;
     }
 
-    // segments
-
     @Bean
     org.springframework.amqp.core.Exchange segmentHeaderExchange() {
         org.springframework.amqp.core.Exchange exchange = new TopicExchange("segmentHeader");
         rabbitAdmin().declareExchange(exchange);
         return exchange;
     }
+
     @Bean
     org.springframework.amqp.core.Queue segmentHeaderQueue() {
         org.springframework.amqp.core.Queue queue = new org.springframework.amqp.core.Queue("segmentHeader");
@@ -175,6 +168,7 @@ public class MergeConfiguration implements MessageListener {
         rabbitAdmin().declareExchange(segmentExchange);
         return segmentExchange;
     }
+
     @Bean
     org.springframework.amqp.core.Queue segmentQueue() {
         org.springframework.amqp.core.Queue queue = new org.springframework.amqp.core.Queue("segment");
@@ -187,10 +181,6 @@ public class MergeConfiguration implements MessageListener {
                         "*", null));
         return queue;
     }
-
-    boolean parse = true;
-    boolean sendToExchanges = false;
-
 
     @RabbitListener(
 
@@ -205,32 +195,32 @@ public class MergeConfiguration implements MessageListener {
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
 
-            byte type = (byte)bis.read();
+            byte type = (byte) bis.read();
 
-            if(type == SegmentType.SEGMENT.getType()) {
+            if (type == SegmentType.SEGMENT.getType()) {
                 Segment segment = Segment.fromByteArray(bis, segment_or_header);
 
                 // log.info("[" + segment.uuid + "]: index(" + segment.index + ")..payload(" + segment.segment.length + ").segment("+segment.toByteArray().length+") : " + segment.getDigest()+")");
 
-                if(sendToExchanges) {
+                if (sendToExchanges) {
                     rabbitTemplate.convertAndSend(segmentExchange().getName(), segment.uuid.toString(), segment);
                 }
-                if(parse) {
+                if (parse) {
 
                     SegmentHeader segmentHeader;
-                    if(!uMessages().containsKey(segment.uuid.toString())) {
+                    if (!uMessages().containsKey(segment.uuid.toString())) {
                         segmentHeader = new SegmentHeader().uuid(segment.uuid).addSegment(segment).count(segment.count);
-                        uMessages().put(segment.uuid.toString(),segmentHeader);
+                        uMessages().put(segment.uuid.toString(), segmentHeader);
                         segmentHeader.update = new Date();
                     } else {
                         segmentHeader = uMessages().get(segment.uuid.toString());
                         segmentHeader.update = new Date();
-                        if(!segmentHeader.isSent()) {
+                        if (!segmentHeader.isSent()) {
                             segmentHeader.addSegment(segment);
                         }
                     }
 
-                    if(!segmentHeader.isSent() && segmentHeader.segments.size() == segment.count) {
+                    if (!segmentHeader.isSent() && segmentHeader.segments.size() == segment.count) {
                         ExchangeMessage messageFromStream = StreamUtils.reconstruct(segmentHeader.segments, calculateDigest, digestName);
                         if (messageFromStream != null) {
                             synchronized (segmentHeader) {

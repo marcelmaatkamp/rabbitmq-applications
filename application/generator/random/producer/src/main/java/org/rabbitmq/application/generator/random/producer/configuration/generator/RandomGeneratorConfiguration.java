@@ -20,6 +20,19 @@ public class RandomGeneratorConfiguration {
     @Autowired
     RandomGeneratorConfigurationProperties randomGeneratorConfigurationProperties;
 
+    @Bean
+    RandomGeneratorService randomGeneratorService() {
+        RandomGeneratorService randomGeneratorService = new RandomGeneratorServiceImpl();
+        randomGeneratorService.setExchangeName(randomGeneratorConfigurationProperties.getExchangeName());
+        randomGeneratorService.setSize(randomGeneratorConfigurationProperties.getSize());
+        randomGeneratorService.setCount(randomGeneratorConfigurationProperties.getCount());
+        return randomGeneratorService;
+    }
+
+    @PostConstruct
+    void init() {
+        randomGeneratorService().generateRandomMessages();
+    }
 
     @ConfigurationProperties(prefix = "application.rabbitmq.generator.random")
     public static class RandomGeneratorConfigurationProperties {
@@ -60,21 +73,6 @@ public class RandomGeneratorConfiguration {
         public void setCount(int count) {
             this.count = count;
         }
-    }
-
-
-    @Bean
-    RandomGeneratorService randomGeneratorService() {
-        RandomGeneratorService randomGeneratorService = new RandomGeneratorServiceImpl();
-        randomGeneratorService.setExchangeName(randomGeneratorConfigurationProperties.getExchangeName());
-        randomGeneratorService.setSize(randomGeneratorConfigurationProperties.getSize());
-        randomGeneratorService.setCount(randomGeneratorConfigurationProperties.getCount());
-        return randomGeneratorService;
-    }
-
-    @PostConstruct
-    void init() {
-        randomGeneratorService().generateRandomMessages();
     }
 
 

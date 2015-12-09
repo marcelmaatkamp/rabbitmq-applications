@@ -47,7 +47,7 @@ public class EncryptConfiguration {
     String publicKeyFilename = "public.key";
     String privateKeyFilename = "private.key";
 
-    // signature 
+    // signature
     @Value("${application.datadiode.encryption.cipher.signature}")
     String ALGORITHM_SIGNATURE;
 
@@ -73,6 +73,8 @@ public class EncryptConfiguration {
     int ALGORITHM_SYMMETRICAL_KEYSIZE;
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    Environment environment;
 
     @Bean
     KeyFactory keyFactory() throws NoSuchAlgorithmException {
@@ -187,15 +189,13 @@ public class EncryptConfiguration {
         return rabbitAdmin;
     }
 
-    @Autowired
-    Environment environment;
-    
     @Bean
     Exchange encryptedExchange() {
         Exchange encryptedExchange = new FanoutExchange(environment.getProperty("application.datadiode.encryption.encrypted.exchange"));
         rabbitAdmin().declareExchange(encryptedExchange);
         return encryptedExchange;
     }
+
     @Bean
     Exchange encryptExchange() {
         Exchange exchange = new FanoutExchange(environment.getProperty("application.datadiode.encryption.encrypt.exchange"));

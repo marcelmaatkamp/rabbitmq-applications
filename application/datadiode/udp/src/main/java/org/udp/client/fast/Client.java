@@ -10,9 +10,8 @@ import java.net.*;
 import java.util.Date;
 
 /**
- *
  * send 1048576 packets of 8192 bytes = 8192 MB in 72.221 secs = 14518 pkts/sec or 113.0 MB/sec
- *
+ * <p>
  * Created by marcel on 06-12-15.
  */
 public class Client {
@@ -23,15 +22,15 @@ public class Client {
     static int port = 9999;
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
-    int packetSize  = 8192;
+    int packetSize = 8192;
     int packetCount = 1024 * 1024;
-    int packetRate  = 14500;
+    int packetRate = 14500;
 
     Client() throws UnknownHostException, SocketException {
         InetAddress ia = InetAddress.getByName(hostname);
         ClientThread clientThread = new ClientThread(ia, port);
         clientThread.start();
-        log.info("sending " + hostname + "("+ia+"):" + port);
+        log.info("sending " + hostname + "(" + ia + "):" + port);
     }
 
     public static void main(String[] args) throws Exception {
@@ -41,8 +40,8 @@ public class Client {
 
     class ClientThread extends Thread {
 
+        final RateLimiter rateLimiter = RateLimiter.create(packetRate);
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ClientThread.class);
-
         private InetAddress server;
         private DatagramSocket socket;
         private boolean stopped = false;
@@ -63,8 +62,6 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(packetRate);
-
         public void run() {
 
             int index = 0;
@@ -84,11 +81,11 @@ public class Client {
                     index++;
 
                     boolean success = false;
-                    while(!success) {
+                    while (!success) {
                         try {
                             socket.send(output);
-                        } catch (IOException e){
-                            log.error("Exception: ",e);
+                        } catch (IOException e) {
+                            log.error("Exception: ", e);
                         }
                         success = true;
                     }
@@ -99,11 +96,11 @@ public class Client {
                 Date now = new Date();
 
                 double secs = ((double) (now.getTime() - old.getTime())) / 1000;
-                long pkts = (((long)((long)packetCount*(long)packetSize))/1024/1024);
-                double pkt_secs =  Math.round(((double) packetCount) / (double) secs);
+                long pkts = (((long) ((long) packetCount * (long) packetSize)) / 1024 / 1024);
+                double pkt_secs = Math.round(((double) packetCount) / (double) secs);
                 double mb_secs = Math.round(((double) (pkt_secs * packetSize) / 1024 / 1024));
 
-                log.info("transferred " + packetCount + " packets of " + packetSize+" bytes = " + pkts + " MB in " + secs + " secs = " + pkt_secs+ " pkts/sec or " + mb_secs +" MB/sec");
+                log.info("transferred " + packetCount + " packets of " + packetSize + " bytes = " + pkts + " MB in " + secs + " secs = " + pkt_secs + " pkts/sec or " + mb_secs + " MB/sec");
             } catch (Exception ex) {
                 log.error("Exception: ", ex);
             }

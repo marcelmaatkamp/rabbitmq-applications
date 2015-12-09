@@ -29,16 +29,7 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
-
-    public Exchange getEncryptedExchange() {
-        return encryptedExchange;
-    }
-
-    public void setEncryptedExchange(Exchange encryptedExchange) {
-        this.encryptedExchange = encryptedExchange;
-    }
     Exchange encryptedExchange;
-
     @Autowired
     KeyPair keyPair;
     @Autowired
@@ -55,9 +46,16 @@ public class EncryptMessageListener implements ChannelAwareMessageListener {
     Cipher cipher;
     @Autowired
     PublicKey serverPublicKey;
-
     @Autowired
     XStream xStream;
+
+    public Exchange getEncryptedExchange() {
+        return encryptedExchange;
+    }
+
+    public void setEncryptedExchange(Exchange encryptedExchange) {
+        this.encryptedExchange = encryptedExchange;
+    }
 
     /**
      * Convert message to ExchangeMessage and encrypt that into a SecureMessage with the priv/pub key and pubkey of server and

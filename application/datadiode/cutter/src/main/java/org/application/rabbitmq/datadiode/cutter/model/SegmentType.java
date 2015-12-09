@@ -5,8 +5,8 @@ package org.application.rabbitmq.datadiode.cutter.model;
  */
 public enum SegmentType {
 
-    SEGMENT_HEADER((byte)0),
-    SEGMENT((byte)1);
+    SEGMENT_HEADER((byte) 0),
+    SEGMENT((byte) 1);
 
     private byte type;
 

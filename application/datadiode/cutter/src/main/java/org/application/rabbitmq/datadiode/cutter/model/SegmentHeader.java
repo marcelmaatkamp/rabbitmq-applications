@@ -3,16 +3,19 @@ package org.application.rabbitmq.datadiode.cutter.model;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 
-import static org.application.rabbitmq.datadiode.cutter.model.SegmentType.*;
+import static org.application.rabbitmq.datadiode.cutter.model.SegmentType.SEGMENT_HEADER;
 
 /**
  * Created by marcelmaatkamp on 24/11/15.
@@ -20,19 +23,67 @@ import static org.application.rabbitmq.datadiode.cutter.model.SegmentType.*;
 @XStreamAlias("segmentHeader")
 public class SegmentHeader implements Serializable {
 
+    static final int LONG_SIZE = 8;
+    static final int INT_SIZE = 4;
     private static final Logger log = LoggerFactory.getLogger(SegmentHeader.class);
-
-
     private static final byte DIGEST_LENGTH = 32;
-
     public UUID uuid = UUID.randomUUID();
-
     public int size;
     public int blockSize;
     public int count;
     public Date insert = new Date();
     public Date update = new Date();
     public byte[] digest;
+    public boolean sent = false;
+
+    public Set<Segment> segments = new TreeSet();
+
+    public static SegmentHeader fromByteArray(byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
+        SegmentHeader segmentHeader = null;
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(segmentHeaderData);
+
+
+        byte type = (byte) bis.read();
+        if (type == SEGMENT_HEADER.getType()) {
+            segmentHeader = fromByteArray(bis, segmentHeaderData, doDigest);
+        } else {
+            log.warn("this is not a segment header, type(" + type + ") unknown!");
+        }
+
+        bis.close();
+
+        return segmentHeader;
+    }
+
+    public static SegmentHeader fromByteArray(ByteArrayInputStream bis, byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
+        SegmentHeader segmentHeader = new SegmentHeader();
+        byte[] longByteArray = new byte[LONG_SIZE];
+        byte[] intByteArray = new byte[INT_SIZE];
+
+        bis.read(longByteArray);
+        long most = Longs.fromByteArray(longByteArray);
+
+        bis.read(longByteArray);
+        segmentHeader.uuid(new UUID(most, Longs.fromByteArray(longByteArray)));
+
+        bis.read(intByteArray);
+        segmentHeader.size(Ints.fromByteArray(intByteArray));
+        bis.read(intByteArray);
+        segmentHeader.blockSize(Ints.fromByteArray(intByteArray));
+        bis.read(intByteArray);
+        segmentHeader.count(Ints.fromByteArray(intByteArray));
+        bis.read(longByteArray);
+        segmentHeader.insert(new Date(Longs.fromByteArray(longByteArray)));
+
+        if (doDigest) {
+            bis.read(intByteArray);
+            segmentHeader.digest(new byte[Ints.fromByteArray(intByteArray)]);
+            bis.read(segmentHeader.digest);
+        }
+
+        return segmentHeader;
+    }
 
     public boolean isSent() {
         return sent;
@@ -42,10 +93,6 @@ public class SegmentHeader implements Serializable {
         this.sent = sent;
         return this;
     }
-
-    public boolean sent = false;
-
-    public Set<Segment> segments = new TreeSet();
 
     public SegmentHeader size(final int size) {
         this.size = size;
@@ -95,9 +142,6 @@ public class SegmentHeader implements Serializable {
         return uuid.equals(that.uuid);
     }
 
-    static final int LONG_SIZE=8;
-    static final int INT_SIZE=4;
-
     /**
      * Gegerate a bytestream containing a SegmentHeader.
      *
@@ -115,59 +159,12 @@ public class SegmentHeader implements Serializable {
         bos.write(Ints.toByteArray(blockSize));
         bos.write(Ints.toByteArray(count));
         bos.write(Longs.toByteArray(insert.getTime()));
-        if(doDigest) {
+        if (doDigest) {
             bos.write(Ints.toByteArray(digest.length));
             bos.write(digest);
         }
         bos.close();
         return bos.toByteArray();
-    }
-
-    public static SegmentHeader fromByteArray(byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
-        SegmentHeader segmentHeader = null;
-
-        ByteArrayInputStream bis = new ByteArrayInputStream(segmentHeaderData);
-
-
-        byte type = (byte)bis.read();
-        if(type == SEGMENT_HEADER.getType()) {
-            segmentHeader = fromByteArray(bis,segmentHeaderData,doDigest);
-        } else {
-            log.warn("this is not a segment header, type("+type+") unknown!");
-        }
-
-        bis.close();
-
-        return segmentHeader;
-    }
-
-    public static SegmentHeader fromByteArray(ByteArrayInputStream bis, byte[] segmentHeaderData, boolean doDigest) throws IOException, ClassNotFoundException {
-        SegmentHeader segmentHeader = new SegmentHeader();
-        byte[] longByteArray = new byte[LONG_SIZE];
-        byte[] intByteArray = new byte[INT_SIZE];
-
-        bis.read(longByteArray);
-        long most = Longs.fromByteArray(longByteArray);
-
-        bis.read(longByteArray);
-        segmentHeader.uuid(new UUID(most, Longs.fromByteArray(longByteArray)));
-
-        bis.read(intByteArray);
-        segmentHeader.size(Ints.fromByteArray(intByteArray));
-        bis.read(intByteArray);
-        segmentHeader.blockSize(Ints.fromByteArray(intByteArray));
-        bis.read(intByteArray);
-        segmentHeader.count(Ints.fromByteArray(intByteArray));
-        bis.read(longByteArray);
-        segmentHeader.insert(new Date(Longs.fromByteArray(longByteArray)));
-
-        if (doDigest) {
-            bis.read(intByteArray);
-            segmentHeader.digest(new byte[Ints.fromByteArray(intByteArray)]);
-            bis.read(segmentHeader.digest);
-        }
-
-        return segmentHeader;
     }
 }
 

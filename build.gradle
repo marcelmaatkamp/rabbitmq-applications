@@ -267,7 +267,6 @@ project(":application:fileshare:internal") {
     }
 }
 
-
 // sensor
 project(":application:sensor") {
     dependencies {

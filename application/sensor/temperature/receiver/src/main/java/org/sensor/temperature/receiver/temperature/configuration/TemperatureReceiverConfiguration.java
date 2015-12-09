@@ -27,6 +27,9 @@ import javax.annotation.PostConstruct;
 public class TemperatureReceiverConfiguration {
 
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
     @Bean
     public DefaultClassMapper defaultClassMapper() {
         DefaultClassMapper defaultClassMapper = new DefaultClassMapper();
@@ -52,10 +55,6 @@ public class TemperatureReceiverConfiguration {
         jsonObjectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         return jsonObjectMapper;
     }
-
-
-    @Autowired
-    RabbitTemplate rabbitTemplate;
 
     @PostConstruct
     void init() {

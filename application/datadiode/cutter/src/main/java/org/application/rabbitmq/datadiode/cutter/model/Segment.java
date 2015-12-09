@@ -1,16 +1,16 @@
 package org.application.rabbitmq.datadiode.cutter.model;
 
-import com.google.common.io.ByteArrayDataInput;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -26,61 +26,18 @@ import java.util.UUID;
 public class Segment implements Serializable, Comparable<Segment> {
 
     private static final Logger log = LoggerFactory.getLogger(Segment.class);
-
+    private static final int LONG_SIZE = 8;
+    private static final int INT_SIZE = 4;
     public int index;
-
     public byte[] segment;
-
     public UUID uuid;
-
     public int count;
-
-    public Segment index(final int index) {
-        this.index = index;
-        return this;
-    }
-
-    public Segment segment(final byte[] segment) {
-        this.segment = segment;
-        return this;
-    }
-
-    public Segment uuid(final UUID uuid) {
-        this.uuid = uuid;
-        return this;
-    }
-
-    public Segment count(final int count) {
-        this.count = count;
-        return this;
-    }
-
-    @Override
-    public int compareTo(Segment o) {
-        return this.index - o.index;
-    }
-
-    private static final int LONG_SIZE=8;
-    private static final int INT_SIZE=4;
-
-    public byte[] toByteArray() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        bos.write(SegmentType.SEGMENT.getType());
-        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
-        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
-        bos.write(Ints.toByteArray(count));
-        bos.write(Ints.toByteArray(index));
-        bos.write(Ints.toByteArray(segment.length));
-        bos.write(segment);
-        bos.close();
-        return bos.toByteArray();
-    }
 
     public static Segment fromByteArray(byte[] segmentData) throws IOException {
         Segment segment = new Segment();
         ByteArrayInputStream bis = new ByteArrayInputStream(segmentData);
 
-        byte type = (byte)bis.read();
+        byte type = (byte) bis.read();
 
         if (type == SegmentType.SEGMENT.getType()) {
             segment = fromByteArray(bis, segmentData);
@@ -115,6 +72,44 @@ public class Segment implements Serializable, Comparable<Segment> {
         return segment;
     }
 
+    public Segment index(final int index) {
+        this.index = index;
+        return this;
+    }
+
+    public Segment segment(final byte[] segment) {
+        this.segment = segment;
+        return this;
+    }
+
+    public Segment uuid(final UUID uuid) {
+        this.uuid = uuid;
+        return this;
+    }
+
+    public Segment count(final int count) {
+        this.count = count;
+        return this;
+    }
+
+    @Override
+    public int compareTo(Segment o) {
+        return this.index - o.index;
+    }
+
+    public byte[] toByteArray() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bos.write(SegmentType.SEGMENT.getType());
+        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
+        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+        bos.write(Ints.toByteArray(count));
+        bos.write(Ints.toByteArray(index));
+        bos.write(Ints.toByteArray(segment.length));
+        bos.write(segment);
+        bos.close();
+        return bos.toByteArray();
+    }
+
     public String getDigest() throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         messageDigest.update(segment);
@@ -123,7 +118,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 
     public String toString() {
         try {
-            return ("[" + uuid + "]: count("+count+").index(" + index + ").payload(" + segment.length + "): " + getDigest()+")");
+            return ("[" + uuid + "]: count(" + count + ").index(" + index + ").payload(" + segment.length + "): " + getDigest() + ")");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
