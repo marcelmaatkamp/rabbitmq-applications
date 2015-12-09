@@ -15,14 +15,14 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "docker";
+    static String hostname = "localhost";
     static int port = 9999;
 
     Client() throws UnknownHostException, SocketException {
         InetAddress ia = InetAddress.getByName(hostname);
         ClientThread clientThread = new ClientThread(ia, port);
         clientThread.start();
-        log.info("sending " + hostname + ":" + port);
+        log.info("sending " + hostname + "("+ia+"):" + port);
     }
 
     public static void main(String[] args) throws Exception {

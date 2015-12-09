@@ -20,7 +20,7 @@ public class Server {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
 
     static int serverPort = 9999;
-    static int packetSize = 8192;
+    static int packetSize = 1300;
 
     static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
@@ -32,13 +32,12 @@ public class Server {
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
 
-        log.info("receiving: " + serverPort);
-
         byte[] message = new byte[packetSize];
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
         ServerThread serverThread = new ServerThread(atomicInteger);
-        serverThread.run();
+        serverThread.start();
+        log.info("receiving: " + serverPort + " " +socket);
 
         try {
 
@@ -49,7 +48,7 @@ public class Server {
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
 
-                log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
+                // log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
 
