@@ -212,7 +212,7 @@ project(":application:search:producer") {
     dependencies {
         compile project(':application:search')
 
-        compile "com.google.http-client:google-http-client"
+        compile "com.google.http-client:google-http-client:1.21.0"
         compile "org.apache.httpcomponents:httpclient:$httpcomponentsHttpclientVersion"
 
 
