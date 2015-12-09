@@ -181,7 +181,7 @@ project(":application:datadiode:udp") {
         compile project(':application:datadiode')
         compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
         springBoot {
-            mainClass = "org.udp.server.Server"
+            mainClass = "org.udp.server.rabbitmq.RabbitServer"
         }
     }
 }

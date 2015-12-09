@@ -1,4 +1,4 @@
-package org.udp.client;
+package org.udp.client.fast;
 
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.RateLimiter;
@@ -59,7 +59,7 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(14000);
+        final RateLimiter rateLimiter = RateLimiter.create(14500);
         // UDP Exchange:
         // 8192 - 10150 = 91MB/sec
 

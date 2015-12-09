@@ -1,13 +1,17 @@
-package org.udp.server;
+package org.udp.server.rabbitmq;
 
 
 import com.google.common.primitives.Ints;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -15,9 +19,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by marcel on 06-12-15.
  */
 
-public class Server {
+public class RabbitServer {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(RabbitServer.class);
 
     static int serverPort = 9999;
     static int packetSize = 1300;
@@ -26,10 +30,24 @@ public class Server {
     static byte[] indexBytes = new byte[4];
     static int oldIndex = -1;
 
-    Server() throws IOException {
+
+    ConnectionFactory factory;
+    Connection conn;
+    Channel channel;
+
+    RabbitServer() throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("localhost");
+        factory.setPort(5674);
+        conn = factory.newConnection();
+        channel = conn.createChannel();
+
+
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
-        socket.setReceiveBufferSize(8192);
+        socket.setReceiveBufferSize(8192* 128); // THIS!
 
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
@@ -53,6 +71,7 @@ public class Server {
                 // log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+                this.channel.basicPublish("udp", null, null, m);
 
                 for (int i = 0; i < 4; i++) {
                     indexBytes[i] = m[i];
@@ -72,7 +91,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server();
+        RabbitServer server = new RabbitServer();
     }
 
 
