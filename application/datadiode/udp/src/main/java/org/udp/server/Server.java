@@ -47,7 +47,9 @@ public class Server {
 
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
-                // log.info("Server received "+ +packet.getLength());
+                atomicInteger.incrementAndGet();
+
+                log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
 
@@ -60,7 +62,6 @@ public class Server {
                     log.warn("packet loss: " + index + ", " + oldIndex);
                 }
                 oldIndex = index;
-                atomicInteger.incrementAndGet();
                 // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
 
             }
