@@ -26,20 +26,20 @@ import java.util.Date;
  * Created by marcelmaatkamp on 30/11/15.
  */
 @Configuration
-@EnableConfigurationProperties(GenericDiskProducerConfiguration.GenericDiskProducerConfigurationProperties.class)
+// @EnableConfigurationProperties(GenericDiskProducerConfiguration.GenericDiskProducerConfigurationProperties.class)
 @EnableScheduling
-@EnableBatchProcessing
+// @EnableBatchProcessing
 public class FileshareConfiguration {
 
     static int counter = 0;
     static int total = 0;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+/**
 
     @Autowired
     GenericDiskProducerConfigurationProperties genericDiskProducerConfigurationProperties;
 
     @Autowired
-
 
     private String ROUTING_KEY;
 
@@ -278,5 +278,7 @@ public class FileshareConfiguration {
             this.queueSize = queueSize;
         }
     }
+
+    */
 
 }
