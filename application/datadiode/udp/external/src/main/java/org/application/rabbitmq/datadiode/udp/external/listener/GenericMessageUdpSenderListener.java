@@ -1,9 +1,10 @@
 package org.application.rabbitmq.datadiode.udp.external.listener;
 
+import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.RateLimiter;
 import com.rabbitmq.client.Channel;
 import com.thoughtworks.xstream.XStream;
-import org.application.rabbitmq.datadiode.udp.external.service.DatagramSocketService;
+import org.apache.commons.lang3.RandomUtils;
 import org.compression.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,28 +17,44 @@ import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.SerializationUtils;
 
+import java.io.IOException;
+import java.net.*;
+import java.util.Date;
+
 /**
  * Created by marcelmaatkamp on 15/10/15.
  */
 public class GenericMessageUdpSenderListener implements ChannelAwareMessageListener {
-
-    static final Integer lock = new Integer(-1);
-
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
 
-    // @Autowired
-    // UnicastSendingMessageHandler unicastSendingMessageHandler;
-
+    String hostname = "docker";
+    int port = 9999;
+    int packetSize  = 8192;
+    int packetRate  = 14500;
+    RateLimiter rateLimiter;
     @Autowired
     RabbitTemplate rabbitTemplate;
-
     @Autowired
     XStream xStream;
 
-    @Value(value = "${application.datadiode.udp.external.throttleInMs}")
-    Integer throttleInMs;
-
+    // @Autowired
+    // UnicastSendingMessageHandler unicastSendingMessageHandler;
     boolean compress;
+
+    @Value(value = "${application.datadiode.udp.external.rate}")
+    double rate;
+    private InetAddress server;
+    private DatagramSocket socket;
+
+    public GenericMessageUdpSenderListener(int port, int packetSize, int packetRate, boolean compress) throws UnknownHostException, SocketException, IOException {
+        this.port  = port;
+        this.packetSize = packetSize;
+        this.compress = compress;
+        server = InetAddress.getByName(hostname);
+        this.socket = new DatagramSocket();
+        this.socket.connect(server, port);
+        rateLimiter = RateLimiter.create(packetRate);
+    }
 
     public boolean isCompress() {
         return compress;
@@ -47,12 +64,6 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         this.compress = compress;
     }
 
-    @Autowired
-    DatagramSocketService datagramSocketService;
-
-    @Value(value = "${application.datadiode.udp.external.rate}")
-    double rate;
-
     /**
      * @param message
      * @param channel
@@ -60,37 +71,20 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
      */
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-
-        // convert to generic message
         byte[] data = message.getBody();
-
-        if(log.isDebugEnabled()) {
-            log.debug("[" + data.length + "]: " + new String(data, "UTF-8"));
-        }
-
         if (compress) {
             data = CompressionUtils.compress(data);
             if (log.isDebugEnabled()) {
                 log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + "),  compressed(" + data.length + "), ratio("+Math.round((100.0/data.length)*message.getBody().length)+"%)");
             }
         }
-        // else {
-        //    if (log.isDebugEnabled()) {
-        //        log.debug("udp: exchange(" + message.getMessageProperties().getReceivedExchange() + "): body(" + message.getBody().length + ")");
-        //    }
-        //}
 
-        // if (data.length > maxBytes) {
-        //     log.warn("too many bytes: " + data.length + ", max=" + maxBytes);
-        // }
-
-
-        // GenericMessage genericMessage = new GenericMessage<byte[]>(data);
-        // unicastSendingMessageHandler.handleMessageInternal(genericMessage);
-        // Thread.sleep(throttleInMs);
-
-        datagramSocketService.send(data);
+        try {
+            DatagramPacket output = new DatagramPacket(data, data.length, server, port);
+            socket.send(output);
+            rateLimiter.acquire();
+        } catch (Exception ex) {
+            log.error("Exception: ", ex);
+        }
     }
-
-
 }

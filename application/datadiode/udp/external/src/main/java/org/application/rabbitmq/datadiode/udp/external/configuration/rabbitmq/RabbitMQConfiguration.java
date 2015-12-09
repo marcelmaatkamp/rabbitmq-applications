@@ -16,18 +16,23 @@ import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 
 /**
  * Created by marcel on 23-09-15.
  */
 @Configuration
 @Import(XStreamConfiguration.class)
+@EnableConfigurationProperties(RabbitMQConfiguration.DatagramSocketConfigurationProperties.class)
+
 public class RabbitMQConfiguration {
     private static final Logger log = LoggerFactory.getLogger(RabbitMQConfiguration.class);
 
@@ -87,7 +92,7 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    SimpleMessageListenerContainer simpleMessageListenerContainer() {
+    SimpleMessageListenerContainer simpleMessageListenerContainer() throws IOException {
 
         int concurrentConsumers = environment.getProperty("application.datadiode.udp.external.concurrentConsumers", Integer.class);
         int prefetchCount = environment.getProperty("application.datadiode.udp.external.prefetchCount", Integer.class);
@@ -113,10 +118,53 @@ public class RabbitMQConfiguration {
     Environment environment;
 
     @Bean
-    GenericMessageUdpSenderListener genericMessageUdpSenderListener() {
-        GenericMessageUdpSenderListener genericMessageUdpSenderListener = new GenericMessageUdpSenderListener();
+    GenericMessageUdpSenderListener genericMessageUdpSenderListener() throws IOException {
+        GenericMessageUdpSenderListener genericMessageUdpSenderListener = new GenericMessageUdpSenderListener(9999, 8192, 14500, false);
         genericMessageUdpSenderListener.setCompress(environment.getProperty("application.datadiode.udp.external.compress", Boolean.class));
         return genericMessageUdpSenderListener;
+    }
+
+    @ConfigurationProperties(prefix = "application.datadiode.udp.external")
+    public static class DatagramSocketConfigurationProperties {
+        String host;
+        int port;
+
+        public double getRate() {
+            return rate;
+        }
+
+        public void setRate(double rate) {
+            this.rate = rate;
+        }
+
+        double rate;
+
+        public int getSoSendBufferSize() {
+            return soSendBufferSize;
+        }
+
+        public void setSoSendBufferSize(int soSendBufferSize) {
+            this.soSendBufferSize = soSendBufferSize;
+        }
+
+        int soSendBufferSize;
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }
+
     }
 
 }

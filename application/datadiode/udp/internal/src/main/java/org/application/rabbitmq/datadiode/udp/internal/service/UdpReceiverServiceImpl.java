@@ -44,7 +44,6 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     Environment environment;
 
     MessageProperties messageProperties = new MessageProperties();
-
     static int serverPort = 9999;
     static int packetSize = 8192;
 

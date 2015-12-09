@@ -23,7 +23,7 @@ public class Client {
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
     int packetSize  = 8192;
-    int packetCount = 1024 * 1024;
+    int packetCount = 1024 * 64;
     int packetRate  = 14500;
 
     Client() throws UnknownHostException, SocketException {
