@@ -71,7 +71,7 @@ public class RabbitServer {
                 // log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                this.channel.basicPublish("udp", null, null, m);
+                this.channel.basicPublish("udp", "", null, m);
 
                 for (int i = 0; i < 4; i++) {
                     indexBytes[i] = m[i];
