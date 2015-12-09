@@ -59,7 +59,7 @@ class SenderThread extends Thread {
         return this.socket;
     }
 
-    final RateLimiter rateLimiter = RateLimiter.create(100000);
+    final RateLimiter rateLimiter = RateLimiter.create(10150);
     // UDP Exchange:
     // 8192 - 10150 = 91MB/sec
 
@@ -73,7 +73,7 @@ class SenderThread extends Thread {
         int index = 0;
         try {
             byte[] array = RandomUtils.nextBytes(pkt_size);
-            int count = 1024*1;
+            int count = 1024*2;
 
             int items = count;
             Date old = new Date();

@@ -209,13 +209,26 @@ socat UDP4-RECVFROM:1235,fork UDP4-SENDTO:172.16.128.4:1234
 ```
 Optimize
 
-http://stackoverflow.com/questions/1043567/java-ioexception-no-buffer-space-available-while-sending-udp-packets-on-linux
-When sending lots of messages, especially over gigabit ethernet in Linux, the stock parameters for your kernel are usually not optimal. You can increase the Linux kernel buffer size for networking through:
+```
+#!/bin/bash
 
-echo 1048576 > /proc/sys/net/core/wmem_max
-echo 1048576 > /proc/sys/net/core/wmem_default
-echo 1048576 > /proc/sys/net/core/rmem_max
-echo 1048576 > /proc/sys/net/core/rmem_default
+sudo sysctl -w \
+  net.core.rmem_max=26214400 \
+  net.core.wmem_max=16777216 \
+  net.core.rmem_default=524288 \
+  net.core.wmem_default=524288 \
+  fs.file-max=100000 \
+  vm.swappiness=10 \
+  net.core.optmem_max=40960 \
+  net.core.netdev_max_backlog=50000 \
+  net.ipv4.udp_rmem_min=8192 \
+  net.ipv4.udp_wmem_min=8192 \
+  net.ipv4.conf.all.send_redirects=0 \
+  net.ipv4.conf.all.accept_redirects=0 \
+  net.ipv4.conf.all.accept_source_route=0 \
+  net.ipv4.conf.all.log_martians=1
+```
+No packet loss anymore at ~118MB/sec
 
 ```
 ^Cmarcel@marcel-desktop:~/projects/rabbitmq-applications/application/datadiode/red$ sudo iperf -s -u -l 8972
