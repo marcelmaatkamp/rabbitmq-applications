@@ -2,19 +2,13 @@ package org.udp.server;
 
 
 import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.RateLimiter;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 
 /**
@@ -25,22 +19,24 @@ public class Server {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
 
-    static byte[] b = new byte[8192];
+    static int serverPort = 9999;
+    static int packetSize = 8192;
+
+    static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
     static int oldIndex = -1;
 
     Server() throws IOException {
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
-        SocketAddress address = new InetSocketAddress(9999);
+        SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
 
-        byte[] message = new byte[8192];
+        byte[] message = new byte[packetSize];
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
-        ClientThread clientThread = new ClientThread(atomicInteger);
-        clientThread.run();
-
+        ServerThread serverThread = new ServerThread(atomicInteger);
+        serverThread.run();
 
         try {
 
@@ -76,13 +72,13 @@ public class Server {
     }
 
 
-    class ClientThread extends Thread {
+    class ServerThread extends Thread {
 
-        private final org.slf4j.Logger log = LoggerFactory.getLogger(ClientThread.class);
+        private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
 
-        public ClientThread(AtomicInteger atomicInteger) throws SocketException {
+        public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
         }
 
