@@ -15,7 +15,7 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "localhost";
+    static String hostname = "docker";
     static int port = 9999;
 
     Client() throws UnknownHostException, SocketException {
@@ -54,7 +54,7 @@ public class Client {
             return this.socket;
         }
 
-        final RateLimiter rateLimiter = RateLimiter.create(5000);
+        final RateLimiter rateLimiter = RateLimiter.create(15150);
         // UDP Exchange:
         // 8192 - 10150 = 91MB/sec
 
@@ -68,7 +68,7 @@ public class Client {
             int index = 0;
             try {
                 byte[] array = RandomUtils.nextBytes(pkt_size);
-                int count = 1024 * 2;
+                int count = 1024 * 4;
 
                 int items = count;
                 Date old = new Date();

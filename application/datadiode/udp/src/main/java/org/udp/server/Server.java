@@ -79,6 +79,7 @@ public class Server {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
+        int old = 0;
 
         public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
@@ -86,9 +87,10 @@ public class Server {
 
         public void run() {
             while(true) {
-                log.info("packets: " + atomicInteger.get());
+                log.info("packets: " + atomicInteger.get() + " ("+(atomicInteger.get()-old)+")";
+                old=atomicInteger.get();
                 try {
-                    Thread.sleep(2500);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
