@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.Date;
 
@@ -23,7 +24,7 @@ public class Client {
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
     int packetSize  = 8192;
-    int packetCount = 1024 * 64;
+    int packetCount = 1024 * 1024;
     int packetRate  = 14500;
 
     Client() throws UnknownHostException, SocketException {
@@ -82,8 +83,15 @@ public class Client {
                     DatagramPacket output = new DatagramPacket(array, array.length, server, port);
                     index++;
 
-                    socket.send(output);
-                    // Thread.yield();
+                    boolean success = false;
+                    while(!success) {
+                        try {
+                            socket.send(output);
+                        } catch (IOException e){
+                            log.error("Exception: ",e);
+                        }
+                        success = true;
+                    }
                     items = items - 1;
                     rateLimiter.acquire();
                 }
@@ -95,7 +103,7 @@ public class Client {
                 double pkt_secs =  Math.round(((double) packetCount) / (double) secs);
                 double mb_secs = Math.round(((double) (pkt_secs * packetSize) / 1024 / 1024));
 
-                log.info("send " + packetCount + " packets of " + packetSize+" bytes = " + pkts + " MB in " + secs + " secs = " + pkt_secs+ " pkts/sec or " + mb_secs +" MB/sec");
+                log.info("transferred " + packetCount + " packets of " + packetSize+" bytes = " + pkts + " MB in " + secs + " secs = " + pkt_secs+ " pkts/sec or " + mb_secs +" MB/sec");
             } catch (Exception ex) {
                 log.error("Exception: ", ex);
             }
