@@ -32,6 +32,8 @@ public class Server {
         SocketAddress address = new InetSocketAddress(serverPort);
         socket.bind(address);
 
+        log.info("receiving: " + serverPort);
+
         byte[] message = new byte[packetSize];
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
