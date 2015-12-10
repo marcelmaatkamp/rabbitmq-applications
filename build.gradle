@@ -191,7 +191,7 @@ project(":application:datadiode:udp") {
     }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
-        main = 'org.udp.server.fast.Client'
+        main = 'org.udp.client.fast.Client'
         args ''
     }
 }
