@@ -180,9 +180,19 @@ project(":application:datadiode:udp") {
     dependencies {
         compile project(':application:datadiode')
         compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
-        springBoot {
-            mainClass = "org.udp.server.rabbitmq.RabbitServer"
-        }
+    }
+    springBoot {
+        mainClass = "org.udp.server.rabbitmq.RabbitServer"
+    }
+    task runServer(type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'package.Main'
+        args 'org.udp.server.fast.Server'
+    }
+    task runClient(type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'package.Main'
+        args 'org.udp.client.fast.Client'
     }
 }
 project(":application:datadiode:udp:external") {
