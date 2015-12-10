@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
@@ -45,16 +46,18 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
     public void start() throws IOException, TimeoutException {
         channel = rabbitTemplate.getConnectionFactory().createConnection().createChannel(false);
 
-        DatagramChannel channel = DatagramChannel.open();
-        DatagramSocket socket = channel.socket();
+        // DatagramChannel channel = DatagramChannel.open();
+        // DatagramSocket socket = channel.socket();
+        // socket.setReceiveBufferSize(8192 * 128); // THIS!
+        // SocketAddress address = new InetSocketAddress(serverPort);
+        DatagramSocket socket = new DatagramSocket(9999); 
+        socket.setBroadcast(true);
         socket.setReceiveBufferSize(8192 * 128); // THIS!
-
-        SocketAddress address = new InetSocketAddress(serverPort);
-        socket.bind(address);
+        // socket.bind(address);
 
         byte[] message = new byte[packetSize];
 
-        log.info("receiving udp packets on port " + serverPort);
+        log.info("receiving udp packets on port " + socket);
         while (true) {
             DatagramPacket packet = new DatagramPacket(message, message.length);
             socket.receive(packet);
