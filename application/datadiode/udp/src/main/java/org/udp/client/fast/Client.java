@@ -18,7 +18,7 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "docker";
+    static String hostname = "192.168.2.255";
     static int port = 9999;
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G

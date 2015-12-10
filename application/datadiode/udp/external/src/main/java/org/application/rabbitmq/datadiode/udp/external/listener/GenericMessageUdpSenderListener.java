@@ -21,7 +21,7 @@ import java.net.*;
 public class GenericMessageUdpSenderListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
 
-    String hostname = "docker";
+    String hostname = "192.168.1.2";
     int port = 9999;
     int packetSize = 8192;
     int packetRate = 14500;
@@ -46,8 +46,11 @@ public class GenericMessageUdpSenderListener implements ChannelAwareMessageListe
         this.compress = compress;
         server = InetAddress.getByName(hostname);
         this.socket = new DatagramSocket();
+        // this.socket.setBroadcast(true);
         this.socket.connect(server, port);
         rateLimiter = RateLimiter.create(packetRate);
+
+        log.info("sending packets to " + hostname + ":" + port);
     }
 
     public boolean isCompress() {
