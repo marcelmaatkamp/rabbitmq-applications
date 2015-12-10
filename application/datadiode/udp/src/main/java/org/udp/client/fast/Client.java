@@ -33,8 +33,11 @@ public class Client {
         log.info("sending " + hostname + "(" + ia + "):" + port);
     }
 
-    public static void main(String[] args) throws Exception {
-        Client client = new Client();
+    public static void main(String[] args) {
+        try {
+            Client client = new Client();
+        } catch(Exception e) {
+        }
     }
 
 
