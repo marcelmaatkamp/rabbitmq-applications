@@ -186,13 +186,13 @@ project(":application:datadiode:udp") {
     }
     task runServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
-        main = 'package.Main'
+        main = 'org.udp.server.fast.Server'
         args 'org.udp.server.fast.Server'
     }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
-        main = 'package.Main'
-        args 'org.udp.client.fast.Client'
+        main = 'org.udp.server.fast.Client'
+        args ''
     }
 }
 project(":application:datadiode:udp:external") {
