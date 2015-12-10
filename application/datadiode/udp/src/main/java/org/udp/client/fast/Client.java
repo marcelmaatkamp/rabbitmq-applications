@@ -82,16 +82,8 @@ public class Client {
 
                     DatagramPacket output = new DatagramPacket(array, array.length, server, port);
                     index++;
+                    socket.send(output);
 
-                    boolean success = false;
-                    while (!success) {
-                        try {
-                            socket.send(output);
-                        } catch (IOException e) {
-                            log.error("Exception: ", e);
-                        }
-                        success = true;
-                    }
                     items = items - 1;
                     rateLimiter.acquire();
                 }
