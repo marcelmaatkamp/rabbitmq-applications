@@ -270,6 +270,11 @@ UDP buffer size: 9.00 KByte (default)
 [  5]  0.0-10.0 sec  1 datagrams received out-of-order
 ```
 
+For example:
+• 9.5 KB equals 9.5 x 1024 = 9728 bytes 
+• 15.5 KB equals 15.5 x 1024 = 15872 bytes
+9710
+
 # Restrictions
 * there is a lot of overhead in a message, this can be optimized
 
