@@ -95,8 +95,8 @@ public class Server {
                 int diff = (now - prev);
 
                 if(diff > 0) {
-                    log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
                     total = total + diff;
+                    log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
                     prev = now;
                 } else {
                     total = 0;
