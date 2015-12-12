@@ -82,7 +82,8 @@ public class Server {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
-        int old = 0;
+        int prev = 0;
+        int total = 0;
 
         public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
@@ -90,8 +91,17 @@ public class Server {
 
         public void run() {
             while (true) {
-                log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
-                old = atomicInteger.get();
+                int now = atomicInteger.get();
+                int diff = (now - prev);
+
+                if(diff > 0) {
+                    log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
+                    total = total + diff;
+                    prev = now;
+                } else {
+                    total = 0;
+                }
+
                 try {
                     Thread.sleep(7500);
                 } catch (InterruptedException e) {
