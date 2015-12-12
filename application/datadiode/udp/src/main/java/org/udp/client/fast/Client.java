@@ -18,12 +18,13 @@ public class Client {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Client.class);
 
-    static String hostname = "192.168.2.255";
+    static String hostname = "192.168.1.2";
     static int port = 9999;
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
     int packetSize = 8192;
-    int packetCount = 1024 * 1024;
+    int packetCount = 1024 * 128;
+
     int packetRate = 14500;
 
     Client() throws UnknownHostException, SocketException {
