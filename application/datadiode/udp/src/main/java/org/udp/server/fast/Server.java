@@ -58,10 +58,11 @@ public class Server {
                     indexBytes[i] = m[i];
                 }
                 int index = Ints.fromByteArray(m);
-
+/**
                 if (oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
                     log.warn("packet loss: " + index + ", " + oldIndex);
                 }
+*/
                 oldIndex = index;
                 // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
 
@@ -92,7 +93,7 @@ public class Server {
                 log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
                 old = atomicInteger.get();
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(7500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
