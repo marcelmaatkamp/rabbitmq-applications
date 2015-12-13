@@ -140,7 +140,7 @@ public class RabbitServer {
                     int size = concurrentLinkedQueue.size();
 
                     for(byte[] msg : concurrentLinkedQueue) {
-                        this.channel.basicPublish("udp", "", null, msg);
+                        // this.channel.basicPublish("udp", "", null, msg);
                         concurrentLinkedQueue.remove(msg);
                     }
                     if(size == 0) {
