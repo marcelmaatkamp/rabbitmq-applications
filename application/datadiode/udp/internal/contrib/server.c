@@ -61,15 +61,15 @@ int main(void) {
     die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
 
     while(1) {
-        printf("Waiting for data...");
-        fflush(stdout);
+        // printf("Waiting for data...");
+        // fflush(stdout);
 
         if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1) {
             died("recvfrom()");
         }
 
-        printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        printf("Data: %s\n" , buf);
+    //    printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+    ////    printf("Data: %s\n" , buf);
 
         amqp_bytes_t message_bytes;
         message_bytes.len = sizeof(buf);
