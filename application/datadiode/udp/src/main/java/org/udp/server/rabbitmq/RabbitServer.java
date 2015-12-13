@@ -37,7 +37,7 @@ public class RabbitServer {
 
         ConnectionFactory factory = new ConnectionFactory();
 
-        factory.setHost("localhost");
+        factory.setHost("192.168.178.13");
         factory.setUsername("guest");
         factory.setPassword("guest");
         factory.setPort(5674);
@@ -57,7 +57,7 @@ public class RabbitServer {
 
         ServerThread serverThread = new ServerThread(atomicInteger);
         serverThread.start();
-        log.info("receiving: " + serverPort + " " + socket);
+        log.info("receiving: " + serverPort + " " + socket + ", sending: " + factory + ",  " + conn + ", " + channel);
 
         try {
             while (true) {
