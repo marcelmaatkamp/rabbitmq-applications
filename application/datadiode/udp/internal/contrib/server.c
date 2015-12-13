@@ -43,17 +43,17 @@ int main(void) {
 
     // amqp
     char const *hostname = "localhost";
-    int port = 5674;
+    int port = 5674, status;
     amqp_socket_t *socket = NULL;
     amqp_connection_state_t conn;
     conn = amqp_new_connection();
     socket = amqp_tcp_socket_new(conn);
     if (!socket) {
-      die("creating TCP socket");
+      died("creating TCP socket");
     }
     status = amqp_socket_open(socket, hostname, port);
     if (status) {
-      die("opening TCP socket");
+      died("opening TCP socket");
     }
 
     die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"), "Logging in");
