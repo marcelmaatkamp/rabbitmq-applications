@@ -78,8 +78,7 @@ int main(void) {
         die_on_error(amqp_basic_publish(conn, 1,
           amqp_cstring_bytes("udp"),
           amqp_cstring_bytes("udp"),
-          0, 0,NULL, message_bytes),Publishing"
-        );
+          0, 0,NULL, message_bytes),"Publishing");
     }
 
     close(s);
