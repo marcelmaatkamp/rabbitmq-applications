@@ -197,8 +197,8 @@ project(":application:datadiode:udp") {
     task runFastRabbitServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
         main = 'org.udp.server.rabbitmq.FastRabbitServer'
-        jvmArgs "-Xmx4096m", "-verbose:gc"
-        args "-verbose:gc"
+        jvmArgs "-d64", "-Xmx8g", "-XX:+PrintGCTimeStamps", "-verbose:gc"
+        args ""
     }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
