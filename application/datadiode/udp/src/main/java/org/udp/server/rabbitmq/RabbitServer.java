@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -131,7 +132,7 @@ public class RabbitServer {
         LinkedBlockingQueue<byte[]> linkedBlockingQueue;
         Channel channel;
 
-        Collection<byte[]> collection;
+        Collection<byte[]> collection = new ArrayList<>();
 
         public SendThread(LinkedBlockingQueue<byte[]> linkedBlockingQueue, Channel channel) throws SocketException {
             this.linkedBlockingQueue = linkedBlockingQueue;
@@ -143,7 +144,8 @@ public class RabbitServer {
                 try {
                     linkedBlockingQueue.drainTo(collection);
                     for(byte[] msg : collection) {
-                        this.channel.basicPublish("udp", "", null, msg);
+                        // this.channel.basicPublish("udp", "", null, msg);
+                        collection.remove(msg);
                     }
                 }catch(Exception e) {
                     log.error("Exception: ", e);
