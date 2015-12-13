@@ -187,7 +187,7 @@ project(":application:datadiode:udp") {
     task runServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
         main = 'org.udp.server.fast.Server'
-        args 'org.udp.server.fast.Server'
+        args ''
     }
     task runRabbitServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
@@ -196,7 +196,7 @@ project(":application:datadiode:udp") {
     }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
-        main = 'org.udp.client.fast.Client'
+        main = 'org.udp.server.rabbitmq.RabbitServer'
         args ''
     }
 }
