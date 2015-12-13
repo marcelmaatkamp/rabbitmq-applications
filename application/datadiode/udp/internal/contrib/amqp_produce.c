@@ -77,7 +77,7 @@ int main(int argc, char const *const *argv)
   char const *hostname = "localhost";
   int port = 5674;
   amqp_socket_t *socket = NULL;
-  amqp_connection_state_t conn;
+  amqp_connection_state_t conn;:w
   conn = amqp_new_connection();
   socket = amqp_tcp_socket_new(conn);
   if (!socket) {
