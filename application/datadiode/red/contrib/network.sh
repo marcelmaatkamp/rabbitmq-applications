@@ -2,8 +2,8 @@
 ifconfig p1p1 192.168.1.2 mtu 9710 txqueuelen 1000 up
 arp -s 192.168.1.1 00:25:90:eb:e0:9e
 sudo sysctl -w \
-  net.core.rmem_max=26214400 \
-  net.core.wmem_max=16777216 \
+  net.core.rmem_max=86214400 \
+  net.core.wmem_max=26214400 \
   net.core.rmem_default=524288 \
   net.core.wmem_default=524288 \
   fs.file-max=100000 \
