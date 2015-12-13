@@ -8,5 +8,6 @@ var socket = dgram.createSocket('udp4');
 socket.bind(9999);
 socket.on('message', function(msg, rinfo) {
     // console.log('Received %d bytes from %s:%d\n', msg.length, rinfo.address, rinfo.port);
+    var message = new amqp.Message(msg);
     exchange.send(msg);
 });
