@@ -20,7 +20,7 @@ public class Server {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
 
     static int serverPort = 9999;
-    static int packetSize = 1300;
+    static int packetSize = 8192;
 
     static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
@@ -42,30 +42,20 @@ public class Server {
         log.info("receiving: " + serverPort + " " + socket);
 
         try {
-
-
             while (true) {
 
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
 
-                // log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
-
-                byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-
-                for (int i = 0; i < 4; i++) {
-                    indexBytes[i] = m[i];
-                }
-                int index = Ints.fromByteArray(m);
-/**
-                if (oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
-                    log.warn("packet loss: " + index + ", " + oldIndex);
-                }
-*/
-                oldIndex = index;
-                // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
-
+                /**
+                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+                 for (int i = 0; i < 4; i++) {
+                 indexBytes[i] = m[i];
+                 }
+                 int index = Ints.fromByteArray(m);
+                 oldIndex = index;
+                 */
             }
         } finally {
             log.info("received: " + atomicInteger.get());
