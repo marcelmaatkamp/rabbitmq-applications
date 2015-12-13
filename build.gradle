@@ -197,7 +197,7 @@ project(":application:datadiode:udp") {
     task runFastRabbitServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
         main = 'org.udp.server.rabbitmq.FastRabbitServer'
-        jvmArgs = '-XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=1'
+        jvmArgs '-Xmx1024m", "-XX:MaxPermSize=128m -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=1'
         args ''
     }
     task runClient(type: JavaExec) {
