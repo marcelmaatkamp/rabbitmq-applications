@@ -194,6 +194,11 @@ project(":application:datadiode:udp") {
         main = 'org.udp.server.rabbitmq.RabbitServer'
         args ''
     }
+    task runFastRabbitServer(type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'org.udp.server.rabbitmq.FastRabbitServer'
+        args ''
+    }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
         main = 'org.udp.client.fast.Client'
