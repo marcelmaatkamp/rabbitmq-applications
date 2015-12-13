@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -130,6 +131,8 @@ public class RabbitServer {
         LinkedBlockingQueue<byte[]> linkedBlockingQueue;
         Channel channel;
 
+        Collection<byte[]> collection;
+
         public SendThread(LinkedBlockingQueue<byte[]> linkedBlockingQueue, Channel channel) throws SocketException {
             this.linkedBlockingQueue = linkedBlockingQueue;
             this.channel = channel;
@@ -138,7 +141,10 @@ public class RabbitServer {
         public void run() {
             while (true) {
                 try {
-                    this.channel.basicPublish("udp", "", null, linkedBlockingQueue.take());
+                    linkedBlockingQueue.drainTo(collection);
+                    for(byte[] msg : collection) {
+                        this.channel.basicPublish("udp", "", null, msg);
+                    }
                 }catch(Exception e) {
                     log.error("Exception: ", e);
                 }
