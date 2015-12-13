@@ -143,9 +143,11 @@ public class RabbitServer {
             while (true) {
                 try {
                     linkedBlockingQueue.drainTo(collection);
-                    for(byte[] msg : collection) {
-                        // this.channel.basicPublish("udp", "", null, msg);
-                        collection.remove(msg);
+                    if(collection.size() > 0) {
+                        for (byte[] msg : collection) {
+                            // this.channel.basicPublish("udp", "", null, msg);
+                            collection.remove(msg);
+                        }
                     }
                 }catch(Exception e) {
                     log.error("Exception: ", e);
