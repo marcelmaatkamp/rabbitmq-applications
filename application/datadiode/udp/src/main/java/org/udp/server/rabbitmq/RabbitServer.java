@@ -142,8 +142,9 @@ public class RabbitServer {
         public void run() {
             while (true) {
                 try {
-                    linkedBlockingQueue.drainTo(collection);
-                    if(collection.size() > 0) {
+                    int count = linkedBlockingQueue.drainTo(collection);
+                    log.info("count: " + count);
+                    if(count > 0) {
                         for (byte[] msg : collection) {
                             // this.channel.basicPublish("udp", "", null, msg);
                             collection.remove(msg);
