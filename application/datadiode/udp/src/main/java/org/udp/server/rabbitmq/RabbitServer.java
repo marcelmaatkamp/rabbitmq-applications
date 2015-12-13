@@ -144,7 +144,7 @@ public class RabbitServer {
                         concurrentLinkedQueue.remove(msg);
                     }
                     if(size == 0) {
-                        Thread.sleep(10);
+                        Thread.sleep(5);
                     }
                     size=0;
                 }catch(Exception e) {
