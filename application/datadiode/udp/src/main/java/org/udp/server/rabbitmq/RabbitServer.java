@@ -11,6 +11,7 @@ import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,7 +35,7 @@ public class RabbitServer {
     Connection conn;
     Channel channel;
 
-    ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue = new ConcurrentLinkedQueue();
+    LinkedBlockingQueue<byte[]> linkedBlockingQueue = new LinkedBlockingQueue();
 
     RabbitServer() throws IOException, TimeoutException {
 
@@ -61,7 +62,7 @@ public class RabbitServer {
         StatsThread statsThread = new StatsThread(atomicInteger);
         statsThread.start();
 
-        SendThread sendThread = new SendThread(concurrentLinkedQueue, this.channel);
+        SendThread sendThread = new SendThread(linkedBlockingQueue, this.channel);
         sendThread.start();
 
         log.info("receiving: " + serverPort + " " + socket + ", sending: " + factory + ",  " + conn + ", " + channel);
@@ -73,7 +74,7 @@ public class RabbitServer {
                 atomicInteger.incrementAndGet();
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                concurrentLinkedQueue.add(m);
+                linkedBlockingQueue.add(m);
             }
         } finally {
             log.info("received: " + atomicInteger.get());
@@ -126,27 +127,18 @@ public class RabbitServer {
     class SendThread extends Thread {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(SendThread.class);
 
-        ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue;
+        LinkedBlockingQueue<byte[]> linkedBlockingQueue;
         Channel channel;
 
-        public SendThread(ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue, Channel channel) throws SocketException {
-            this.concurrentLinkedQueue = concurrentLinkedQueue;
+        public SendThread(LinkedBlockingQueue<byte[]> linkedBlockingQueue, Channel channel) throws SocketException {
+            this.linkedBlockingQueue = linkedBlockingQueue;
             this.channel = channel;
         }
 
         public void run() {
             while (true) {
                 try {
-                    int size = concurrentLinkedQueue.size();
-
-                    for(byte[] msg : concurrentLinkedQueue) {
-                        // this.channel.basicPublish("udp", "", null, msg);
-                        concurrentLinkedQueue.remove(msg);
-                    }
-                    if(size == 0) {
-                        Thread.sleep(5);
-                    }
-                    size=0;
+                    this.channel.basicPublish("udp", "", null, linkedBlockingQueue.take());
                 }catch(Exception e) {
                     log.error("Exception: ", e);
                 }
