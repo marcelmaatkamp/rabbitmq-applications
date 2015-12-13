@@ -99,6 +99,10 @@ public class Server {
                     log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
                     prev = now;
                 } else {
+                    log.info("----------------------- ");
+                    log.info("total packets received: " + total);
+                    log.info("----------------------- ");
+
                     total = 0;
                 }
 
