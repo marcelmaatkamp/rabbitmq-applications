@@ -1,6 +1,9 @@
 package org.udp.server.rabbitmq;
 
 
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -8,6 +11,7 @@ import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -28,9 +32,9 @@ public class FastRabbitServer {
 
     LinkedBlockingQueue<byte[]> linkedBlockingQueue = new LinkedBlockingQueue();
 
-    FastRabbitServer() throws IOException {
-        DatagramChannel channel = DatagramChannel.open();
-        DatagramSocket socket = channel.socket();
+    FastRabbitServer() throws IOException, TimeoutException {
+        DatagramChannel datagramChannel = DatagramChannel.open();
+        DatagramSocket socket = datagramChannel.socket();
         socket.setReceiveBufferSize(8192 * 128); // THIS!
 
         SocketAddress address = new InetSocketAddress(serverPort);
@@ -43,24 +47,22 @@ public class FastRabbitServer {
         serverThread.start();
         log.info("receiving: " + serverPort + " " + socket);
 
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setPort(5674);
+
+        Connection conn = factory.newConnection();
+        Channel channel = conn.createChannel();
+
         try {
             while (true) {
 
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
-
-                byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-
-
-                /**
-                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                 for (int i = 0; i < 4; i++) {
-                 indexBytes[i] = m[i];
-                 }
-                 int index = Ints.fromByteArray(m);
-                 oldIndex = index;
-                 */
+                channel.basicPublish("udp", "", null, Arrays.copyOfRange(packet.getData(), 0, packet.getLength()));
             }
         } catch (Exception e) {
             log.error("Exception: ",e);
