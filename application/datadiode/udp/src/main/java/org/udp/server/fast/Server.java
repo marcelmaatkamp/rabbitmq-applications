@@ -96,7 +96,7 @@ public class Server {
 
                 if(diff > 0) {
                     total = total + diff;
-                    log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
+                    log.info("packets: diff(" + diff + "), total in session(" + total + "), total("+atomicInteger.get()+")");
                     prev = now;
                 } else if(total > 0) {
                     log.info("----------------------- ");
@@ -106,7 +106,7 @@ public class Server {
                 }
 
                 try {
-                    Thread.sleep(7500);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
