@@ -50,7 +50,9 @@ public class RabbitServer {
         factory.setPort(5674);
 
         conn = factory.newConnection();
+
         channel = conn.createChannel();
+
 
         DatagramChannel datagramChannel = DatagramChannel.open();
         DatagramSocket socket = datagramChannel.socket();
