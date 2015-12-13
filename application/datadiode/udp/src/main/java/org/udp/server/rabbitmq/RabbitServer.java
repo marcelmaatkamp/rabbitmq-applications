@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +34,8 @@ public class RabbitServer {
     Connection conn;
     Channel channel;
 
+    ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue = new ConcurrentLinkedQueue();
+
     RabbitServer() throws IOException, TimeoutException {
 
         ConnectionFactory factory = new ConnectionFactory();
@@ -55,8 +58,9 @@ public class RabbitServer {
         byte[] message = new byte[packetSize];
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
-        ServerThread serverThread = new ServerThread(atomicInteger);
-        serverThread.start();
+        StatsThread statsThread = new StatsThread(atomicInteger);
+        statsThread.start();
+
         log.info("receiving: " + serverPort + " " + socket + ", sending: " + factory + ",  " + conn + ", " + channel);
 
         try {
@@ -66,7 +70,7 @@ public class RabbitServer {
                 atomicInteger.incrementAndGet();
 
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                this.channel.basicPublish("udp", "", null, m);
+                concurrentLinkedQueue.add(m);
             }
         } finally {
             log.info("received: " + atomicInteger.get());
@@ -78,15 +82,15 @@ public class RabbitServer {
     }
 
 
-    class ServerThread extends Thread {
+    class StatsThread extends Thread {
 
-        private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
+        private final org.slf4j.Logger log = LoggerFactory.getLogger(StatsThread.class);
 
         AtomicInteger atomicInteger;
         int prev = 0;
         int total = 0;
 
-        public ServerThread(AtomicInteger atomicInteger) throws SocketException {
+        public StatsThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
         }
 
@@ -115,5 +119,31 @@ public class RabbitServer {
         }
     }
 
+
+    class SendThread extends Thread {
+        private final org.slf4j.Logger log = LoggerFactory.getLogger(SendThread.class);
+
+        ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue;
+        Channel channel;
+
+        public SendThread(ConcurrentLinkedQueue<byte[]> concurrentLinkedQueue, Channel channel) throws SocketException {
+            this.concurrentLinkedQueue = concurrentLinkedQueue;
+            this.channel = channel;
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    for(byte[] msg : concurrentLinkedQueue) {
+                        this.channel.basicPublish("udp", "", null, msg);
+                        concurrentLinkedQueue.remove(msg);
+                    }
+                    Thread.sleep(10);
+                }catch(Exception e) {
+                    log.error("Exception: ", e);
+                }
+            }
+        }
+    }
 
 }
