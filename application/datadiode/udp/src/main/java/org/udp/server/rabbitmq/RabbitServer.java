@@ -48,8 +48,8 @@ public class RabbitServer {
         conn = factory.newConnection();
         channel = conn.createChannel();
 
-        DatagramChannel channel = DatagramChannel.open();
-        DatagramSocket socket = channel.socket();
+        DatagramChannel datagramChannel = DatagramChannel.open();
+        DatagramSocket socket = datagramChannel.socket();
         socket.setReceiveBufferSize(8192 * 128); // THIS!
 
         SocketAddress address = new InetSocketAddress(serverPort);
@@ -60,6 +60,9 @@ public class RabbitServer {
 
         StatsThread statsThread = new StatsThread(atomicInteger);
         statsThread.start();
+
+        SendThread sendThread = new SendThread(concurrentLinkedQueue, this.channel);
+        sendThread.start();
 
         log.info("receiving: " + serverPort + " " + socket + ", sending: " + factory + ",  " + conn + ", " + channel);
 
