@@ -18,6 +18,7 @@ import java.net.*;
 /**
  * Created by marcelmaatkamp on 15/10/15.
  */
+
 public class GenericMessageUdpSenderListener implements ChannelAwareMessageListener {
     private static final Logger log = LoggerFactory.getLogger(GenericMessageUdpSenderListener.class);
 
