@@ -12,6 +12,7 @@ import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -132,7 +133,7 @@ public class RabbitServer {
         LinkedBlockingQueue<byte[]> linkedBlockingQueue;
         Channel channel;
 
-        Collection<byte[]> collection = new ArrayList<>();
+        List<byte[]> list = new ArrayList<>();
 
         public SendThread(LinkedBlockingQueue<byte[]> linkedBlockingQueue, Channel channel) throws SocketException {
             this.linkedBlockingQueue = linkedBlockingQueue;
@@ -142,14 +143,12 @@ public class RabbitServer {
         public void run() {
             while (true) {
                 try {
-                    int count = linkedBlockingQueue.drainTo(collection);
-                    log.info("count: " + count);
-                    if(count > 0) {
-                        for (byte[] msg : collection) {
-                            // this.channel.basicPublish("udp", "", null, msg);
-                            collection.remove(msg);
-                        }
+                    list.add(linkedBlockingQueue.take());
+                    int count = linkedBlockingQueue.drainTo(list);
+                    for (byte[] msg : list) {
+                        this.channel.basicPublish("udp", "", null, msg);
                     }
+                    list.clear();
                 }catch(Exception e) {
                     log.error("Exception: ", e);
                 }
