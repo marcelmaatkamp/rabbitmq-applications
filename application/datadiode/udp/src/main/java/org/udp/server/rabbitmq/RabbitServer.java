@@ -137,11 +137,16 @@ public class RabbitServer {
         public void run() {
             while (true) {
                 try {
+                    int size = concurrentLinkedQueue.size();
+
                     for(byte[] msg : concurrentLinkedQueue) {
                         this.channel.basicPublish("udp", "", null, msg);
                         concurrentLinkedQueue.remove(msg);
                     }
-                    Thread.sleep(10);
+                    if(size == 0) {
+                        Thread.sleep(10);
+                    }
+                    size=0;
                 }catch(Exception e) {
                     log.error("Exception: ", e);
                 }
