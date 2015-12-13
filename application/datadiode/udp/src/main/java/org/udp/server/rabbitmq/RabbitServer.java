@@ -40,7 +40,7 @@ public class RabbitServer {
 
         ConnectionFactory factory = new ConnectionFactory();
 
-        factory.setHost("192.168.178.13");
+        factory.setHost("localhost");
         factory.setUsername("guest");
         factory.setPassword("guest");
         factory.setPort(5674);
