@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -25,6 +26,8 @@ public class Server {
     static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
     static int oldIndex = -1;
+
+    LinkedBlockingQueue<byte[]> linkedBlockingQueue = new LinkedBlockingQueue();
 
     Server() throws IOException {
         DatagramChannel channel = DatagramChannel.open();
@@ -48,6 +51,9 @@ public class Server {
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
 
+                byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+
+
                 /**
                  byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
                  for (int i = 0; i < 4; i++) {
@@ -57,6 +63,8 @@ public class Server {
                  oldIndex = index;
                  */
             }
+        } catch (Exception e) {
+            log.error("Exception: ",e);
         } finally {
             log.info("received: " + atomicInteger.get());
         }

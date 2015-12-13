@@ -146,7 +146,7 @@ public class RabbitServer {
                     list.add(linkedBlockingQueue.take());
                     int count = linkedBlockingQueue.drainTo(list);
                     for (byte[] msg : list) {
-                        this.channel.basicPublish("udp", "", null, msg);
+                        // this.channel.basicPublish("udp", "", null, msg);
                     }
                     list.clear();
                 }catch(Exception e) {
