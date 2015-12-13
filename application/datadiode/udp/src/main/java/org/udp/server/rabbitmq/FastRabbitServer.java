@@ -66,8 +66,7 @@ public class FastRabbitServer {
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
-                byte[] msg = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                channel.basicPublish("udp", "", null, msg);
+                channel.basicPublish("udp", "", null, Arrays.copyOfRange(packet.getData(), 0, packet.getLength()));
             }
         } catch (Exception e) {
             log.error("Exception: ",e);
