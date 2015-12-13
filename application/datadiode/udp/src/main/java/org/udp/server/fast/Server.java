@@ -58,10 +58,11 @@ public class Server {
                     indexBytes[i] = m[i];
                 }
                 int index = Ints.fromByteArray(m);
-
+/**
                 if (oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
                     log.warn("packet loss: " + index + ", " + oldIndex);
                 }
+*/
                 oldIndex = index;
                 // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
 
@@ -81,7 +82,8 @@ public class Server {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
-        int old = 0;
+        int prev = 0;
+        int total = 0;
 
         public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
@@ -89,10 +91,19 @@ public class Server {
 
         public void run() {
             while (true) {
-                log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
-                old = atomicInteger.get();
+                int now = atomicInteger.get();
+                int diff = (now - prev);
+
+                if(diff > 0) {
+                    total = total + diff;
+                    log.info("packets: " + atomicInteger.get() + " (" + diff + "), total(" + total + ")");
+                    prev = now;
+                } else {
+                    total = 0;
+                }
+
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(7500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
