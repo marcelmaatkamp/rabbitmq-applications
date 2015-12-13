@@ -11,9 +11,7 @@ import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +35,7 @@ public class RabbitServer {
 
         new Thread(new Publisher(linkedBlockingQueue)).start();
         new Thread(new Consumer(linkedBlockingQueue, atomicInteger)).start();
-        new Thread(new FastRabbitServer.StatsThread(atomicInteger)).start();
+        new Thread(new FastRabbitServerOld.StatsThread(atomicInteger)).start();
     }
 
     static class Consumer implements Runnable {
