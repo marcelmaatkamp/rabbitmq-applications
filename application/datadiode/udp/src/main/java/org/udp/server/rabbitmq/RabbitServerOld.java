@@ -1,13 +1,17 @@
-package org.udp.server.fast;
+package org.udp.server.rabbitmq;
 
 
 import com.google.common.primitives.Ints;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -15,18 +19,32 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by marcel on 06-12-15.
  */
 
-public class Server {
+public class RabbitServerOld {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(RabbitServerOld.class);
 
     static int serverPort = 9999;
-    static int packetSize = 8192;
+    static int packetSize = 1300;
 
     static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
     static int oldIndex = -1;
 
-    Server() throws IOException {
+
+    ConnectionFactory factory;
+    Connection conn;
+    Channel channel;
+
+    RabbitServerOld() throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("localhost");
+        factory.setPort(5674);
+        conn = factory.newConnection();
+        channel = conn.createChannel();
+
+
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
         socket.setReceiveBufferSize(8192 * 128); // THIS!
@@ -42,20 +60,30 @@ public class Server {
         log.info("receiving: " + serverPort + " " + socket);
 
         try {
+
+
             while (true) {
 
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
 
-                /**
-                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                 for (int i = 0; i < 4; i++) {
-                 indexBytes[i] = m[i];
-                 }
-                 int index = Ints.fromByteArray(m);
-                 oldIndex = index;
-                 */
+                // log.info("["+atomicInteger.get()+"] RabbitServer received "+ +packet.getLength());
+
+                byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+                this.channel.basicPublish("udp", "", null, m);
+
+                for (int i = 0; i < 4; i++) {
+                    indexBytes[i] = m[i];
+                }
+                int index = Ints.fromByteArray(m);
+
+                if (oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
+                    log.warn("packet loss: " + index + ", " + oldIndex);
+                }
+                oldIndex = index;
+                // log.info("RabbitServer received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
+
             }
         } finally {
             log.info("received: " + atomicInteger.get());
@@ -63,7 +91,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server();
+        RabbitServerOld server = new RabbitServerOld();
     }
 
 
@@ -72,8 +100,7 @@ public class Server {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
-        int prev = 0;
-        int total = 0;
+        int old = 0;
 
         public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
@@ -81,22 +108,10 @@ public class Server {
 
         public void run() {
             while (true) {
-                int now = atomicInteger.get();
-                int diff = (now - prev);
-
-                if(diff > 0) {
-                    total = total + diff;
-                    log.info("packets: diff(" + diff + "), total in session(" + total + "), total("+atomicInteger.get()+")");
-                    prev = now;
-                } else if(total > 0) {
-                    log.info("----------------------- ");
-                    log.info("total packets received: " + total);
-                    log.info("----------------------- ");
-                    total = 0;
-                }
-
+                log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
+                old = atomicInteger.get();
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(15000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -1,7 +1,6 @@
 package org.udp.server.rabbitmq;
 
 
-import com.google.common.primitives.Ints;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -24,26 +23,27 @@ public class RabbitServer {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(RabbitServer.class);
 
     static int serverPort = 9999;
-    static int packetSize = 1300;
+    static int packetSize = 8192;
 
     static byte[] b = new byte[packetSize];
     static byte[] indexBytes = new byte[4];
     static int oldIndex = -1;
-
 
     ConnectionFactory factory;
     Connection conn;
     Channel channel;
 
     RabbitServer() throws IOException, TimeoutException {
+
         ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setHost("192.168.178.13");
         factory.setUsername("guest");
         factory.setPassword("guest");
-        factory.setHost("localhost");
         factory.setPort(5674);
+
         conn = factory.newConnection();
         channel = conn.createChannel();
-
 
         DatagramChannel channel = DatagramChannel.open();
         DatagramSocket socket = channel.socket();
@@ -57,33 +57,16 @@ public class RabbitServer {
 
         ServerThread serverThread = new ServerThread(atomicInteger);
         serverThread.start();
-        log.info("receiving: " + serverPort + " " + socket);
+        log.info("receiving: " + serverPort + " " + socket + ", sending: " + factory + ",  " + conn + ", " + channel);
 
         try {
-
-
             while (true) {
-
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
 
-                // log.info("["+atomicInteger.get()+"] Server received "+ +packet.getLength());
-
                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
                 this.channel.basicPublish("udp", "", null, m);
-
-                for (int i = 0; i < 4; i++) {
-                    indexBytes[i] = m[i];
-                }
-                int index = Ints.fromByteArray(m);
-
-                if (oldIndex != -1 && index != 0 && index != (oldIndex + 1)) {
-                    log.warn("packet loss: " + index + ", " + oldIndex);
-                }
-                oldIndex = index;
-                // log.info("Server received "+ +b.length+": " + new String(Base64.encodeBase64(b)));
-
             }
         } finally {
             log.info("received: " + atomicInteger.get());
@@ -91,7 +74,7 @@ public class RabbitServer {
     }
 
     public static void main(String[] args) throws Exception {
-        RabbitServer server = new RabbitServer();
+        RabbitServer rabbitServer = new RabbitServer();
     }
 
 
@@ -100,7 +83,8 @@ public class RabbitServer {
         private final org.slf4j.Logger log = LoggerFactory.getLogger(ServerThread.class);
 
         AtomicInteger atomicInteger;
-        int old = 0;
+        int prev = 0;
+        int total = 0;
 
         public ServerThread(AtomicInteger atomicInteger) throws SocketException {
             this.atomicInteger = atomicInteger;
@@ -108,10 +92,22 @@ public class RabbitServer {
 
         public void run() {
             while (true) {
-                log.info("packets: " + atomicInteger.get() + " (" + (atomicInteger.get() - old) + ")");
-                old = atomicInteger.get();
+                int now = atomicInteger.get();
+                int diff = (now - prev);
+
+                if (diff > 0) {
+                    total = total + diff;
+                    log.info("packets: diff(" + diff + "), total in session(" + total + "), total(" + atomicInteger.get() + ")");
+                    prev = now;
+                } else if (total > 0) {
+                    log.info("----------------------- ");
+                    log.info("total packets received: " + total);
+                    log.info("----------------------- ");
+                    total = 0;
+                }
+
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
