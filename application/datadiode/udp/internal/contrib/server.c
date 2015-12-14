@@ -42,8 +42,8 @@ int main(void) {
     }
 
     // amqp
-    // char const *hostname = "192.168.178.13"; int port = 32770;
-    char const *hostname = "localhost"; int port = 5674;
+     char const *hostname = "192.168.178.13"; int port = 32770;
+    // char const *hostname = "localhost"; int port = 5674;
     int status;
     amqp_socket_t *socket = NULL;
     amqp_connection_state_t conn;
