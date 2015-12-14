@@ -4,6 +4,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.codec.binary.Base64;
+import org.application.rabbitmq.datadiode.cutter.util.MyByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -98,7 +100,9 @@ public class Segment implements Serializable, Comparable<Segment> {
     }
 
     public byte[] toByteArray() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream( 29 + segment.length );
+
+        // 1 + 8 + 8 + 4 + 4 + 4 = 29 + segment.length
         bos.write(SegmentType.SEGMENT.getType());
         bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
         bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
@@ -107,6 +111,7 @@ public class Segment implements Serializable, Comparable<Segment> {
         bos.write(Ints.toByteArray(segment.length));
         bos.write(segment);
         bos.close();
+
         return bos.toByteArray();
     }
 

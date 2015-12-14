@@ -54,33 +54,6 @@ public class StreamUtils {
         int modulo = messageBytes.length % bufSize;
         MessageProperties messageProperties = message.getMessage().getMessageProperties();
 
-        /*
-        SegmentHeader sh = new SegmentHeader().
-                size(messageBytes.length).
-                blockSize(bufSize).
-                count(aantal);
-
-
-        if(calculateDigest) {
-            MessageDigest messageDigest = MessageDigest.getInstance(digestName);
-            messageDigest.update(messageBytes);
-            sh.digest(messageDigest.digest());
-        }
-
-
-        MessageProperties messageProperties = message.getMessage().getMessageProperties();
-        messageProperties.getHeaders().put("type", sh.getClass());
-        messageProperties.getHeaders().put("uuid", sh.uuid);
-        messageProperties.getHeaders().put("block", sh.blockSize);
-        messageProperties.getHeaders().put("count", sh.count);
-        messageProperties.getHeaders().put("size", sh.size);
-
-        List<Message> headers = new ArrayList();
-        if(log.isDebugEnabled()) {
-            log.debug("[" + sh.uuid.toString() + "]:  sh(" + sh.toByteArray(calculateDigest).length + ")");
-        }
-        addRedundantly(headers, new Message(sh.toByteArray(calculateDigest), messageProperties), redundancyFactor);
-        */
         // blocksize
         for (int i = 0; i < count; i++) {
             int start = i * bufSize;
