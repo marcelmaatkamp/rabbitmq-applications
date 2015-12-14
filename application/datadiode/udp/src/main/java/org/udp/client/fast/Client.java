@@ -23,7 +23,7 @@ public class Client {
 
     // (8192 * 1024 * 256)/1024/1024 = 2048 = 2G
     int packetSize = 8192;
-    int packetCount = 1024 * 512;
+    int packetCount = 1024 * 1024 * 8;
 
     // int packetRate = 59500; // transferred 1048576 packets of 8192 bytes = 8192 MB in 17.598 secs = 59585.0 pkts/sec or 466.0 MB/sec = (100/1048576)* 1048234 = 99.967384338 
     // int packetRate = 79500; // transferred 1048576 packets of 8192 bytes = 8192 MB in 13.175 secs = 79588.0 pkts/sec or 622.0 MB/sec = (100/1048576)*1048117 = 99.95% 
@@ -34,7 +34,7 @@ public class Client {
      // max = transferred 8388608 packets of 8192 bytes = 65536 MB in 55.441 secs = 151307.0 pkts/sec or 1182.0 MB/sec, received 8379876, (8388608-8379876) = 8732 packets lost = (100/8388608)*8379876 = 99.89%
      // duurtest: transferred 67108864 packets of 8192 bytes = 524288 MB in 447.257 secs = 150045.0 pkts/sec or 1172.0 MB/sec = 56637 = 99.91%
     // int packetRate = 8500;  // stable @c
-    int packetRate = 14500;  
+    int packetRate = 17500;  
 
     Client() throws UnknownHostException, SocketException {
         InetAddress ia = InetAddress.getByName(hostname);
