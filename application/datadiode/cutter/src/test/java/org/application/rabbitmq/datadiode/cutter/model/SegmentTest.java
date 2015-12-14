@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.TreeSet;
@@ -28,6 +29,43 @@ public class SegmentTest {
     int SEGMENT_09K_SIZE = 9000;
     int SEGMENT_64K_SIZE = 65535;
     int SEGMENT_MTU_SIZE = 1500;
+
+
+    @Test
+    public void testSegmentByteBuffer() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+        byte[] segment = RandomUtils.nextBytes(1255);
+        int index = 10;
+        UUID uuid = UUID.randomUUID();
+
+        ByteBuffer bos = ByteBuffer.allocate(29 + segment.length);
+        // 1 + 8 + 8 + 4 + 4 + 4 = 29 + segment.length
+        bos.put(SegmentType.SEGMENT.getType());
+        bos.putLong(uuid.getMostSignificantBits());
+        bos.putLong(uuid.getLeastSignificantBits());
+        bos.putInt(0);
+        bos.putInt(index);
+        bos.putInt(segment.length);
+        bos.put(segment);
+
+        byte[] result = bos.array();
+        log.info("length(" + result.length + "), data: " + Hex.encodeHexString(result));
+
+        ByteBuffer b = ByteBuffer.wrap(result);
+        Assert.assertEquals(SegmentType.SEGMENT.getType(), b.get());
+        Assert.assertEquals(b.getLong(), uuid.getMostSignificantBits());
+        Assert.assertEquals(b.getLong(), uuid.getLeastSignificantBits());
+        Assert.assertEquals(b.getInt(), 0);
+        Assert.assertEquals(b.getInt(), index);
+        Assert.assertEquals(b.getInt(), segment.length);
+        byte[] s = new byte[segment.length];
+        b.get(s);
+        Assert.assertArrayEquals(segment, s);
+
+
+
+
+    }
+
 
     @Test
     public void testSegmentByteArray() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {

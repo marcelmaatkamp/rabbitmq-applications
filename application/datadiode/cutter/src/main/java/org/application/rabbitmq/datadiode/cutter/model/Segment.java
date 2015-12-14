@@ -36,9 +36,17 @@ public class Segment implements Serializable, Comparable<Segment> {
     public int count;
 
     public static Segment fromByteArray(byte[] segmentData) throws IOException {
-        Segment segment = new Segment();
-        ByteArrayInputStream bis = new ByteArrayInputStream(segmentData);
+        Segment segment = null;
+        ByteBuffer b = ByteBuffer.wrap(segmentData);
 
+        byte type = b.get();
+        if (type == SegmentType.SEGMENT.getType()) {
+            segment = fromByteArray(b, segmentData);
+        } else {
+            log.warn("This array is not a segment type(" + type + ") unknown!");
+        }
+/**
+        ByteArrayInputStream bis = new ByteArrayInputStream(segmentData);
         byte type = (byte) bis.read();
 
         if (type == SegmentType.SEGMENT.getType()) {
@@ -46,12 +54,23 @@ public class Segment implements Serializable, Comparable<Segment> {
         } else {
             log.warn("This array is not a segment type(" + type + ") unknown!");
         }
-
         bis.close();
+   */
+
         return segment;
     }
 
-    public static Segment fromByteArray(ByteArrayInputStream bis, byte[] segmentData) throws IOException {
+    public static Segment fromByteArray(ByteBuffer b, byte[] segmentData) throws IOException {
+        Segment segment = new Segment();
+        byte type = b.get();
+        segment.uuid(new UUID(b.getLong(), b.getLong()));
+        segment.count(b.getInt());
+        segment.index(b.getInt());
+        segment.segment = new byte[b.getInt()];
+        b.get(segment.segment);
+        return segment;
+
+        /**
         byte[] longByteArray = new byte[LONG_SIZE];
         byte[] intByteArray = new byte[INT_SIZE];
 
@@ -72,6 +91,37 @@ public class Segment implements Serializable, Comparable<Segment> {
         segment.segment = new byte[Ints.fromByteArray(intByteArray)];
         bis.read(segment.segment);
         return segment;
+         */
+    }
+
+    public byte[] toByteArray() throws IOException {
+
+        ByteBuffer bos = ByteBuffer.allocate(29 + segment.length);
+        // 1 + 8 + 8 + 4 + 4 + 4 = 29 + segment.length
+        bos.put(SegmentType.SEGMENT.getType());
+        bos.putLong(uuid.getMostSignificantBits());
+        bos.putLong(uuid.getLeastSignificantBits());
+        bos.putInt(count);
+        bos.putInt(index);
+        bos.putInt(segment.length);
+        bos.put(segment);
+        return bos.array();
+
+/**
+ ByteArrayOutputStream bos = new ByteArrayOutputStream( 29 + segment.length );
+
+ // 1 + 8 + 8 + 4 + 4 + 4 = 29 + segment.length
+ bos.write(SegmentType.SEGMENT.getType());
+ bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
+ bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
+ bos.write(Ints.toByteArray(count));
+ bos.write(Ints.toByteArray(index));
+ bos.write(Ints.toByteArray(segment.length));
+ bos.write(segment);
+ bos.close();
+
+ return bos.toByteArray();
+ */
     }
 
     public Segment index(final int index) {
@@ -97,22 +147,6 @@ public class Segment implements Serializable, Comparable<Segment> {
     @Override
     public int compareTo(Segment o) {
         return this.index - o.index;
-    }
-
-    public byte[] toByteArray() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream( 29 + segment.length );
-
-        // 1 + 8 + 8 + 4 + 4 + 4 = 29 + segment.length
-        bos.write(SegmentType.SEGMENT.getType());
-        bos.write(Longs.toByteArray(uuid.getMostSignificantBits()));
-        bos.write(Longs.toByteArray(uuid.getLeastSignificantBits()));
-        bos.write(Ints.toByteArray(count));
-        bos.write(Ints.toByteArray(index));
-        bos.write(Ints.toByteArray(segment.length));
-        bos.write(segment);
-        bos.close();
-
-        return bos.toByteArray();
     }
 
     public String getDigest() throws NoSuchAlgorithmException {

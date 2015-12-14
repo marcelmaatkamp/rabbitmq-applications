@@ -12,6 +12,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 
 import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,10 +39,10 @@ public class StreamUtilsTest {
 
         for (Message message : ms) {
             byte[] segment_or_header = message.getBody();
-            ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
+            // ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
+            ByteBuffer b = ByteBuffer.wrap(segment_or_header);
 
-
-            Segment segment = Segment.fromByteArray(bis, segment_or_header);
+            Segment segment = Segment.fromByteArray(b, segment_or_header);
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {
 
