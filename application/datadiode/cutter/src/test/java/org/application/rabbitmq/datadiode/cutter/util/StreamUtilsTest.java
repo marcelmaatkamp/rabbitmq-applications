@@ -41,7 +41,7 @@ public class StreamUtilsTest {
             byte[] segment_or_header = message.getBody();
             // ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
             ByteBuffer b = ByteBuffer.wrap(segment_or_header);
-
+            byte type = b.get();
             Segment segment = Segment.fromByteArray(b, segment_or_header);
             for (SegmentHeader segmentHeader : uMessages.keySet()) {
                 if (segmentHeader.uuid.equals(segment.uuid)) {

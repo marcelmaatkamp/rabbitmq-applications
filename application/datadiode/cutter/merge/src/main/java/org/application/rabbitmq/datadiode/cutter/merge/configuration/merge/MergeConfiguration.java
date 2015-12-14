@@ -39,6 +39,7 @@ import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Map;
@@ -193,12 +194,13 @@ public class MergeConfiguration implements MessageListener {
         byte[] segment_or_header = message.getBody();
 
         try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
-
-            byte type = (byte) bis.read();
+            // ByteArrayInputStream bis = new ByteArrayInputStream(segment_or_header);
+            // byte type = (byte) bis.read();
+            ByteBuffer b = ByteBuffer.wrap(segment_or_header);
+            byte type = b.get();
 
             if (type == SegmentType.SEGMENT.getType()) {
-                Segment segment = Segment.fromByteArray(bis, segment_or_header);
+                Segment segment = Segment.fromByteArray(b, segment_or_header);
 
                 // log.info("[" + segment.uuid + "]: index(" + segment.index + ")..payload(" + segment.segment.length + ").segment("+segment.toByteArray().length+") : " + segment.getDigest()+")");
 

@@ -62,7 +62,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 
     public static Segment fromByteArray(ByteBuffer b, byte[] segmentData) throws IOException {
         Segment segment = new Segment();
-        byte type = b.get();
+        // byte type = b.get();
         segment.uuid(new UUID(b.getLong(), b.getLong()));
         segment.count(b.getInt());
         segment.index(b.getInt());
