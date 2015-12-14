@@ -121,7 +121,9 @@ project(":application:datadiode:red") {
         compile project(':application:datadiode')
         compile project(':application:datadiode:encryption:decrypt')
         compile project(':application:datadiode:cutter:merge')
-        compile project(':application:datadiode:udp:internal')
+        
+        // use the dedicated c version without packet loss
+        // compile project(':application:datadiode:udp:internal')
     }
     springBoot {
         mainClass = "org.application.rabbitmq.datadiode.DatadiodeRedStarter"
@@ -179,9 +181,13 @@ project(":application:datadiode:cutter:merge") {
 project(":application:datadiode:udp") {
     dependencies {
         compile project(':application:datadiode')
+<<<<<<< Updated upstream
         // compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
         // compile "org.springframework.integration:spring-integration-kafka:1.3.0.RELEASE"
 
+=======
+        compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+>>>>>>> Stashed changes
     }
     springBoot {
         mainClass = "org.udp.server.rabbitmq.RabbitServer"
