@@ -1,6 +1,7 @@
 #!/bin/bash
-
-sudo sysctl -w \
+ifconfig p1p1 192.168.1.2 mtu 9710
+arp -s 192.168.1.1 00:25:90:eb:e0:9e
+sysctl -w \
   net.core.rmem_max=26214400 \
   net.core.wmem_max=16777216 \
   net.core.rmem_default=524288 \
