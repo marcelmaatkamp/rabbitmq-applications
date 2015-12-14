@@ -1,6 +1,6 @@
 var amqp = require("amqp-ts");
 var connection = new amqp.Connection("amqp://localhost:5674");
-var queue = connection.declareQueue('udp', {durable: true});
+var queue = connection.declareQueue('udp_producer', {durable: true});
 
 var packets = 0;
 

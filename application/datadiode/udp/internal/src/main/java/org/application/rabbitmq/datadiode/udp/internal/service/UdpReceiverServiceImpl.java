@@ -57,12 +57,12 @@ public class UdpReceiverServiceImpl implements UdpReceiverService {
 
         byte[] message = new byte[packetSize];
 
-        log.info("receiving udp packets on port " + socket);
+        log.info("receiving udp_producer packets on port " + socket);
         while (true) {
             DatagramPacket packet = new DatagramPacket(message, message.length);
             socket.receive(packet);
             byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-            this.channel.basicPublish("udp", "", null, m);
+            this.channel.basicPublish("udp_producer", "", null, m);
         }
     }
 
