@@ -180,6 +180,8 @@ project(":application:datadiode:udp") {
     dependencies {
         compile project(':application:datadiode')
         compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+        compile "org.springframework.integration:spring-integration-kafka:1.3.0.RELEASE"
+
     }
     springBoot {
         mainClass = "org.udp.server.rabbitmq.RabbitServer"
@@ -187,7 +189,18 @@ project(":application:datadiode:udp") {
     task runServer(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath
         main = 'org.udp.server.fast.Server'
-        args 'org.udp.server.fast.Server'
+        args ''
+    }
+    task runRabbitServer(type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'org.udp.server.rabbitmq.RabbitServer'
+        args ''
+    }
+    task runFastRabbitServer(type: JavaExec) {
+        classpath = sourceSets.main.runtimeClasspath
+        main = 'org.udp.server.rabbitmq.FastRabbitServer'
+        jvmArgs "-d64", "-Xmx8g", "-XX:+PrintGCTimeStamps", "-verbose:gc"
+        args ""
     }
     task runClient(type: JavaExec) {
         classpath = sourceSets.main.runtimeClasspath

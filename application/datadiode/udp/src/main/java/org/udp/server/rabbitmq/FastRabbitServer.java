@@ -1,7 +1,9 @@
-package org.udp.server.fast;
+package org.udp.server.rabbitmq;
 
 
-import com.google.common.primitives.Ints;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -9,6 +11,7 @@ import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -16,9 +19,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by marcel on 06-12-15.
  */
 
-public class Server {
+public class FastRabbitServer {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Server.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(FastRabbitServer.class);
 
     static int serverPort = 9999;
     static int packetSize = 8192;
@@ -29,9 +32,9 @@ public class Server {
 
     LinkedBlockingQueue<byte[]> linkedBlockingQueue = new LinkedBlockingQueue();
 
-    Server() throws IOException {
-        DatagramChannel channel = DatagramChannel.open();
-        DatagramSocket socket = channel.socket();
+    FastRabbitServer() throws IOException, TimeoutException {
+        DatagramChannel datagramChannel = DatagramChannel.open();
+        DatagramSocket socket = datagramChannel.socket();
         socket.setReceiveBufferSize(8192 * 128); // THIS!
 
         SocketAddress address = new InetSocketAddress(serverPort);
@@ -44,24 +47,22 @@ public class Server {
         serverThread.start();
         log.info("receiving: " + serverPort + " " + socket);
 
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setPort(5674);
+
+        Connection conn = factory.newConnection();
+        Channel channel = conn.createChannel();
+
         try {
             while (true) {
 
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
                 atomicInteger.incrementAndGet();
-
-                byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-
-
-                /**
-                 byte[] m = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-                 for (int i = 0; i < 4; i++) {
-                 indexBytes[i] = m[i];
-                 }
-                 int index = Ints.fromByteArray(m);
-                 oldIndex = index;
-                 */
+                channel.basicPublish("udp", "", null, Arrays.copyOfRange(packet.getData(), 0, packet.getLength()));
             }
         } catch (Exception e) {
             log.error("Exception: ",e);
@@ -71,7 +72,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server();
+        FastRabbitServer server = new FastRabbitServer();
     }
 
 
