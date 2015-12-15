@@ -25,6 +25,10 @@ proxy:
   volumes:
     - "/var/run/docker.sock:/tmp/docker.sock:ro"
   restart: always
+  log_driver: "json-file"
+  log_opt:
+    max-size: "100k"
+    max-file: "20"
 
 # https://github.com/osixia/docker-openldap
 ldap:
@@ -46,6 +50,7 @@ webldap:
     PHPLDAPADMIN_LDAP_HOSTS: ldap
   links:
     - ldap
+    - proxy
   expose:
     - "443"
     - "80"
@@ -72,7 +77,7 @@ rabbitblack:
   expose:
     - "15672"
   links:
-    - "proxy" 
+    - proxy
 
 # 'inside' rabbitmq
 rabbitred:
@@ -93,7 +98,7 @@ rabbitred:
   expose:
     - "15672"
   links: 
-    - "proxy" 
+    - proxy
 
 
 # and something to generate messages to rabbitblack (outside)
@@ -109,4 +114,5 @@ nodered:
   restart: always
   links:
     - rabbitblack
+    - proxy
 
