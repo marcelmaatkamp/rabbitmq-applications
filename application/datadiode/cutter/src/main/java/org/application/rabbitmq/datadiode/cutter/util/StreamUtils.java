@@ -39,7 +39,7 @@ public class StreamUtils {
     }
 
     // todo: msg fully loaded
-    public static List<Message> cut(ExchangeMessage message, int bufSize, int redundancyFactor, boolean calculateDigest, String digestName) throws IOException, NoSuchAlgorithmException {
+    public static List<Message> cut(ExchangeMessage message, int lengthOfMessage, int redundancyFactor, boolean calculateDigest, String digestName) throws IOException, NoSuchAlgorithmException {
         List<Message> results = new ArrayList();
 
         if (calculateDigest) {
@@ -50,15 +50,19 @@ public class StreamUtils {
 
         byte[] messageBytes = SerializationUtils.serialize(message);
 
-        int count = (int) (messageBytes.length / bufSize);
-        int modulo = messageBytes.length % bufSize;
-        MessageProperties messageProperties = message.getMessage().getMessageProperties();
+        return getMessages(message.getUuid(), message.getMessage().getMessageProperties(), lengthOfMessage, redundancyFactor, results, messageBytes);
+    }
+
+    public static List<Message> getMessages(UUID uuid, MessageProperties messageProperties, int lengthOfMessage, int redundancyFactor, List<Message> results, byte[] messageBytes) throws IOException {
+        int count = (int) (messageBytes.length / lengthOfMessage);
+        int modulo = messageBytes.length % lengthOfMessage;
+       //  MessageProperties messageProperties = message.getMessage().getMessageProperties();
 
         // blocksize
         for (int i = 0; i < count; i++) {
-            int start = i * bufSize;
-            int stop = start + bufSize;
-            Segment segment = new Segment().count(count + 1).index(i).uuid(message.getUuid()).segment(Arrays.copyOfRange(messageBytes, start, stop));
+            int start = i * lengthOfMessage;
+            int stop = start + lengthOfMessage;
+            Segment segment = new Segment().count(count + 1).index(i).uuid(uuid).segment(Arrays.copyOfRange(messageBytes, start, stop));
             messageProperties = new MessageProperties();
             messageProperties.getHeaders().put("type", segment.getClass());
             messageProperties.getHeaders().put("uuid", segment.uuid);
@@ -66,16 +70,16 @@ public class StreamUtils {
             messageProperties.getHeaders().put("count", count);
             messageProperties.getHeaders().put("size", segment.segment.length);
             if (log.isDebugEnabled()) {
-                log.debug(segment.toString() + " buf(" + bufSize + ").start(" + start + ").stop(" + stop + ").segment(" + segment.toByteArray().length + ")");
+                log.debug(segment.toString() + " buf(" + lengthOfMessage + ").start(" + start + ").stop(" + stop + ").segment(" + segment.toByteArray().length + ")");
             }
             addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
         }
 
         // and the rest
         if (modulo > 0) {
-            int start = count * bufSize;
-            int stop = count * bufSize + modulo;
-            Segment segment = new Segment().count(count + 1).index(count).uuid(message.getUuid()).segment(Arrays.copyOfRange(messageBytes, start, stop));
+            int start = count * lengthOfMessage;
+            int stop = count * lengthOfMessage + modulo;
+            Segment segment = new Segment().count(count + 1).index(count).uuid(uuid).segment(Arrays.copyOfRange(messageBytes, start, stop));
             messageProperties = new MessageProperties();
             messageProperties.getHeaders().put("type", segment.getClass());
             messageProperties.getHeaders().put("uuid", segment.uuid);
@@ -85,7 +89,7 @@ public class StreamUtils {
             messageProperties.getHeaders().put("size", modulo);
 
             if (log.isDebugEnabled()) {
-                log.debug(segment.toString() + " buf(" + bufSize + ").start(" + start + ").stop(" + stop + ").segment(" + segment.toByteArray().length + ")");
+                log.debug(segment.toString() + " buf(" + lengthOfMessage + ").start(" + start + ").stop(" + stop + ").segment(" + segment.toByteArray().length + ")");
             }
             addRedundantly(results, new Message(segment.toByteArray(), messageProperties), redundancyFactor);
         }
@@ -93,7 +97,7 @@ public class StreamUtils {
         Collections.shuffle(results);
 
         if (log.isDebugEnabled()) {
-            log.debug("[" + message.getUuid().toString() + "]: serialize.length: " + messageBytes.length + ", in count(" + results.size() + ")");
+            log.debug("[" + uuid.toString() + "]: serialize.length: " + messageBytes.length + ", in count(" + results.size() + ")");
         }
 
 

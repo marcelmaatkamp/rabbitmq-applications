@@ -51,11 +51,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Configuration
 @EnableScheduling
 public class MergeConfiguration implements MessageListener {
+
     public static final String X_SHOVELLED = "x-shovelled";
     public static final String SRC_EXCHANGE = "src-exchange";
     public static final String SRC_QUEUE = "src-queue";
     private static final Logger log = LoggerFactory.getLogger(MergeConfiguration.class);
+
     // static Map<SegmentHeader, TreeSet<Segment>> uMessages = new ConcurrentHashMap();
+
     @Autowired
     XStream xStream;
     @Autowired
@@ -242,7 +245,7 @@ public class MergeConfiguration implements MessageListener {
                 // log.error("Unknown type("+type+"), not a segmentHeader or segment");
             }
 
-            bis.close();
+            // bis.close();
 
         } catch (IOException e) {
             log.error("Exception: ", e);
