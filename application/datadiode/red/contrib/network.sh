@@ -13,4 +13,7 @@ sudo sysctl -w \
   net.ipv4.conf.all.send_redirects=0 \
   net.ipv4.conf.all.accept_redirects=0 \
   net.ipv4.conf.all.accept_source_route=0 \
-  net.ipv4.conf.all.log_martians=1 
+  net.ipv4.conf.all.log_martians=1 \
+  net.netfilter.nf_conntrack_max=262144 \
+  net.nf_conntrack_max=262144
+
