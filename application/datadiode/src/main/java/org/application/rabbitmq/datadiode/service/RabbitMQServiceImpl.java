@@ -78,30 +78,41 @@ public class RabbitMQServiceImpl implements RabbitMQService {
             if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = new FanoutExchange(exchangeName);
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
+                exchangeCache.put(message.getMessageProperties().getReceivedExchange(), exchange);
             }
+
             exchangeMessage = new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
         } else {
             exchangeName = message.getMessageProperties().getReceivedExchange();
+
             if (!declaredExchanges().containsKey(exchangeName)) {
                 Exchange exchange = rabbitManagementTemplate.getExchange(message.getMessageProperties().getReceivedExchange());
+                exchangeCache.put(message.getMessageProperties().getReceivedExchange(), exchange);
                 declaredExchanges().put(exchangeName, xStream.toXML(exchange));
             }
             exchangeMessage = new ExchangeMessage(message, (String) declaredExchanges().get(exchangeName));
+
         }
-        // log.info("to.headers: " + xStream.toXML(exchangeMessage.getMessage().getMessageProperties()));
         return exchangeMessage;
     }
 
+    Map <String, Exchange> exchangeCache = new HashMap<>();
 
     public void sendExchangeMessage(ExchangeMessage exchangeMessage) {
         try {
             if (exchangeMessage.getExchangeData() != null) {
-                Exchange exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
+                Exchange exchange = null;
 
+                if(exchangeCache.containsKey(exchangeMessage.getMessage().getMessageProperties().getReceivedExchange())) {
+                    exchange = exchangeCache.get(exchangeMessage.getMessage().getMessageProperties().getReceivedExchange());
+                } else {
+                    exchange = (Exchange) xStream.fromXML(exchangeMessage.getExchangeData());
+                }
 
                 if (!declaredExchanges().keySet().contains(exchange)) {
                     rabbitAdmin.declareExchange(exchange);
                     declaredExchanges().put(exchange.getName(), exchangeMessage.getExchangeData());
+                    exchangeCache.put(exchange.getName(), exchange);
                 }
 
                 if (log.isTraceEnabled()) {
