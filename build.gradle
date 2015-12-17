@@ -17,8 +17,10 @@ allprojects {
     apply plugin: "java"
     apply plugin: "eclipse"
     apply plugin: "idea"
-    apply plugin: "spring-boot"
     apply plugin: "docker"
+    apply plugin: "spring-boot"
+    apply plugin: 'application'
+
 // apply plugin: "scala"
 
     jar {
@@ -86,15 +88,6 @@ allprojects {
     // applicationDefaultJvmArgs = ["-Dfile.encoding=UTF-8"]
 }
 
-springBoot {
-    mainClass = "org.datadiode.black.DatadiodeBlackStarter"
-}
-
-task runApp(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    main = "encryption.Encryption"
-}
-
 project(":application") {
 
 }
@@ -105,6 +98,7 @@ project(":application:datadiode") {
     }
 }
 project(":application:datadiode:black") {
+    apply plugin: "docker"
     dependencies {
         compile project(':application:datadiode')
         compile project(':application:datadiode:encryption:encrypt')
