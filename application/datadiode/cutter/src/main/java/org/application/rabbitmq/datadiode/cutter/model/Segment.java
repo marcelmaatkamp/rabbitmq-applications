@@ -71,7 +71,10 @@ public class Segment implements Serializable, Comparable<Segment> {
         bos.putInt(index);
         bos.putInt(segment.length);
         bos.put(segment);
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         return bos.array();
     }
 

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
 import org.application.rabbitmq.datadiode.cutter.model.SegmentHeader;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,24 @@ public class StreamUtilsTest {
 
 
     @Test
-    public void testReconstruct() throws Exception {
+    public void testMulti() throws Exception {
+        int arraySize = 1024;
+        int size =2;
+
+        List<byte[]> arrays = new ArrayList<>(size);
+        for(int i = 0; i < size; i++) {
+            arrays.add(RandomUtils.nextBytes(arraySize));
+        }
+
+        byte[] multi = StreamUtils.toMulti(arrays);
+        List<byte[]> arrayFromMulti = StreamUtils.fromMulti(multi);
+
+        Assert.assertEquals(arrayFromMulti.size(), arrays.size());
+
+        for(int i = 0; i < size; i++) {
+            Assert.assertArrayEquals(arrays.get(i), arrayFromMulti.get(i));
+        }
+
 
     }
 }

@@ -3,6 +3,7 @@ package org.application.rabbitmq.datadiode.cutter.util;
 import com.google.gson.Gson;
 import com.thoughtworks.xstream.XStream;
 import org.application.rabbitmq.datadiode.cutter.model.Segment;
+import org.application.rabbitmq.datadiode.cutter.model.SegmentType;
 import org.application.rabbitmq.datadiode.model.message.ExchangeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -24,6 +26,7 @@ import java.util.*;
  */
 @Component
 public class StreamUtils {
+
     private static final Logger log = LoggerFactory.getLogger(StreamUtils.class);
     static Gson gson;
     private static XStream xStream;
@@ -36,6 +39,45 @@ public class StreamUtils {
         for (int i = 0; i < redundancyFactor; i++) {
             messages.add(message);
         }
+    }
+
+
+    public static byte[] toMulti(List<byte[]> arrays) {
+        int totalLength = 0;
+        for(byte[] array : arrays) {
+            totalLength = totalLength + array.length;
+        }
+
+        ByteBuffer bos = ByteBuffer.allocate(
+                Byte.BYTES +
+                Integer.BYTES +
+                (arrays.size() * Integer.BYTES) +
+                totalLength);
+
+        bos.put(SegmentType.MULTISEGMENT.getType());
+        bos.putInt(arrays.size());
+
+        for(byte[] array : arrays) {
+            bos.putInt(array.length);
+            bos.put(array);
+        }
+
+        return bos.array();
+    }
+
+    public static List<byte[]> fromMulti(byte[] array) {
+        ByteBuffer b = ByteBuffer.wrap(array);
+        byte type = b.get();
+        int numberOfItems = b.getInt();
+
+        List<byte[]> arrays = new ArrayList(numberOfItems);
+        for(int i = 0; i<numberOfItems; i++) {
+            byte[] a = new byte[(b.getInt())];
+            b.get(a);
+            arrays.add(a);
+        }
+
+        return arrays;
     }
 
     // todo: msg fully loaded
