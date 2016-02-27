@@ -104,4 +104,16 @@ public class SearchConfiguration {
         sendGET(url);
 
     }
+
+    @RabbitListener(
+            containerFactory = "myRabbitListenerContainerFactory",
+            bindings = @QueueBinding(
+                    value = @Queue(value = "opencv", durable = "true"),
+                    exchange = @Exchange(value = "images"))
+    )
+    public void processImageOpenCV(URL url) throws IOException, TikaException, SAXException {
+        log.info("url(" + url + ")");
+        sendGET(url);
+
+    }
 }
